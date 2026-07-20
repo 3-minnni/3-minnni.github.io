@@ -1937,35 +1937,6 @@ function ltDraw(rot){
   ctx.beginPath();ctx.arc(C,C,30,0,Math.PI*2);ctx.fillStyle='#E8B33C';ctx.fill();
   ctx.strokeStyle='#0A0C11';ctx.lineWidth=3;ctx.stroke();
 }
-function ltSpin(){
-  if(ltSpinning||ltItems.length<2)return;
-  ltSpinning=true;$('ltSpinBtn').textContent='回転中…';
-  const total=ltItems.reduce((s,x)=>s+x.w,0);
-  let r=Math.random()*total,idx=0,acc=0;
-  for(let i=0;i<ltItems.length;i++){acc+=ltItems[i].w;if(r<acc){idx=i;break;}}
-  let before=0;for(let i=0;i<idx;i++)before+=ltItems[i].w;
-  const centerAngle=(before+ltItems[idx].w/2)/total*Math.PI*2;
-  const jitter=(Math.random()-.5)*(ltItems[idx].w/total)*Math.PI*2*0.7;
-  const target=Math.PI*2*(FX==='full'?6:FX==='light'?3:1)+(Math.PI*2-centerAngle-jitter);
-  const startRot=ltRot%(Math.PI*2),t0=performance.now(),dur=FX==='full'?3200:FX==='light'?1400:250;
-  function frame(now){
-    const t=Math.min(1,(now-t0)/dur);
-    const e=1-Math.pow(1-t,3);
-    ltRot=startRot+(target-startRot)*e;
-    ltDraw(ltRot);
-    if(t<1){requestAnimationFrame(frame);}
-    else{
-      ltSpinning=false;$('ltSpinBtn').textContent='回す';
-      const rb=$('ltResult');
-      rb.className='result-banner hit pop';
-      rb.innerHTML=`<div class="r-tier">結果</div><div class="r-coin">${ltItems[idx].name}</div>`;
-      const chip=document.createElement('span');
-      chip.className='rc gold';chip.textContent=ltItems[idx].name;
-      $('ltHistory').prepend(chip);
-    }
-  }
-  requestAnimationFrame(frame);
-}
 addLtRow('大当たり',1);addLtRow('ハズレ',9);
 
 /* ===================== 電卓 ===================== */
@@ -2944,38 +2915,6 @@ function ltDraw(rot){
   });
   ctx.beginPath();ctx.arc(C,C,30,0,Math.PI*2);ctx.fillStyle='#E8C879';ctx.fill();
   ctx.strokeStyle='#0A0C11';ctx.lineWidth=3;ctx.stroke();
-}
-function ltSpin(){
-  if(ltSpinning||ltItems.length<2)return;
-  ltSpinning=true;$('ltSpinBtn').textContent='回転中…';
-  const total=ltItems.reduce((s,x)=>s+x.w,0);
-  let r=Math.random()*total,idx=0,acc=0;
-  for(let i=0;i<ltItems.length;i++){acc+=ltItems[i].w;if(r<acc){idx=i;break;}}
-  let before=0;for(let i=0;i<idx;i++)before+=ltItems[i].w;
-  const centerAngle=(before+ltItems[idx].w/2)/total*Math.PI*2;
-  const jitter=(Math.random()-.5)*(ltItems[idx].w/total)*Math.PI*2*0.7;
-  const target=Math.PI*2*(FX==='full'?6:FX==='light'?3:1)+(Math.PI*2-centerAngle-jitter);
-  const startRot=ltRot%(Math.PI*2),t0=performance.now(),dur=FX==='full'?3200:FX==='light'?1400:250;
-  function frame(now){
-    const t=Math.min(1,(now-t0)/dur);
-    const e=1-Math.pow(1-t,3);
-    ltRot=startRot+(target-startRot)*e;
-    ltDraw(ltRot);
-    if(t<1){requestAnimationFrame(frame);}
-    else{
-      ltSpinning=false;$('ltSpinBtn').textContent='回す';
-      const rank=ltRanks[idx]||6;
-      const rb=$('ltResult');
-      rb.className='result-banner fx-r'+rank+' pop';
-      rb.innerHTML=`<div class="r-tier">結果 <span class="rankb r${rank}">${rank}位</span>${rank===1?' 🌈':''}</div><div class="r-coin">${ltItems[idx].name}</div>`;
-      if(rank===1)confettiBurst(rb);
-      const chip=document.createElement('span');
-      chip.className='rc';chip.style.borderColor=ltItems[idx].color;chip.style.color='var(--ink)';
-      chip.textContent=ltItems[idx].name;
-      $('ltHistory').prepend(chip);
-    }
-  }
-  requestAnimationFrame(frame);
 }
 /* ---- チンチロ: 演出強化 ---- */
 /* ---- ルーレット: 本格カジノ盤 ---- */

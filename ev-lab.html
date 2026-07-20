@@ -2034,24 +2034,10 @@ particlesSet(true);
 function lsAll(){try{return JSON.parse(localStorage.getItem('evlab_presets')||'{}');}catch(e){return window.__pm||(window.__pm={});}}
 function lsSaveAll(o){try{localStorage.setItem('evlab_presets',JSON.stringify(o));}catch(e){window.__pm=o;}}
 const PRESET_ROWS={pk:{box:'pkDistRows',add:()=>addPkDist()},op:{box:'opTiers',add:()=>addOpTier()},gc:{box:'gcTiers',add:()=>addGcTier()}};
-function presetSave(p){
-  const nameEl=$('pname-'+p);
-  const name=(nameEl&&nameEl.value.trim())||('無題 '+new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'}));
-  const all=lsAll();all[p]=all[p]||{};
-  const keys=Object.keys(all[p]);
-  if(keys.length>=100){delete all[p][keys[0]];}
-  all[p][name]=presetSnap(p);
-  lsSaveAll(all);presetBarRender(p);
-}
 function presetLoad(p){
   const sel=$('psel-'+p);if(!sel)return;
   const s=(lsAll()[p]||{})[sel.value];
   if(s)presetRestore(p,s);
-}
-function presetDel(p){
-  const sel=$('psel-'+p);if(!sel)return;
-  const all=lsAll();
-  if(all[p]){delete all[p][sel.value];lsSaveAll(all);presetBarRender(p);}
 }
 function presetBarRender(p){
   const bar=document.querySelector('.preset-bar[data-p="'+p+'"]');if(!bar)return;

@@ -1728,50 +1728,6 @@ function addGcTier(name,rate){
   $('gcTiers').appendChild(div);
 }
 function gcSetWallet(){gcWallet=parseFloat($('gcWalletSet').value)||0;gcStart=gcWallet;gcRender(null);}
-function gcRender(last){
-  $('gcWallet').textContent=cf(gcWallet);
-  const diff=gcWallet-gcStart;const wd=$('gcWalletDiff');
-  wd.textContent=(diff>=0?'+':'−')+cf(Math.abs(diff));wd.className='w-diff '+(diff>=0?'up':'down');
-  const pity=Math.max(0,Math.round(V('gcPity')));
-  $('gcPityView').innerHTML=`<span class="rc">通算 <b>${gcCount}</b>連</span>`
-    +(pity>0?`<span class="rc gold">天井まで残り <b>${Math.max(0,pity-gcSince)}</b>回</span>`:'')
-    +gcTiersDef.map((t,i)=>`<span class="rc">${t.name}: <b>${gcHits[i]}</b>枚</span>`).join('');
-  if(last===null){const rb=$('gcResult');rb.className='result-banner';rb.innerHTML='<div class="r-tier">↓ ボタンを押して引く</div><div class="r-coin">—</div>';}
-}
-function gcPull(n){
-  const cost=V('gcCost'),pity=Math.max(0,Math.round(V('gcPity')));
-  let best=99,pulled=0;
-  for(let k=0;k<n;k++){
-    if(gcWallet<cost)break;
-    gcWallet-=cost;gcSpent+=cost;gcCount++;gcSince++;pulled++;
-    let tier=-1,r=Math.random(),acc=0;
-    for(let i=0;i<gcTiersDef.length;i++){acc+=gcTiersDef[i].rate;if(r<acc){tier=i;break;}}
-    if(pity>0&&gcSince>=pity)tier=0;
-    if(tier===0)gcSince=0;
-    if(tier>=0){gcHits[tier]++;if(tier<best)best=tier;}
-    gcSeries.push(-gcSpent);
-    if(n<=100){
-      const chip=document.createElement('span');
-      chip.className='pl '+(tier===0?'t0':tier===1?'t1':tier>=2?'t2':'tx');
-      chip.textContent=tier>=0?gcTiersDef[tier].name.slice(0,2):'—';
-      $('gcLog').prepend(chip);
-    }
-  }
-  const rb=$('gcResult');
-  if(pulled===0){rb.className='result-banner';rb.innerHTML='<div class="r-tier">石が足りません</div><div class="r-coin">—</div>';return;}
-  const hit=best<99;
-  const show=()=>{
-    rb.className='result-banner '+(best===0?'hit':'')+' pop';
-    rb.innerHTML=`<div class="r-tier">${pulled}連の結果 ${hit?'— 最高: '+gcTiersDef[best].name:'— 全部通常枠'}</div>
-      <div class="r-coin">累計消費 ${cf(gcSpent)} 石</div>`;
-    gcRender(true);
-  };
-  if(fxOn()){
-    rb.className='result-banner pop';
-    rb.innerHTML='<div class="r-tier">召喚中…</div><div class="r-coin">???</div>';
-    setTimeout(show,fxDur(best===0?700:350,150));
-  }else show();
-}
 addGcTier('SSR',0.7);addGcTier('SR',6);addGcTier('R',20);
 
 /* ===================== ルーレット ===================== */
@@ -2684,53 +2640,6 @@ function funOver(){
   statAdd('パチンコ(遊び)',fun.cash+fun.tama-fun.start,fun.start);
 }
 /* ---- ガチャ: グリッド表示/虹演出/独立試行 ---- */
-function gcRender(last){
-  $('gcWallet').textContent=cf(gcWallet);
-  const diff=gcWallet-gcStart;const wd=$('gcWalletDiff');
-  wd.textContent=(diff>=0?'+':'−')+cf(Math.abs(diff));wd.className='w-diff '+(diff>=0?'up':'down');
-  $('gcSpentBig').textContent=cf(gcSpent);
-  $('gcCountBig').textContent=cf(gcCount);
-  const pity=Math.max(0,Math.round(V('gcPity')));
-  $('gcPityView').innerHTML=(pity>0?`<span class="rc gold">天井まで残り <b>${Math.max(0,pity-gcSince)}</b>回</span>`:'');
-  $('gcCounts').innerHTML=gcTiersDef.map((t,i)=>'<span class="rc'+(gcHits[i]>0&&gcRank[i]<=2?' gold':'')+'">'+t.name+': <b>'+gcHits[i]+'</b>枚</span>').join('');
-  if(last===null){const rb=$('gcResult');rb.className='result-banner';rb.innerHTML='<div class="r-tier">↓ ボタンを押して引く</div><div class="r-coin">—</div>';}
-}
-function gcPull(n){
-  const cost=V('gcCost'),pity=Math.max(0,Math.round(V('gcPity')));
-  let best=99,pulled=0;
-  for(let k=0;k<n;k++){
-    if(gcWallet<cost)break;
-    gcWallet-=cost;gcSpent+=cost;gcCount++;gcSince++;pulled++;
-    let tier=-1,r=Math.random(),acc=0;
-    for(let i=0;i<gcTiersDef.length;i++){acc+=gcTiersDef[i].rate;if(r<acc){tier=i;break;}}
-    if(pity>0&&gcSince>=pity)tier=0;
-    if(tier===0)gcSince=0;
-    if(tier>=0){gcHits[tier]++;if(tier<best)best=tier;}
-    if(n<=100){
-      const chip=document.createElement('span');
-      chip.className='pl '+(tier===0?'t0':tier===1?'t1':tier>=2?'t2':'tx');
-      chip.textContent=tier>=0?gcTiersDef[tier].name.slice(0,2):'—';
-      $('gcLog').prepend(chip);
-    }
-  }
-  const rb=$('gcResult');
-  if(pulled===0){rb.className='result-banner';rb.innerHTML='<div class="r-tier">石が足りません</div><div class="r-coin">—</div>';return;}
-  const hit=best<99;
-  const rank=hit?gcRank[best]:6;
-  const show=()=>{
-    rb.className='result-banner '+(hit?'fx-r'+rank:'')+' pop';
-    rb.innerHTML=`<div class="r-tier">${pulled}連の結果 ${hit?'— 最高: '+gcTiersDef[best].name+(rank===1?' 🌈':''):'— 全部通常枠'}</div>
-      <div class="r-coin">−${cf(cost*pulled)} 石消費</div>`;
-    if(hit&&rank===1)confettiBurst(rb);
-    gcRender(true);
-    statAdd('ガチャ',-cost*pulled,cost*pulled);
-  };
-  if(fxOn()){
-    rb.className='result-banner pop';
-    rb.innerHTML='<div class="r-tier">召喚中…</div><div class="r-coin">???</div>';
-    setTimeout(show,fxDur(best===0?700:350,150));
-  }else show();
-}
 /* ---- オリパ: 残り口数/順位演出/1000連 ---- */
 function opBuild(){
   const T=Math.max(1,Math.round(V('opTotal')));

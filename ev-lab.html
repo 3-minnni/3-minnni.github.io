@@ -1631,35 +1631,6 @@ function opGetTiers(total){
     return{name:ins[0].value||'賞',coin:parseFloat(ins[1].value)||0,count:parseCount(ins[2].value,total)};
   }).filter(t=>t.count>0);
 }
-function opBuild(){
-  const T=Math.max(1,Math.round(V('opTotal')));
-  const cost=V('opCost'),floor=V('opFloor');
-  const tiers=opGetTiers(T);
-  const winSum=tiers.reduce((s,t)=>s+t.count,0);
-  if(winSum>T){$('opOdds').innerHTML='<div class="warn">当たり枚数の合計が総口数を超えています。</div>';return;}
-  opTierDefs=tiers;
-  opDeck=[];
-  tiers.forEach((t,ti)=>{for(let i=0;i<t.count;i++)opDeck.push(ti);});
-  for(let i=0;i<T-winSum;i++)opDeck.push(-1);
-  shuffle(opDeck);
-  opDrawn=0;opBal=0;opSeries=[0];
-  opWallet=parseFloat($('opWalletSet').value)||50000;opStart=opWallet;
-  const evReturn=(tiers.reduce((s,t)=>s+t.coin*t.count,0)+(T-winSum)*floor)/T;
-  opEvPer=evReturn-cost;
-  const kangen=cost>0?evReturn/cost*100:0;
-  const p10=probHyper(T,tiers[0]?tiers[0].count:0,Math.min(10,T));
-  const p100=probHyper(T,tiers[0]?tiers[0].count:0,Math.min(100,T));
-  $('opOdds').innerHTML=
-    dangerBadge(kangen)
-    +tiers.map(t=>`<div class="remain" style="margin-bottom:4px;"><span class="rc gold">${t.name}: <b>1/${num(T/t.count,0)}</b> で <b>${cf(t.coin)}</b>コイン (${t.count}枚封入)</span></div>`).join('')
-    +`<div class="remain"><span class="rc">総還元率(設計値): <b>${pct(kangen,2)}</b></span><span class="rc">1口の期待損益: <b>${opEvPer>=0?'+':'−'}${cf(Math.abs(opEvPer))}</b>コイン</span></div>`
-    +(tiers[0]?`<div class="remain"><span class="rc">${tiers[0].name}の勝率: 10連で<b>${pct(p10*100)}</b> / 100連で<b>${pct(p100*100)}</b></span></div>`:'');
-  $('opPlay').style.display='';
-  opRender(null);
-  $('opLog').innerHTML='';
-  $('op-theory').innerHTML='';
-  requestAnimationFrame(()=>drawChart($('opChart'),opSeries,[0],{xLabel:'引いた口数',yLabel:'収支(コイン)'}));
-}
 function opSetWallet(){opWallet=parseFloat($('opWalletSet').value)||0;opStart=opWallet;opRender(null);}
 function opRender(lastResult){
   $('opWallet').textContent=cf(opWallet);
@@ -1673,48 +1644,6 @@ function opRender(lastResult){
     +remainByTier.map(r=>`<span class="rc ${r.left>0?'gold':''}">${r.name} 残り<b>${r.left}</b>/${r.total}${r.left>0&&totalLeft>0?' (1/'+num(totalLeft/r.left,0)+')':''}</span>`).join('');
   const rb=$('opResult');
   if(lastResult===null){rb.className='result-banner';rb.innerHTML='<div class="r-tier">↓ ボタンを押して引く</div><div class="r-coin">—</div>';}
-}
-function opPull(n){
-  const cost=V('opCost'),floor=V('opFloor');
-  let bestTier=99,gained=0,pulled=0;
-  for(let k=0;k<n;k++){
-    if(opDrawn>=opDeck.length)break;
-    if(opWallet<cost)break;
-    const t=opDeck[opDrawn++];pulled++;
-    const coin=t>=0?opTierDefs[t].coin:floor;
-    opWallet+=coin-cost;opBal+=coin-cost;gained+=coin;
-    if(t>=0&&t<bestTier)bestTier=t;
-    opSeries.push(opBal);
-    const chip=document.createElement('span');
-    chip.className='pl '+(t===0?'t0':t===1?'t1':t>=2?'t2':'tx');
-    chip.textContent=t>=0?['1','2','3','4','5','6'][t]||'★':'—';
-    $('opLog').prepend(chip);
-  }
-  const rb=$('opResult');
-  if(pulled===0){
-    rb.className='result-banner';
-    rb.innerHTML=opDrawn>=opDeck.length?'<div class="r-tier">完売しました(リセットで再構築)</div><div class="r-coin">—</div>':'<div class="r-tier">コインが足りません</div><div class="r-coin">—</div>';
-    return;
-  }
-  const hit=bestTier<99;
-  const show=()=>{
-    rb.className='result-banner '+(hit?'hit':'')+' pop';
-    rb.innerHTML=`<div class="r-tier">${pulled}口引いた結果 ${hit?'— '+opTierDefs[bestTier].name+'当選!!':'— ハズレ'}</div>
-      <div class="r-coin">+${cf(gained)} コイン獲得</div>`;
-    opRender(true);
-    const evLine=opSeries.map((_,i)=>opEvPer*i);
-    drawChart($('opChart'),opSeries,evLine,{xLabel:'引いた口数',yLabel:'収支(コイン)'});
-    const bust=opWallet<cost;
-    $('op-theory').innerHTML=`<div class="stats">
-      <div class="stat"><div class="s-l">ここまでの収支</div><div class="s-v">${opBal>=0?'+':'−'}${cf(Math.abs(opBal))}</div><div class="s-sub">${opDrawn}口消化</div></div>
-      <div class="stat"><div class="s-l">理論値との差</div><div class="s-v">${cf(opBal-opEvPer*opDrawn)}</div><div class="s-sub">プラス=上振れ中</div></div>
-    </div>`+(bust?'<div class="warn">所持コインが1口分を下回りました。これが「追い銭したくなる瞬間」です。理論値マイナスのオリパは追うほど負けが理論値に近づきます。</div>':'');
-  };
-  if(fxOn()){
-    rb.className='result-banner pop';
-    rb.innerHTML='<div class="r-tier">開封中…</div><div class="r-coin">???</div>';
-    setTimeout(show,fxDur(hit?650:350,150));
-  }else show();
 }
 addOpTier('1等',50000,'10');addOpTier('2等',10000,'50');addOpTier('3等',4000,'1/31');
 
@@ -2641,91 +2570,6 @@ function funOver(){
 }
 /* ---- ガチャ: グリッド表示/虹演出/独立試行 ---- */
 /* ---- オリパ: 残り口数/順位演出/1000連 ---- */
-function opBuild(){
-  const T=Math.max(1,Math.round(V('opTotal')));
-  const cost=V('opCost'),floor=V('opFloor');
-  const tiers=opGetTiers(T);
-  const rem=Math.min(T,Math.max(0,Math.round(V('opRemainIn'))));
-  const useT=rem>0?rem:T;
-  const tiersUse=tiers.map(t=>({...t,count:rem>0?Math.min(useT,Math.max(0,Math.round(t.count*rem/T))):t.count}));
-  const winSum=tiersUse.reduce((s,t)=>s+t.count,0);
-  if(winSum>useT){$('opOdds').innerHTML='<div class="warn">当たり枚数の合計が口数を超えています。</div>';return;}
-  opTierDefs=tiersUse;
-  const order=tiersUse.map((t,i)=>({i,c:t.count})).sort((a,b)=>a.c-b.c);
-  opRank=[];order.forEach((o,pos)=>opRank[o.i]=Math.min(6,pos+1));
-  opHits=tiersUse.map(()=>0);
-  opDeck=[];
-  tiersUse.forEach((t,ti)=>{for(let i=0;i<t.count;i++)opDeck.push(ti);});
-  for(let i=0;i<useT-winSum;i++)opDeck.push(-1);
-  shuffle(opDeck);
-  opDrawn=0;opBal=0;opSeries=[0];
-  opWallet=parseFloat($('opWalletSet').value)||50000;opStart=opWallet;
-  const evReturn=(tiersUse.reduce((s,t)=>s+t.coin*t.count,0)+(useT-winSum)*floor)/useT;
-  opEvPer=evReturn-cost;
-  const kangen=cost>0?evReturn/cost*100:0;
-  const p10=probHyper(useT,tiersUse[0]?tiersUse[0].count:0,Math.min(10,useT));
-  const p100=probHyper(useT,tiersUse[0]?tiersUse[0].count:0,Math.min(100,useT));
-  $('opOdds').innerHTML=
-    dangerBadge(kangen)
-    +(rem>0?'<div class="warn">途中参加モード: 残り'+cf(useT)+'口(設計'+cf(T)+'口)を理論値按分で構築中</div>':'')
-    +tiersUse.map((t,i)=>`<div class="remain" style="margin-bottom:4px;"><span class="rc gold">${t.name} <span class="rankb r${opRank[i]}">${opRank[i]}位</span>: <b>1/${num(useT/Math.max(1,t.count),0)}</b> で <b>${cf(t.coin)}</b>コイン (${t.count}枚封入)</span></div>`).join('')
-    +`<div class="remain"><span class="rc">総還元率: <b>${pct(kangen,2)}</b></span><span class="rc">1口の期待損益: <b>${opEvPer>=0?'+':'−'}${cf(Math.abs(opEvPer))}</b>コイン</span></div>`
-    +(tiersUse[0]?`<div class="remain"><span class="rc">${tiersUse[0].name}の勝率: 10連で<b>${pct(p10*100)}</b> / 100連で<b>${pct(p100*100)}</b></span></div>`:'');
-  $('opPlay').style.display='';
-  opRender(null);
-  $('opLog').innerHTML='';
-  $('op-theory').innerHTML='';
-  requestAnimationFrame(()=>drawChart($('opChart'),opSeries,[0],{xLabel:'引いた口数',yLabel:'収支(コイン)'}));
-}
-function opPull(n){
-  const cost=V('opCost'),floor=V('opFloor');
-  let bestTier=99,gained=0,pulled=0;
-  for(let k=0;k<n;k++){
-    if(opDrawn>=opDeck.length)break;
-    if(opWallet<cost)break;
-    const t=opDeck[opDrawn++];pulled++;
-    const coin=t>=0?opTierDefs[t].coin:floor;
-    opWallet+=coin-cost;opBal+=coin-cost;gained+=coin;
-    if(t>=0){opHits[t]++;if(t<bestTier)bestTier=t;}
-    opSeries.push(opBal);
-    if(n<=100){
-      const chip=document.createElement('span');
-      chip.className='pl '+(t===0?'t0':t===1?'t1':t>=2?'t2':'tx');
-      chip.textContent=t>=0?['1','2','3','4','5','6'][t]||'★':'—';
-      $('opLog').prepend(chip);
-    }
-  }
-  const rb=$('opResult');
-  if(pulled===0){
-    rb.className='result-banner';
-    rb.innerHTML=opDrawn>=opDeck.length?'<div class="r-tier">完売しました(リセットで再構築)</div><div class="r-coin">—</div>':'<div class="r-tier">コインが足りません</div><div class="r-coin">—</div>';
-    return;
-  }
-  const hit=bestTier<99;
-  const rank=hit?opRank[bestTier]:6;
-  const net=gained-cost*pulled;
-  const show=()=>{
-    rb.className='result-banner '+(hit?'fx-r'+rank:'')+' pop';
-    rb.innerHTML=`<div class="r-tier">${pulled}口引いた結果 ${hit?'— '+opTierDefs[bestTier].name+'当選!!'+(rank===1?' 🌈':''):'— ハズレ'}</div>
-      <div class="r-coin">+${cf(gained)} コイン獲得</div>`;
-    if(hit&&rank===1)confettiBurst(rb);
-    opRender(true);
-    const evLine=opSeries.map((_,i)=>opEvPer*i);
-    drawChart($('opChart'),opSeries,evLine,{xLabel:'引いた口数',yLabel:'収支(コイン)'});
-    const bust=opWallet<cost;
-    $('op-theory').innerHTML=`<div class="remain">${opTierDefs.map((t,i)=>'<span class="rc'+(opHits[i]>0?' gold':'')+'">'+t.name+' 獲得: <b>'+opHits[i]+'</b>枚</span>').join('')}</div>
-    <div class="stats">
-      <div class="stat"><div class="s-l">ここまでの収支</div><div class="s-v">${opBal>=0?'+':'−'}${cf(Math.abs(opBal))}</div><div class="s-sub">${opDrawn}口消化</div></div>
-      <div class="stat"><div class="s-l">理論値との差</div><div class="s-v">${cf(opBal-opEvPer*opDrawn)}</div><div class="s-sub">プラス=上振れ中</div></div>
-    </div>`+(bust?'<div class="warn">所持コインが1口分を下回りました。これが「追い銭したくなる瞬間」です。理論値マイナスのオリパは追うほど負けが理論値に近づきます。</div>':'');
-    statAdd('オリパ',net);
-  };
-  if(fxOn()){
-    rb.className='result-banner pop';
-    rb.innerHTML='<div class="r-tier">開封中…</div><div class="r-coin">???</div>';
-    setTimeout(show,fxDur(hit?650:350,150));
-  }else show();
-}
 /* ---- カスタム抽選: 色/順位/演出 ---- */
 function addLtRow(name,w,color){
   const div=document.createElement('div');div.className='tier-row';

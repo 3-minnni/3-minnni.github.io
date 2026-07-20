@@ -1720,43 +1720,6 @@ function ruDraw(rot,cvId,ball){
     ctx.shadowBlur=0;
   }
 }
-function ruSpin(){
-  if(ruSpinning)return;
-  const bet=V('ruBet');
-  if(ruWallet<bet){$('ruResult').className='result-banner';$('ruResult').innerHTML='<div class="r-tier">所持金が足りません</div><div class="r-coin">—</div>';return;}
-  ruSpinning=true;$('ruSpinBtn').textContent='回転中…';
-  const N=RU_ORDER().length;const idx=Math.floor(Math.random()*N);
-  const seg=Math.PI*2/N;
-  const target=Math.PI*2*(FX==='full'?7:FX==='light'?3:1)+(Math.PI*2-(idx*seg+seg/2));
-  const startRot=ruRot%(Math.PI*2),t0=performance.now(),dur=FX==='full'?3600:FX==='light'?1500:250;
-  function frame(now){
-    const t=Math.min(1,(now-t0)/dur);
-    const e=1-Math.pow(1-t,3);
-    ruRot=startRot+(target-startRot)*e;
-    ruDraw(ruRot);
-    if(t<1){requestAnimationFrame(frame);}else{ruSettle(RU_ORDER()[idx],bet);}
-  }
-  requestAnimationFrame(frame);
-}
-function ruSettle(n,bet){
-  ruSpinning=false;$('ruSpinBtn').textContent='SPIN';
-  let win=false,mult=0;
-  if(ruBetType==='num'){win=n===V('ruNum');mult=36;}
-  else if(ruBetType==='red'){win=RU_RED.has(n)&&n!==0;mult=2;}
-  else if(ruBetType==='black'){win=!RU_RED.has(n)&&n!==0;mult=2;}
-  else if(ruBetType==='odd'){win=n!==0&&n%2===1;mult=2;}
-  else{win=n!==0&&n%2===0;mult=2;}
-  const delta=win?bet*mult-bet:-bet;
-  ruWallet+=delta;ruBal+=delta;ruSeries.push(ruBal);
-  ruRenderWallet();
-  const rb=$('ruResult');
-  const colName=(n===0||n==='00')?'緑':(RU_RED.has(n)?'赤':'黒');
-  rb.className='result-banner '+(win?'hit':'')+' pop';
-  rb.innerHTML=`<div class="r-tier">出目: ${n} (${colName}) — ${win?'的中!!':'ハズレ'}</div>
-    <div class="r-coin">${delta>=0?'+':'−'}${cf(Math.abs(delta))} 円</div>`;
-  const evLine=ruSeries.map((_,i)=>ruEvPer*i);
-  drawChart($('ruChart'),ruSeries,evLine,{xLabel:'スピン回数',yLabel:'収支(円)'});
-}
 ruDraw(0);ruRenderWallet();
 
 /* ===================== カスタム抽選 ===================== */
@@ -2146,22 +2109,6 @@ function ruSetMode(m){
   }
   rbNamesRender();
 })();
-function rbNamesRender(){
-  const box=$('rbNames');box.innerHTML='<div class="flabel">プレイヤー名</div>';
-  for(let i=0;i<rbN;i++){
-    const d=document.createElement('div');d.className='igroup';d.style.marginTop='6px';
-    d.innerHTML='<span class="pre">P'+(i+1)+'</span><input type="text" id="rbName'+i+'" value="プレイヤー'+(i+1)+'">';
-    box.appendChild(d);
-  }
-}
-function rbStart(){
-  const money=Math.max(100,Math.round(V('rbMoney')));
-  rb={players:[],round:1,rounds:Math.max(1,Math.round(V('rbRounds'))),cur:0};
-  for(let i=0;i<rbN;i++)rb.players.push({name:($('rbName'+i)&&$('rbName'+i).value)||('P'+(i+1)),money,bet:null});
-  $('rbPlay').style.display='';$('rbLog').innerHTML='';
-  $('rbResult').style.display='none';$('rbStage').style.display='none';$('rbSpinBtn').style.display='none';
-  rbRender();rbBetForm();
-}
 function rbRender(){
   $('rbStand').innerHTML=rb.players.map((p,i)=>'<span class="rc'+(p.bets?' gold':'')+(rb.cur===i&&rb.round<=rb.rounds?' cur':'')+'">'+escHtml(p.name)+': <b>'+cf(p.money)+'</b>'+(p.bets?' ✓':'')+'</span>').join('')
     +'<span class="rc">R'+rb.round+'/'+rb.rounds+'</span>';
@@ -2219,36 +2166,6 @@ function rbSpin(){
     if(t<1)requestAnimationFrame(frame);else rbSettle(RU_ORDER()[idx]);
   }
   requestAnimationFrame(frame);
-}
-function rbSettle(n){
-  rbSpinning=false;$('rbSpinBtn').textContent='SPIN(運命の一回転)';
-  const colName=(n===0||n==='00')?'緑':(RU_RED.has(n)?'赤':'黒');
-  rb.players.forEach(p=>{
-    const m=ruJudge(p.bet.type,p.bet.num,n);
-    const delta=m>0?p.bet.amt*(m-1):-p.bet.amt;
-    p.money+=delta;
-    const d=document.createElement('div');
-    d.className='cclog-line';
-    d.style.color=m>0?'var(--gold-hi)':'var(--ink-2)';
-    d.textContent='R'+rb.round+': '+p.name+(m>0?' 的中 +'+cf(delta):' ハズレ −'+cf(p.bet.amt));
-    $('rbLog').prepend(d);
-    p.bet=null;
-  });
-  const rbR=$('rbResult');
-  rbR.style.display='';rbR.className='result-banner hit pop';
-  rbR.innerHTML='<div class="r-tier">R'+rb.round+' 出目</div><div class="r-coin">'+n+' ('+colName+')</div>';
-  const ranked=[...rb.players].sort((a,b)=>b.money-a.money);
-  if(rb.round>=rb.rounds){
-    $('rbInput').innerHTML='<div class="result-banner hit"><div class="r-tier">🏆 優勝</div><div class="r-coin">'+ranked[0].name+'</div>'
-      +'<div class="r-tier">'+ranked.map((p,i)=>(i+1)+'位 '+p.name+' '+cf(p.money)).join(' / ')+'</div></div>'
-      +'<button class="btn2 accent" style="width:100%;padding:12px;margin-top:8px;" onclick="rbStart()">同メンバーで再戦</button>';
-    $('rbStage').style.display='none';$('rbSpinBtn').style.display='none';
-  }else{
-    rb.round++;rb.cur=0;
-    $('rbStage').style.display='none';$('rbSpinBtn').style.display='none';
-    rbBetForm();
-  }
-  rbRender();
 }
 
 /* ============================================================
@@ -2698,52 +2615,6 @@ function ruSetWallet(){
   ruHist=[];ruHistRender();
   ruRenderWallet();ruUpdateStats();
   drawChart($('ruChart'),ruSeries,ruEvSeries,{xLabel:'スピン回数',yLabel:'収支(円)'});
-}
-function ruSpin(){
-  if(ruSpinning)return;
-  const total=rtTotal();
-  const rb0=$('ruResult');
-  if(total<=0){rb0.className='result-banner';rb0.innerHTML='<div class="r-tier">チップを置いてください</div><div class="r-coin">—</div>';return;}
-  if(ruWallet<total){rb0.className='result-banner';rb0.innerHTML='<div class="r-tier">所持金が足りません</div><div class="r-coin">—</div>';return;}
-  ruSpinning=true;$('ruSpinBtn').textContent='回転中…';
-  const N=RU_ORDER().length;const idx=Math.floor(Math.random()*N);
-  const seg=Math.PI*2/N;
-  const turns=FX==='full'?7:FX==='light'?3:1;
-  const target=Math.PI*2*turns+(Math.PI*2-(idx*seg+seg/2));
-  const startRot=ruRot%(Math.PI*2),t0=performance.now(),dur=FX==='full'?3600:FX==='light'?1500:250;
-  const ballTurns=FX==='full'?6:FX==='light'?3:1;
-  function frame(now){
-    const t=Math.min(1,(now-t0)/dur);
-    const e=1-Math.pow(1-t,3);
-    ruRot=startRot+(target-startRot)*e;
-    const bAng=-Math.PI/2-(1-e)*Math.PI*2*ballTurns;
-    ruDraw(ruRot,'rouWheel',{a:bAng,r:300*(0.95-0.21*e)});
-    if(t<1){requestAnimationFrame(frame);}else{ruSettle(RU_ORDER()[idx]);}
-  }
-  requestAnimationFrame(frame);
-}
-function ruSettle(n){
-  ruSpinning=false;$('ruSpinBtn').textContent='SPIN';
-  const total=rtTotal();
-  let delta=0,payout=0;
-  Object.entries(rtBets).forEach(([k,a])=>{
-    const m=rtJudge(k,n);
-    delta+=m>0?a*(m-1):-a;
-    if(m>0)payout+=a*m;
-  });
-  ruWallet+=delta;ruBal+=delta;
-  ruSeries.push(ruBal);
-  ruEvSeries.push(ruEvSeries[ruEvSeries.length-1]-total/RU_ORDER().length);
-  ruRenderWallet();ruUpdateStats();
-  const colName=(n===0||n==='00')?'緑':(RU_RED.has(n)?'赤':'黒');
-  const rb=$('ruResult');
-  rb.className='result-banner '+(delta>=0?'hit':'')+' pop';
-  rb.innerHTML=`<div class="r-tier">出目: ${n} (${colName}) — 払い戻し ${cf(payout)}</div>
-    <div class="r-coin">${delta>=0?'+':'−'}${cf(Math.abs(delta))} 円</div>
-    <div class="r-tier" style="font-size:11px;color:var(--ink-3);">ベットは据え置き。取り消すには下のタグをタップ</div>`;
-  if(delta>0&&payout>=total*5)confettiBurst(rb);
-  drawChart($('ruChart'),ruSeries,ruEvSeries,{xLabel:'スピン回数',yLabel:'収支(円)'});
-  statAdd('ルーレット',delta);
 }
 /* ---- スペック保存: 確認ダイアログ + 王道テンプレ + 全対象 ---- */
 const PROWS={
@@ -3498,63 +3369,6 @@ function ruSettle(n){
   if(bigWin){confettiBurst(rb);SFX.jackpot();}else if(delta>0)SFX.win();else SFX.lose();
   drawChart($('ruChart'),ruSeries,ruEvSeries,{xLabel:'スピン回数',yLabel:'収支(円)'});
   statAdd('ルーレット',delta,total);
-}
-/* ---- 友達対戦: 個別所持金 + 虹演出 ---- */
-function rbNamesRender(){
-  const box=$('rbNames');box.innerHTML='<div class="flabel">プレイヤー名と所持金(個別設定可)</div>';
-  for(let i=0;i<rbN;i++){
-    const d=document.createElement('div');d.style.cssText='display:flex;gap:6px;margin-top:6px;';
-    d.innerHTML='<div class="igroup" style="flex:1.4;"><span class="pre">P'+(i+1)+'</span><input type="text" id="rbName'+i+'" value="プレイヤー'+(i+1)+'"></div>'
-      +'<div class="igroup" style="flex:1;"><input type="number" id="rbMoney'+i+'" placeholder="共通額" step="1000"><span class="unit">pt</span></div>';
-    box.appendChild(d);
-  }
-}
-function rbStart(){
-  const common=Math.max(100,Math.round(V('rbMoney')));
-  rb={players:[],round:1,rounds:Math.max(1,Math.round(V('rbRounds'))),cur:0};
-  for(let i=0;i<rbN;i++){
-    const mEl=$('rbMoney'+i);
-    const m=mEl&&parseFloat(mEl.value)>0?Math.round(parseFloat(mEl.value)):common;
-    rb.players.push({name:($('rbName'+i)&&$('rbName'+i).value)||('P'+(i+1)),money:m,bet:null});
-  }
-  $('rbPlay').style.display='';$('rbLog').innerHTML='';
-  $('rbResult').style.display='none';$('rbStage').style.display='none';$('rbSpinBtn').style.display='none';
-  rbRender();rbBetForm();
-}
-function rbSettle(n){
-  rbSpinning=false;$('rbSpinBtn').textContent='SPIN(運命の一回転)';
-  const colName=(n===0||n==='00')?'緑':(RU_RED.has(n)?'赤':'黒');
-  let anyWin=false;
-  rb.players.forEach(p=>{
-    const m=ruJudge(p.bet.type,p.bet.num,n);
-    const delta=m>0?p.bet.amt*(m-1):-p.bet.amt;
-    p.money+=delta;
-    if(m>0)anyWin=true;
-    const d=document.createElement('div');
-    d.className='cclog-line';
-    d.style.color=m>0?'var(--gold-hi)':'var(--ink-2)';
-    d.textContent='R'+rb.round+': '+p.name+(m>0?' 的中 +'+cf(delta):' ハズレ −'+cf(p.bet.amt))+' → 所持'+cf(p.money);
-    $('rbLog').prepend(d);
-    p.bet=null;
-  });
-  const rbR=$('rbResult');
-  rbR.style.display='';
-  rbR.className='result-banner '+(anyWin?'fx-r1':'hit')+' pop';
-  rbR.innerHTML='<div class="r-tier">R'+rb.round+' 出目</div><div class="r-coin">'+n+' ('+colName+')</div>';
-  if(anyWin){confettiBurst(rbR);SFX.win();}else SFX.lose();
-  const ranked=[...rb.players].sort((a,b)=>b.money-a.money);
-  if(rb.round>=rb.rounds){
-    $('rbInput').innerHTML='<div class="result-banner fx-r1"><div class="r-tier">🏆 優勝</div><div class="r-coin">'+ranked[0].name+'</div>'
-      +'<div class="r-tier">'+ranked.map((p,i)=>(i+1)+'位 '+p.name+' '+cf(p.money)).join(' / ')+'</div></div>'
-      +'<button class="btn2 accent" style="width:100%;padding:12px;margin-top:8px;" onclick="rbStart()">同メンバーで再戦</button>';
-    $('rbStage').style.display='none';$('rbSpinBtn').style.display='none';
-    SFX.jackpot();
-  }else{
-    rb.round++;rb.cur=0;
-    $('rbStage').style.display='none';$('rbSpinBtn').style.display='none';
-    rbBetForm();
-  }
-  rbRender();
 }
 /* ---- カスタム抽選: 回転時間・回数記録・音 ---- */
 let ltSpinCount=0;

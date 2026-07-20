@@ -2114,20 +2114,6 @@ function ccRender(phaseText){
   else if(cc.phase==='child')$('ccBtn').textContent=cc.players[cc.turn].name+' が振る';
   else $('ccBtn').textContent='次のラウンドへ(親交代)';
 }
-function ccShowDice(dice,hand,who,cb){
-  const el=$('ccFaces');
-  const done=()=>{
-    el.textContent=dice.map(d=>DFACE[d]).join(' ');
-    $('ccHand').textContent=who+': '+hand.name;
-    const dv=$('ccDiceView');
-    dv.className='result-banner '+(hand.s>=800?'hit':'')+' pop';
-    cb&&cb();
-  };
-  if(fxOn()){
-    const iv=setInterval(()=>{el.textContent=Array.from({length:ccD},()=>DFACE[1+Math.floor(Math.random()*6)]).join(' ');},60);
-    setTimeout(()=>{clearInterval(iv);done();},fxDur(750,300));
-  }else done();
-}
 function ccAction(){
   if(!cc)return;
   if(cc.phase==='parent'){
@@ -2992,31 +2978,6 @@ function ltSpin(){
   requestAnimationFrame(frame);
 }
 /* ---- チンチロ: 演出強化 ---- */
-function ccShowDice(dice,hand,who,cb){
-  const el=$('ccFaces');
-  const done=()=>{
-    el.classList.remove('dice-rolling');
-    el.textContent=dice.map(d=>DFACE[d]).join(' ');
-    $('ccHand').textContent=who+': '+hand.name;
-    const dv=$('ccDiceView');
-    let cls='',react='🙂';
-    if(hand.s>=1000){cls='fx-r1';react='🎉🔥😱';}
-    else if(hand.s>=900){cls='fx-r2';react='✨😎✨';}
-    else if(hand.s>=800){cls='fx-r3';react='🔥🔥';}
-    else if(hand.s===-100){cls='';react='😱💸😭';}
-    else if(hand.s===0){cls='';react='💀…';}
-    else{react='🤔';}
-    dv.className='result-banner '+cls+' pop';
-    $('ccReact').textContent=react;
-    if(hand.s>=1000)confettiBurst(dv);
-    cb&&cb();
-  };
-  if(fxOn()){
-    el.classList.add('dice-rolling');
-    const iv=setInterval(()=>{el.textContent=Array.from({length:ccD},()=>DFACE[1+Math.floor(Math.random()*6)]).join(' ');},60);
-    setTimeout(()=>{clearInterval(iv);done();},fxDur(850,300));
-  }else done();
-}
 /* ---- ルーレット: 本格カジノ盤 ---- */
 function rtChip(el){rtAmt=+el.dataset.v;document.querySelectorAll('.rt-chip').forEach(x=>x.classList.remove('on'));el.classList.add('on');}
 function rtBuild(){

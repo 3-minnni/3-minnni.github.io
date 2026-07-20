@@ -1727,24 +1727,6 @@ function addGcTier(name,rate){
     <span></span><button class="rm" onclick="this.parentElement.remove()">×</button>`;
   $('gcTiers').appendChild(div);
 }
-function gcBuild(){
-  gcTiersDef=[...document.querySelectorAll('#gcTiers .tier-row')].map(r=>{
-    const ins=r.querySelectorAll('input');
-    return{name:ins[0].value||'?',rate:(parseFloat(ins[1].value)||0)/100};
-  }).filter(t=>t.rate>0);
-  if(gcTiersDef.length===0)return;
-  gcCount=0;gcSince=0;gcSpent=0;gcSeries=[0];gcHits=gcTiersDef.map(()=>0);
-  gcWallet=parseFloat($('gcWalletSet').value)||30000;gcStart=gcWallet;
-  $('gcPlay').style.display='';
-  gcRender(null);$('gcLog').innerHTML='';
-  const p=gcTiersDef[0].rate,pity=Math.max(0,Math.round(V('gcPity'))),cost=V('gcCost');
-  const expPulls=p>0?(pity>0?Math.min(1/p,pity):1/p):pity||0;
-  $('gc-theory').innerHTML=`<div class="stats">
-    <div class="stat"><div class="s-l">${gcTiersDef[0].name}(目玉)の期待初当たり</div><div class="s-v">${num(expPulls)}回</div><div class="s-sub">期待消費: ${cf(expPulls*cost)}石</div></div>
-    <div class="stat"><div class="s-l">100連で目玉が1枚以上出る確率</div><div class="s-v">${pct((1-Math.pow(1-p,100))*100)}</div><div class="s-sub">天井${pity>0?pity+'回':'なし'}</div></div>
-  </div>
-  <div class="remain">${gcTiersDef.map(t=>`<span class="rc">${t.name}: 100連で1枚以上 <b>${pct((1-Math.pow(1-t.rate,100))*100)}</b></span>`).join('')}</div>`;
-}
 function gcSetWallet(){gcWallet=parseFloat($('gcWalletSet').value)||0;gcStart=gcWallet;gcRender(null);}
 function gcRender(last){
   $('gcWallet').textContent=cf(gcWallet);
@@ -2702,26 +2684,6 @@ function funOver(){
   statAdd('パチンコ(遊び)',fun.cash+fun.tama-fun.start,fun.start);
 }
 /* ---- ガチャ: グリッド表示/虹演出/独立試行 ---- */
-function gcBuild(){
-  gcTiersDef=[...document.querySelectorAll('#gcTiers .tier-row')].map(r=>{
-    const ins=r.querySelectorAll('input');
-    return{name:ins[0].value||'?',rate:(parseFloat(ins[1].value)||0)/100};
-  }).filter(t=>t.rate>0);
-  if(gcTiersDef.length===0)return;
-  const order=gcTiersDef.map((t,i)=>({i,r:t.rate})).sort((a,b)=>a.r-b.r);
-  gcRank=[];order.forEach((o,pos)=>gcRank[o.i]=Math.min(6,pos+1));
-  gcCount=0;gcSince=0;gcSpent=0;gcHits=gcTiersDef.map(()=>0);
-  gcWallet=parseFloat($('gcWalletSet').value)||30000;gcStart=gcWallet;
-  $('gcPlay').style.display='';
-  gcRender(null);$('gcLog').innerHTML='';
-  const p=gcTiersDef[0].rate,pity=Math.max(0,Math.round(V('gcPity'))),cost=V('gcCost');
-  const expPulls=p>0?(pity>0?Math.min(1/p,pity):1/p):pity||0;
-  $('gc-theory').innerHTML=`<div class="stats">
-    <div class="stat"><div class="s-l">${gcTiersDef[0].name}(目玉)の期待初当たり</div><div class="s-v">${num(expPulls)}回</div><div class="s-sub">期待消費: ${cf(expPulls*cost)}石 / 独立試行(確率は毎回一定)</div></div>
-    <div class="stat"><div class="s-l">100連で目玉が1枚以上出る確率</div><div class="s-v">${pct((1-Math.pow(1-p,100))*100)}</div><div class="s-sub">天井${pity>0?pity+'回':'なし'}</div></div>
-  </div>
-  <div class="remain">${gcTiersDef.map((t,i)=>'<span class="rc">'+t.name+' <span class="rankb r'+gcRank[i]+'">'+gcRank[i]+'位</span>: 100連で1枚以上 <b>'+pct((1-Math.pow(1-t.rate,100))*100)+'</b></span>').join('')}</div>`;
-}
 function gcRender(last){
   $('gcWallet').textContent=cf(gcWallet);
   const diff=gcWallet-gcStart;const wd=$('gcWalletDiff');

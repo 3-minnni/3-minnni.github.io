@@ -2039,17 +2039,6 @@ function presetLoad(p){
   const s=(lsAll()[p]||{})[sel.value];
   if(s)presetRestore(p,s);
 }
-function presetBarRender(p){
-  const bar=document.querySelector('.preset-bar[data-p="'+p+'"]');if(!bar)return;
-  const names=Object.keys(lsAll()[p]||{});
-  bar.innerHTML='<input class="pname" id="pname-'+p+'" placeholder="保存名">'
-    +'<button class="btn2" onclick="presetSave(\''+p+'\')">スペック保存</button>'
-    +(names.length
-      ?'<select id="psel-'+p+'">'+names.map(n=>'<option>'+n.replace(/</g,'&lt;')+'</option>').join('')+'</select>'
-        +'<button class="btn2" onclick="presetLoad(\''+p+'\')">読込</button>'
-        +'<button class="btn2 danger" onclick="presetDel(\''+p+'\')">削除</button>'
-      :'');
-}
 /* preset bars are initialized in the v6 block below (after TEMPLATES is defined) */
 
 /* ===================== チンチロ ===================== */

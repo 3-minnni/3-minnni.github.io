@@ -2034,30 +2034,6 @@ particlesSet(true);
 function lsAll(){try{return JSON.parse(localStorage.getItem('evlab_presets')||'{}');}catch(e){return window.__pm||(window.__pm={});}}
 function lsSaveAll(o){try{localStorage.setItem('evlab_presets',JSON.stringify(o));}catch(e){window.__pm=o;}}
 const PRESET_ROWS={pk:{box:'pkDistRows',add:()=>addPkDist()},op:{box:'opTiers',add:()=>addOpTier()},gc:{box:'gcTiers',add:()=>addGcTier()}};
-function presetSnap(p){
-  const panel=$('panel-'+p);
-  const s={ids:{},rows:null,extra:{pkType,slType,slMode}};
-  if(PRESET_ROWS[p]){
-    s.rows=[...$(PRESET_ROWS[p].box).querySelectorAll('.tier-row')].map(r=>[...r.querySelectorAll('input')].map(i=>i.value));
-  }
-  panel.querySelectorAll('input[id]').forEach(i=>{s.ids[i.id]=i.value;});
-  return s;
-}
-function presetRestore(p,s){
-  if(PRESET_ROWS[p]&&s.rows){
-    const box=$(PRESET_ROWS[p].box);box.innerHTML='';
-    s.rows.forEach(()=>PRESET_ROWS[p].add());
-    [...box.querySelectorAll('.tier-row')].forEach((r,ri)=>{
-      [...r.querySelectorAll('input')].forEach((inp,ii)=>{if(s.rows[ri]&&s.rows[ri][ii]!==undefined)inp.value=s.rows[ri][ii];});
-    });
-    if(p==='pk')pkPie();
-  }
-  Object.entries(s.ids||{}).forEach(([id,v])=>{const el=$(id);if(el)el.value=v;});
-  if(s.extra){
-    if(p==='pk')pkSetType(s.extra.pkType||'at');
-    if(p==='sl'){slSetType(s.extra.slType||'at');slSetMode(s.extra.slMode||'g');}
-  }
-}
 function presetSave(p){
   const nameEl=$('pname-'+p);
   const name=(nameEl&&nameEl.value.trim())||('無題 '+new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'}));

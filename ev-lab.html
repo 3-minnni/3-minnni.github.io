@@ -1618,14 +1618,6 @@ kkRender();
 
 /* ===================== オリパ ===================== */
 let opDeck=[],opDrawn=0,opBal=0,opWallet=50000,opStart=50000,opSeries=[0],opEvPer=0,opTierDefs=[];
-function addOpTier(name,coin,count){
-  const div=document.createElement('div');div.className='tier-row';
-  div.innerHTML=`<input type="text" value="${name??''}" placeholder="1等">
-    <input type="number" value="${coin??''}" min="0" step="500" placeholder="50000">
-    <input type="text" value="${count??''}" placeholder="10 か 1/500">
-    <button class="rm" onclick="this.parentElement.remove()">×</button>`;
-  $('opTiers').appendChild(div);
-}
 function parseCount(str,total){
   str=(str||'').trim();
   const frac=str.match(/^1\s*\/\s*([0-9.]+)$/);
@@ -1903,15 +1895,6 @@ ruDraw(0);ruRenderWallet();
 /* ===================== カスタム抽選 ===================== */
 const LT_COLORS=['#E8B33C','#8E6BFF','#3DDC97','#FF3D68','#4FA3E0','#C4A788','#D97CC0','#7FBF6B'];
 let ltItems=[],ltRot=0,ltSpinning=false;
-function addLtRow(name,w){
-  const div=document.createElement('div');div.className='tier-row';div.style.gridTemplateColumns='1.4fr 1fr .6fr 30px';
-  div.innerHTML=`<input type="text" value="${name??''}" placeholder="項目名">
-    <input type="number" value="${w??1}" min="0" step="0.5">
-    <span class="mono" style="font-size:11px;color:var(--ink-3);"></span>
-    <button class="rm" onclick="this.parentElement.remove();ltPct();">×</button>`;
-  div.querySelectorAll('input').forEach(i=>i.addEventListener('input',ltPct));
-  $('ltRows').appendChild(div);ltPct();
-}
 function ltPct(){
   const rows=[...document.querySelectorAll('#ltRows .tier-row')];
   const total=rows.reduce((s,r)=>s+(parseFloat(r.querySelectorAll('input')[1].value)||0),0)||1;

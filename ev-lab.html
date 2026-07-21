@@ -1305,39 +1305,7 @@ function pkJtUpdate(){
 }
 $('pkJtSpins').addEventListener('input',pkJtUpdate);
 $('pkJtN').addEventListener('input',pkJtUpdate);
-function pkParams(){
-  const N=Math.max(1,V('pkProb')),spins1k=Math.max(.1,V('pkSpins1k'));
-  const q=Math.min(1,Math.max(0,V('pkEnter')/100));
-  const c=pkType==='at'?Math.min(.999,Math.max(0,V('pkCont')/100)):pkFallUpdate();
-  const d=pkDist();
-  const tot=d.reduce((s,x)=>s+x.share,0)||1;
-  const jtN=Math.max(1,V('pkJtN')),jtSpins=Math.max(0,Math.round(V('pkJtSpins')));
-  return{
-    N,spins1k,q,c,d,tot,
-    ltOn:pkLt,ltP:Math.min(1,Math.max(0,V('pkLtP')/100)),
-    cLT:Math.min(.999,Math.max(0,V('pkLtCont')/100)),ltBalls:V('pkLtBalls'),
-    jtOn:pkJt,jtPull:pkJt?1-Math.pow(1-1/jtN,jtSpins):0
-  };
-}
 function pkDraw(P){let r=Math.random()*P.tot,acc=0;for(const x of P.d){acc+=x.share;if(r<acc)return x.balls;}return P.d[P.d.length-1].balls;}
-function pkFirstHit(P){
-  let balls=0,chain=0,ltHit=false,guard=0;
-  const rush=()=>{
-    let lt=false;
-    while(true){
-      if(P.ltOn&&!lt&&Math.random()<P.ltP){lt=true;ltHit=true;}
-      if(Math.random()>=(lt?P.cLT:P.c))break;
-      balls+=lt?P.ltBalls:pkDraw(P);chain++;
-    }
-  };
-  balls+=pkDraw(P);chain++;
-  if(Math.random()<P.q)rush();
-  while(P.jtOn&&guard++<40&&Math.random()<P.jtPull){
-    balls+=pkDraw(P);chain++;
-    if(Math.random()<P.q)rush();
-  }
-  return{balls,chain,ltHit};
-}
 function runPK(){
   const P=pkParams();
   if(P.d.length===0){$('pk-out').innerHTML='<div class="warn">出玉の振り分けを1行以上入力してください。</div>';return;}
@@ -2060,43 +2028,11 @@ function pkLtDist(){
     return{balls:parseFloat(ins[0].value)||0,share:parseFloat(ins[1].value)||0};
   }).filter(d=>d.share>0);
 }
-function pkParams(){
-  const N=Math.max(1,V('pkProb')),spins1k=Math.max(.1,V('pkSpins1k'));
-  const q=Math.min(1,Math.max(0,V('pkEnter')/100));
-  const c=pkType==='at'?Math.min(.999,Math.max(0,V('pkCont')/100)):pkFallUpdate();
-  const d=pkDist();
-  const tot=d.reduce((s,x)=>s+x.share,0)||1;
-  const ltD=pkLtDist();
-  const ltTot=ltD.reduce((s,x)=>s+x.share,0)||1;
-  const jtN=Math.max(1,V('pkJtN')),jtSpins=Math.max(0,Math.round(V('pkJtSpins')));
-  return{N,spins1k,q,c,d,tot,ltD,ltTot,
-    ltOn:pkLt,ltP:Math.min(1,Math.max(0,V('pkLtP')/100)),
-    cLT:Math.min(.999,Math.max(0,V('pkLtCont')/100)),
-    jtOn:pkJt,jtPull:pkJt?1-Math.pow(1-1/jtN,jtSpins):0};
-}
 function pkDrawLt(P){
   if(P.ltD.length===0)return 3000;
   let r=Math.random()*P.ltTot,acc=0;
   for(const x of P.ltD){acc+=x.share;if(r<acc)return x.balls;}
   return P.ltD[P.ltD.length-1].balls;
-}
-function pkFirstHit(P){
-  let balls=0,chain=0,ltHit=false,guard=0;
-  const rush=()=>{
-    let lt=false;
-    while(true){
-      if(P.ltOn&&!lt&&Math.random()<P.ltP){lt=true;ltHit=true;}
-      if(Math.random()>=(lt?P.cLT:P.c))break;
-      balls+=lt?pkDrawLt(P):pkDraw(P);chain++;
-    }
-  };
-  balls+=pkDraw(P);chain++;
-  if(Math.random()<P.q)rush();
-  while(P.jtOn&&guard++<40&&Math.random()<P.jtPull){
-    balls+=pkDraw(P);chain++;
-    if(Math.random()<P.q)rush();
-  }
-  return{balls,chain,ltHit};
 }
 /* ---- スロット: スマスロAT + 再試行 + 統計 ---- */
 let slMochiMode='simple';

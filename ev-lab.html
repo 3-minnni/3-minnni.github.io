@@ -1318,7 +1318,7 @@ function runPK(){
   const TY=avgBalls*pkRate.rate;
   const evSpin=p*TY+hesoYen-cost,totalEV=evSpin*trials,totalCost=cost*trials;
   const ret=totalCost>0?((totalCost+totalEV)/totalCost)*100:100;
-  const border=TY+hesoYen*0>0?1000/(p*TY+hesoYen):0;
+  const border=(TY+hesoYen)>0?1000/(p*TY+hesoYen):0;
   const hourly=evSpin*250;
   let bal=0,firstHits=0,maxChain=0,ltCount=0,lastHit=0;const series=[0],evLine=[0],markers=[],hitsRec=[];
   for(let i=1;i<=trials;i++){
@@ -1388,7 +1388,6 @@ function pkPracticalCalc(){
   const realCost=1000/realSpins1k;
   const evSpinReal=p*TY+hesoYen-realCost;
   const hourlyReal=evSpinReal*250;
-  const playHours=250>0?250/250:1; // 1時間あたり250回転が理論値の前提
   const netPerHour=hourlyReal;
   const totalHoursIncl=1+travelH; // 1時間の遊技+移動並び時間
   const realHourlyIncl=netPerHour/totalHoursIncl;

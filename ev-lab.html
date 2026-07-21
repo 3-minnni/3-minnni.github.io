@@ -578,6 +578,8 @@
         <div class="result-banner" id="funBanner"><div class="r-tier">↓ 回して減らす</div><div class="r-coin">—</div></div>
         <div class="pull-area" style="margin-top:8px;">
           <button class="btn2 accent" onclick="funPress(1000)">1,000円分 回す</button>
+          <button class="btn2 accent" onclick="funPress(3000)">3,000円分 回す</button>
+          <button class="btn2 accent" onclick="funPress(5000)">5,000円分 回す</button>
           <button class="btn2 accent" onclick="funPress(10000)">10,000円分 回す</button>
           <button class="btn2 accent" onclick="funPress(-1)">全額回す</button>
         </div>
@@ -1862,41 +1864,70 @@ function funStart(){
   funRender();funTheory(budget);
   requestAnimationFrame(()=>drawChart($('funChart'),fun.series,null,{xLabel:'千円投入回数',yLabel:'収支(円)'}));
 }
-function funTheory(budget){
-  // モンテカルロで投資額固定・出玉優先消化の理論値を推定
-  const P=fun.P,p=1/P.N,rate=pkRate.rate,heso=fun.heso;
-  const perK=Math.max(0.1,P.spins1k); // 千円あたり回転
-  const costPerSpin=1000/perK; // 1回転あたり円
-  const RUNS=400;let gSum=0,bustN=0,winN=0;const samples=[];
+function funSimRule(P,budget,heso,rate,costPerSpin,p,winStop,lossStop){
+  const RUNS=400;let gSum=0,bustN=0,winN=0,chainSum=0,chainCount=0,maxChain=0;const samples=[];
   for(let r=0;r<RUNS;r++){
     let cash=budget,tama=0,spins=0,guard=0;
     while(guard++<200000){
-      // 1回転
       if(tama>=costPerSpin)tama-=costPerSpin;
       else if(cash>=costPerSpin)cash-=costPerSpin;
       else break;
       spins++;
       tama+=heso*rate; // ヘソ賞球
-      if(Math.random()<p){const h=pkFirstHit(P);tama+=h.balls*rate;}
+      if(Math.random()<p){
+        const h=pkFirstHit(P);
+        tama+=h.balls*rate;
+        chainSum+=h.chain;chainCount++;
+        if(h.chain>maxChain)maxChain=h.chain;
+      }
+      const net=cash+tama-budget;
+      if(winStop!=null&&net>=winStop)break;
+      if(lossStop!=null&&net<=-lossStop)break;
     }
     const net=cash+tama-budget;
     gSum+=spins;if(net<=-budget*0.999)bustN++;if(net>0)winN++;samples.push(Math.round(net));
   }
-  const expSpins=Math.round(gSum/RUNS);
+  return{
+    expSpins:Math.round(gSum/RUNS),bustPct:bustN/RUNS*100,winPct:winN/RUNS*100,
+    totalEV:Math.round(samples.reduce((a,b)=>a+b,0)/RUNS),
+    avgChain:chainCount?chainSum/chainCount:0,maxChain,samples
+  };
+}
+function funTheory(budget){
+  // モンテカルロで投資額固定・出玉優先消化の理論値を推定(+撤退ルール別の比較)
+  const P=fun.P,p=1/P.N,rate=pkRate.rate,heso=fun.heso;
+  const perK=Math.max(0.1,P.spins1k); // 千円あたり回転
+  const costPerSpin=1000/perK; // 1回転あたり円
+  const full=funSimRule(P,budget,heso,rate,costPerSpin,p,null,null);
+  const winEarly=funSimRule(P,budget,heso,rate,costPerSpin,p,budget*0.5,null);
+  const lossEarly=funSimRule(P,budget,heso,rate,costPerSpin,p,null,budget*0.5);
   let tyB=0;for(let i=0;i<300;i++)tyB+=pkFirstHit(P).balls;const perHitYen=(tyB/300)*rate;
   const evPerSpin=(p*perHitYen+heso*rate)-costPerSpin;
-  const totalEV=Math.round(samples.reduce((a,b)=>a+b,0)/RUNS);
+  const rules=[
+    {name:'全額使い切るまで',r:full},
+    {name:'+50%で勝ち逃げ',r:winEarly},
+    {name:'−50%で損切り',r:lossEarly}
+  ];
+  const ruleRows=rules.map(x=>
+    '<tr><td>'+x.name+'</td><td>'+cf(x.r.expSpins)+'回転</td><td>'+pct(x.r.winPct)+'</td><td>'+pct(x.r.bustPct)+'</td>'
+    +'<td style="color:'+(x.r.totalEV>=0?'var(--pos)':'var(--neg)')+';">'+(x.r.totalEV>=0?'+':'−')+cf(Math.abs(x.r.totalEV))+'円</td></tr>'
+  ).join('');
   $('funTheory').innerHTML=
     '<div class="card-title" style="margin-top:12px;"><span class="step">理論値</span><h3>投資'+yen(budget)+'の理論値(400回試行)</h3></div>'
     +'<div class="stats">'
-    +'<div class="stat"><div class="s-l">平均消化回転数</div><div class="s-v">'+cf(expSpins)+'回転</div><div class="s-sub">出玉を再投資して回した平均</div></div>'
-    +'<div class="stat"><div class="s-l">破産確率</div><div class="s-v">'+pct(bustN/RUNS*100)+'</div><div class="s-sub">投資額をほぼ全額失う確率</div></div>'
-    +'<div class="stat"><div class="s-l">勝率(プラス収支率)</div><div class="s-v">'+pct(winN/RUNS*100)+'</div><div class="s-sub">'+RUNS+'回中'+winN+'回プラス</div></div>'
-    +'<div class="stat"><div class="s-l">平均最終収支</div><div class="s-v" style="color:'+(totalEV>=0?'var(--pos)':'var(--neg)')+'">'+(totalEV>=0?'+':'−')+cf(Math.abs(totalEV))+'円</div><div class="s-sub">1回転期待'+(evPerSpin>=0?'+':'−')+cf(Math.abs(Math.round(evPerSpin)))+'円</div></div>'
-    +'<div class="stat"><div class="s-l">結末の目安</div><div class="s-v">'+(bustN/RUNS>0.5?'飲まれやすい':(winN/RUNS>0.4?'勝負になる':'やや不利'))+'</div><div class="s-sub">ヘソ賞球'+heso+'玉/回転を考慮</div></div>'
+    +'<div class="stat"><div class="s-l">平均消化回転数</div><div class="s-v">'+cf(full.expSpins)+'回転</div><div class="s-sub">出玉を再投資して回した平均</div></div>'
+    +'<div class="stat"><div class="s-l">破産確率</div><div class="s-v">'+pct(full.bustPct)+'</div><div class="s-sub">投資額をほぼ全額失う確率</div></div>'
+    +'<div class="stat"><div class="s-l">勝率(プラス収支率)</div><div class="s-v">'+pct(full.winPct)+'</div><div class="s-sub">400回中'+Math.round(full.winPct/100*400)+'回プラス</div></div>'
+    +'<div class="stat"><div class="s-l">平均最終収支</div><div class="s-v" style="color:'+(full.totalEV>=0?'var(--pos)':'var(--neg)')+'">'+(full.totalEV>=0?'+':'−')+cf(Math.abs(full.totalEV))+'円</div><div class="s-sub">1回転期待'+(evPerSpin>=0?'+':'−')+cf(Math.abs(Math.round(evPerSpin)))+'円</div></div>'
+    +'<div class="stat"><div class="s-l">結末の目安</div><div class="s-v">'+(full.bustPct/100>0.5?'飲まれやすい':(full.winPct/100>0.4?'勝負になる':'やや不利'))+'</div><div class="s-sub">ヘソ賞球'+heso+'玉/回転を考慮</div></div>'
+    +'<div class="stat"><div class="s-l">平均連チャン数</div><div class="s-v">'+full.avgChain.toFixed(1)+'連</div><div class="s-sub">初当たり1回あたり(単発=1連)</div></div>'
+    +'<div class="stat"><div class="s-l">最高連チャン(実測)</div><div class="s-v">'+full.maxChain+'連</div><div class="s-sub">400回試行中の最大値</div></div>'
     +'</div>'
-    +'<div class="chart-card"><div class="chart-head"><div class="c-title">最終収支の分布(400回試行)</div></div><canvas id="funHistC"></canvas><div class="fhelp" style="margin-top:6px;">緑=プラス収支・赤=マイナス収支。左に長い裾は「投資額を飲まれるパターン」の頻度を表します。</div></div>';
-  requestAnimationFrame(()=>histInto('funHistC',samples,'円'));
+    +'<div class="chart-card" style="margin-top:12px;"><div class="chart-head"><div class="c-title">やめどき比較(400回試行/ルール)</div></div>'
+    +'<div style="overflow-x:auto;"><table class="rs-table"><thead><tr><th>ルール</th><th>平均消化回転数</th><th>勝率</th><th>破産確率</th><th>平均最終収支</th></tr></thead><tbody>'+ruleRows+'</tbody></table></div>'
+    +'<div class="fhelp" style="margin-top:6px;">「勝ち逃げ/損切り」は、その時点の収支が投資額の±50%に達したら即座にやめた場合の理論値です。</div></div>'
+    +'<div class="chart-card"><div class="chart-head"><div class="c-title">最終収支の分布(全額使い切るまで・400回試行)</div></div><canvas id="funHistC"></canvas><div class="fhelp" style="margin-top:6px;">緑=プラス収支・赤=マイナス収支。左に長い裾は「投資額を飲まれるパターン」の頻度を表します。</div></div>';
+  requestAnimationFrame(()=>histInto('funHistC',full.samples,'円'));
 }
 function funRender(){
   $('funStat').innerHTML='<span class="rc">残り所持金: <b>'+cf(fun.cash)+'</b>円</span>'

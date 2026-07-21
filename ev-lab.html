@@ -118,6 +118,9 @@
   .tier-head{display:grid;grid-template-columns:1fr 1fr .9fr 30px;gap:7px;font-size:10px;color:var(--ink-3);margin-bottom:4px;}
   .add-row{margin-top:4px;background:none;border:1.5px dashed var(--line2);border-radius:9px;color:var(--ink-2);padding:8px;font-size:12px;cursor:pointer;width:100%;font-family:inherit;}
   .add-row:hover{border-color:var(--gold);color:var(--gold);}
+  .tier-row-pk{grid-template-columns:1fr 1fr auto auto 30px;}
+  .rowflag{border:1px solid var(--line2);border-radius:7px;padding:7px 8px;font-size:10px;cursor:pointer;user-select:none;background:var(--card2);color:var(--ink-3);white-space:nowrap;transition:.12s;text-align:center;}
+  .rowflag.on{background:var(--gold-grad);border-color:var(--gold);color:#241A02;font-weight:700;}
 
   .wallet{display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#1A1F2E,#12151E);border:1px solid var(--gold-deep);border-radius:14px;padding:13px 16px;margin-bottom:12px;flex-wrap:wrap;box-shadow:inset 0 0 30px rgba(232,179,60,.05);}
   .wallet .w-l{font-size:10.5px;color:var(--gold);letter-spacing:.08em;}
@@ -1258,18 +1261,30 @@ $('pkFallHit').addEventListener('input',pkFallUpdate);
 $('pkFallDrop').addEventListener('input',pkFallUpdate);
 
 const PIE_COLORS=['#E8B33C','#8E6BFF','#3DDC97','#FF3D68','#4FA3E0','#C4A788'];
+function pkFlagBtn(flag,label,title){
+  return `<div class="rowflag" data-flag="${flag}" title="${title}" onclick="this.classList.toggle('on')">${label}</div>`;
+}
+function pkReadFlags(r){
+  return{
+    promote:!!r.querySelector('.rowflag[data-flag="promote"]')?.classList.contains('on'),
+    demote:!!r.querySelector('.rowflag[data-flag="demote"]')?.classList.contains('on'),
+    guaranteed:!!r.querySelector('.rowflag[data-flag="guaranteed"]')?.classList.contains('on')
+  };
+}
 function addPkDist(balls,share){
-  const div=document.createElement('div');div.className='tier-row';
+  const div=document.createElement('div');div.className='tier-row tier-row-pk';
   div.innerHTML=`<input type="number" value="${balls??1500}" min="0" step="100">
     <input type="number" value="${share??''}" min="0" max="100" step="1">
-    <span></span><button class="rm" onclick="this.parentElement.remove();pkPie();">×</button>`;
+    ${pkFlagBtn('promote','↑LT','この枠が出たら直接LT(上位RUSH)へ')}
+    ${pkFlagBtn('guaranteed','★次回','この枠が出たら次回転は継続確定(次回濃厚)')}
+    <button class="rm" onclick="this.parentElement.remove();pkPie();">×</button>`;
   div.querySelectorAll('input').forEach(i=>i.addEventListener('input',pkPie));
   $('pkDistRows').appendChild(div);pkPie();
 }
 function pkDist(){
   return [...document.querySelectorAll('#pkDistRows .tier-row')].map(r=>{
     const ins=r.querySelectorAll('input');
-    return{balls:parseFloat(ins[0].value)||0,share:parseFloat(ins[1].value)||0};
+    return{balls:parseFloat(ins[0].value)||0,share:parseFloat(ins[1].value)||0,...pkReadFlags(r)};
   }).filter(d=>d.share>0);
 }
 function pkPie(){
@@ -1319,7 +1334,7 @@ function pkJtUpdate(){
 }
 $('pkJtSpins').addEventListener('input',pkJtUpdate);
 $('pkJtN').addEventListener('input',pkJtUpdate);
-function pkDraw(P){let r=Math.random()*P.tot,acc=0;for(const x of P.d){acc+=x.share;if(r<acc)return x.balls;}return P.d[P.d.length-1].balls;}
+function pkDraw(P){let r=Math.random()*P.tot,acc=0;for(const x of P.d){acc+=x.share;if(r<acc)return x;}return P.d[P.d.length-1];}
 function runPK(){
   const P=pkParams();
   if(P.d.length===0){$('pk-out').innerHTML='<div class="warn">出玉の振り分けを1行以上入力してください。</div>';return;}
@@ -2093,62 +2108,68 @@ function tutMaybe(tab){
 }
 /* ---- パチンコ: LT振り分け ---- */
 function addPkLtDist(balls,share){
-  const div=document.createElement('div');div.className='tier-row';
+  const div=document.createElement('div');div.className='tier-row tier-row-pk';
   div.innerHTML=`<input type="number" value="${balls??3000}" min="0" step="100">
     <input type="number" value="${share??''}" min="0" max="100" step="1">
-    <span></span><button class="rm" onclick="this.parentElement.remove()">×</button>`;
+    ${pkFlagBtn('demote','↓LT','この枠が出たら通常RUSHへ降格')}
+    ${pkFlagBtn('guaranteed','★次回','この枠が出たら次回転は継続確定(次回濃厚)')}
+    <button class="rm" onclick="this.parentElement.remove()">×</button>`;
   $('pkLtDistRows').appendChild(div);
 }
 function pkLtDist(){
   return [...document.querySelectorAll('#pkLtDistRows .tier-row')].map(r=>{
     const ins=r.querySelectorAll('input');
-    return{balls:parseFloat(ins[0].value)||0,share:parseFloat(ins[1].value)||0};
+    return{balls:parseFloat(ins[0].value)||0,share:parseFloat(ins[1].value)||0,...pkReadFlags(r)};
   }).filter(d=>d.share>0);
 }
 function pkDrawLt(P){
-  if(P.ltD.length===0)return 3000;
+  if(P.ltD.length===0)return{balls:3000,share:100};
   let r=Math.random()*P.ltTot,acc=0;
-  for(const x of P.ltD){acc+=x.share;if(r<acc)return x.balls;}
-  return P.ltD[P.ltD.length-1].balls;
+  for(const x of P.ltD){acc+=x.share;if(r<acc)return x;}
+  return P.ltD[P.ltD.length-1];
 }
 /* ---- パチンコ: 時短中/RUSH中の振り分け(未入力なら大当たり時と同じ) ---- */
 function addPkJtDist(balls,share){
-  const div=document.createElement('div');div.className='tier-row';
+  const div=document.createElement('div');div.className='tier-row tier-row-pk';
   div.innerHTML=`<input type="number" value="${balls??1500}" min="0" step="100">
     <input type="number" value="${share??''}" min="0" max="100" step="1">
-    <span></span><button class="rm" onclick="this.parentElement.remove()">×</button>`;
+    ${pkFlagBtn('promote','↑LT','この枠が出たら直接LT(上位RUSH)へ')}
+    ${pkFlagBtn('guaranteed','★次回','この枠が出たら次回転は継続確定(次回濃厚)')}
+    <button class="rm" onclick="this.parentElement.remove()">×</button>`;
   $('pkJtDistRows').appendChild(div);
 }
 function pkJtDist(){
   return [...document.querySelectorAll('#pkJtDistRows .tier-row')].map(r=>{
     const ins=r.querySelectorAll('input');
-    return{balls:parseFloat(ins[0].value)||0,share:parseFloat(ins[1].value)||0};
+    return{balls:parseFloat(ins[0].value)||0,share:parseFloat(ins[1].value)||0,...pkReadFlags(r)};
   }).filter(d=>d.share>0);
 }
 function pkDrawJt(P){
   if(P.jtD.length===0)return pkDraw(P);
   let r=Math.random()*P.jtTot,acc=0;
-  for(const x of P.jtD){acc+=x.share;if(r<acc)return x.balls;}
-  return P.jtD[P.jtD.length-1].balls;
+  for(const x of P.jtD){acc+=x.share;if(r<acc)return x;}
+  return P.jtD[P.jtD.length-1];
 }
 function addPkRushDist(balls,share){
-  const div=document.createElement('div');div.className='tier-row';
+  const div=document.createElement('div');div.className='tier-row tier-row-pk';
   div.innerHTML=`<input type="number" value="${balls??1500}" min="0" step="100">
     <input type="number" value="${share??''}" min="0" max="100" step="1">
-    <span></span><button class="rm" onclick="this.parentElement.remove()">×</button>`;
+    ${pkFlagBtn('promote','↑LT','この枠が出たら直接LT(上位RUSH)へ')}
+    ${pkFlagBtn('guaranteed','★次回','この枠が出たら次回転は継続確定(次回濃厚)')}
+    <button class="rm" onclick="this.parentElement.remove()">×</button>`;
   $('pkRushDistRows').appendChild(div);
 }
 function pkRushDist(){
   return [...document.querySelectorAll('#pkRushDistRows .tier-row')].map(r=>{
     const ins=r.querySelectorAll('input');
-    return{balls:parseFloat(ins[0].value)||0,share:parseFloat(ins[1].value)||0};
+    return{balls:parseFloat(ins[0].value)||0,share:parseFloat(ins[1].value)||0,...pkReadFlags(r)};
   }).filter(d=>d.share>0);
 }
 function pkDrawRush(P){
   if(P.rushD.length===0)return pkDraw(P);
   let r=Math.random()*P.rushTot,acc=0;
-  for(const x of P.rushD){acc+=x.share;if(r<acc)return x.balls;}
-  return P.rushD[P.rushD.length-1].balls;
+  for(const x of P.rushD){acc+=x.share;if(r<acc)return x;}
+  return P.rushD[P.rushD.length-1];
 }
 /* ---- スロット: スマスロAT + 再試行 + 統計 ---- */
 let slMochiMode='simple';
@@ -3092,7 +3113,9 @@ function pkParams(){
   const rushD=pkRushDist();
   const rushTot=rushD.reduce((s,x)=>s+x.share,0)||1;
   const jtN=Math.max(1,V('pkJtN')),jtSpins=Math.max(0,Math.round(V('pkJtSpins')));
-  return{N,spins1k,q,c,d,tot,ltD,ltTot,jtD,jtTot,rushD,rushTot,
+  const rushHasPromote=rushD.some(x=>x.promote);
+  const ltHasDemote=ltD.some(x=>x.demote);
+  return{N,spins1k,q,c,d,tot,ltD,ltTot,jtD,jtTot,rushD,rushTot,rushHasPromote,ltHasDemote,
     ltOn:pkLt,ltP:Math.min(1,Math.max(0,V('pkLtP')/100)),
     cLT:Math.min(.999,Math.max(0,V('pkLtCont')/100)),
     ltDown:pkLt&&pkLtDown?Math.min(1,Math.max(0,V('pkLtDownP')/100)):0,
@@ -3101,23 +3124,32 @@ function pkParams(){
 }
 function pkFirstHit(P){
   let balls=0,chain=0,ltHit=false,guard=0;
-  const rush=()=>{
-    let lt=false;
+  // rush(): 継続チェイン。startLt/startGuaranteedは直前の1枠(初当たり or 時短中当たり)が
+  // 「↑LT」「★次回」を持っていた場合にそのままこのチェインへ引き継ぐ
+  const rush=(startLt,startGuaranteed)=>{
+    let lt=startLt,guaranteed=startGuaranteed;
     while(true){
-      if(P.ltOn&&!lt&&Math.random()<P.ltP){lt=true;ltHit=true;}
-      if(lt&&P.ltDown>0&&Math.random()<P.ltDown)lt=false;
-      if(Math.random()>=(lt?P.cLT:P.c))break;
-      balls+=lt?pkDrawLt(P):pkDrawRush(P);chain++;
+      if(P.ltOn&&!lt&&!P.rushHasPromote&&Math.random()<P.ltP){lt=true;ltHit=true;}
+      if(lt&&P.ltDown>0&&!P.ltHasDemote&&Math.random()<P.ltDown)lt=false;
+      if(!guaranteed&&Math.random()>=(lt?P.cLT:P.c))break;
+      guaranteed=false;
+      const row=lt?pkDrawLt(P):pkDrawRush(P);
+      balls+=row.balls;chain++;
+      if(P.ltOn&&!lt&&row.promote){lt=true;ltHit=true;}
+      if(lt&&row.demote)lt=false;
+      if(row.guaranteed)guaranteed=true;
     }
   };
-  balls+=pkDraw(P);chain++;
-  let entered=Math.random()<P.q;
-  if(entered)rush();
+  const first=pkDraw(P);
+  balls+=first.balls;chain++;
+  let entered=Math.random()<P.q||first.promote||first.guaranteed;
+  if(entered)rush(P.ltOn&&!!first.promote,!!first.guaranteed);
   let eligible=P.jtOn&&(entered?P.jtRush:P.jtMiss);
   while(eligible&&guard++<40&&Math.random()<P.jtPull){
-    balls+=pkDrawJt(P);chain++;
-    const e2=Math.random()<P.q;
-    if(e2)rush();
+    const row=pkDrawJt(P);
+    balls+=row.balls;chain++;
+    const e2=Math.random()<P.q||row.promote||row.guaranteed;
+    if(e2)rush(P.ltOn&&!!row.promote,!!row.guaranteed);
     eligible=P.jtOn&&(e2?P.jtRush:P.jtMiss);
   }
   return{balls,chain,ltHit};

@@ -713,6 +713,10 @@
           <div class="flabel">投資金額</div><div class="fhelp">この金額を使い切るまでのG数で計算</div>
           <div class="igroup"><input type="number" id="slYen" value="20000" min="1000" step="1000"><span class="unit">円</span></div>
         </div>
+        <div class="field" id="slYRunsWrap" style="display:none;">
+          <div class="flabel">試行回数</div><div class="fhelp">勝率・破産確率を推定する試行の繰り返し回数</div>
+          <div class="igroup"><input type="number" id="slYRuns" value="300" min="50" max="2000" step="50"><span class="unit">回</span></div>
+        </div>
         <div class="field">
           <div class="flabel">開始時刻</div><div class="fhelp">ボーナス履歴の仮想時刻の起点</div>
           <div class="igroup"><input type="time" id="slStartTime" value="10:00" class="date-in"></div>
@@ -1583,8 +1587,11 @@ function slSetMode(m){
   $('slModeY').classList.toggle('on',m==='y');
   $('slGWrap').style.display=m==='g'?'':'none';
   $('slYWrap').style.display=m==='y'?'':'none';
+  if($('slYRunsWrap'))$('slYRunsWrap').style.display=m==='y'?'':'none';
 }
 const SL_SYMBOLS=['7','BAR','🍒','🔔','🍇','★'];
+const SL_SEC_PER_G=3.5; // 1G≒3.5秒(ボーナス履歴の仮想時刻・時給換算で共通利用)
+const SL_G_PER_HOUR=3600/SL_SEC_PER_G;
 
 /* --- カチカチくん --- */
 let kk={big:0,reg:0,k1:0,k2:0,k3:0,k4:0},kkHist=[];
@@ -2349,7 +2356,9 @@ function runSL(){
   const evG=(slType==='at'?p*eGain:(p*coins+pReg*coinsReg))*slRate.rate-costG;
   const totalEV=evG*G,totalCost=costG*G;
   const kikai=totalCost>0?((totalCost+totalEV)/totalCost)*100:100;
-  const hourly=evG*800;
+  const hourly=evG*SL_G_PER_HOUR;
+  const pAny=slType==='a'?1-(1-p)*(1-pReg):p;
+  const p100=1-Math.pow(1-pAny,Math.min(100,G));
   let bal=0,balMin=0,hits=0,regs=0,complete=false,playedG=G,lastB=0;
   const series=[0],evLine=[0],markers=[],bonusRec=[];
   for(let i=1;i<=G;i++){
@@ -2383,12 +2392,13 @@ function runSL(){
         <div class="stat"><div class="s-l">機械割(理論値)</div><div class="s-v">${pct(kikai)}</div><div class="s-sub">100%が損益分岐</div></div>
         <div class="stat"><div class="s-l">総投資額</div><div class="s-v">${yen(totalCost)}</div><div class="s-sub">${costG.toFixed(1)}円/G × ${G.toLocaleString()}G</div></div>
         <div class="stat"><div class="s-l">期待${label}回数</div><div class="s-v">${num(p*G)}回</div><div class="s-sub">${slType==='a'?'REG期待'+num(pReg*G)+'回':'引き戻し込み期待獲得 '+num(eGain,0)+'枚/初当たり'}</div></div>
-        <div class="stat"><div class="s-l">時給換算(理論値)</div><div class="s-v">${yen(hourly)}/h</div><div class="s-sub">800G/時で計算</div></div>
+        <div class="stat"><div class="s-l">時給換算(理論値)</div><div class="s-v">${yen(hourly)}/h</div><div class="s-sub">1G≒${SL_SEC_PER_G}秒(${num(SL_G_PER_HOUR,0)}G/時)で計算</div></div>
         <div class="stat"><div class="s-l">1,000円あたり</div><div class="s-v">${num(1000/costG)}G</div><div class="s-sub">コイン持ち${mochi}G/50枚 × ${slRate.label}</div></div>
+        <div class="stat"><div class="s-l">100回転以内の連続当選率</div><div class="s-v">${pct(p100*100)}</div><div class="s-sub">${slType==='a'?'BIG・REGいずれか':label}が1回以上出る確率</div></div>
         <div class="stat"><div class="s-l">今回のシミュレーション</div><div class="s-v">${yen(bal)}</div><div class="s-sub">${label}${hits}回${slType==='a'?' / REG'+regs+'回':''}${smart?' / 区間+2,400枚規制込み':''}</div></div>
       </div>`
       +slBonusListHTML(bonusRec,p,pReg)
-      +`<div class="chart-card"><div class="chart-head"><div class="c-title">収支の分布(${histCampaigns}回シミュレーションを繰り返した結果 / ${histG.toLocaleString()}Gごと)</div></div><canvas id="slHistC"></canvas><div class="fhelp" style="margin-top:6px;">この分布は「同じ条件で何度も打ったとき、最終収支がどんな範囲にどれくらいの確率でばらつくか」を表します。山が右(プラス側)に寄るほど勝ちやすく、左に長い裾を引くほど大負けのリスクがあります。緑=プラス収支・赤=マイナス収支の回数です。</div></div>`
+      +`<div class="chart-card"><div class="chart-head"><div class="c-title">収支の分布(${histCampaigns}回シミュレーションを繰り返した結果 / ${histG.toLocaleString()}Gごと)</div></div><canvas id="slHistC"></canvas><div class="fhelp" style="margin-top:6px;">この分布は「同じ条件で何度も打ったとき、最終収支がどんな範囲にどれくらいの確率でばらつくか」を表します。山が右(プラス側)に寄るほど勝ちやすく、左に長い裾を引くほど大負けのリスクがあります。緑=プラス収支・赤=マイナス収支の回数です。コイン持ちを甘く見積もるほど左裾が伸びやすくなります。</div></div>`
       +`<div style="margin:4px 0 10px;"><button class="btn2" onclick="cmpAdd('sl',{label:'${(new Date()).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})}',evPositive:${totalEV>=0},vals:['${(evG>=0?'+':'−')+cf(Math.abs(Math.round(evG)))}','${num(1000/costG)}G/千円','${pct(kikai)}']})">📊 このスペックを比較に追加</button></div>`
       +`<div class="chart-card"><div class="chart-head"><div class="c-title">当選図(横軸: ゲーム数 / ●=当選位置とG数)</div>
         <div class="legend"><span class="li"><span class="sw" style="border-color:#39FF88;"></span>シミュレーション</span><span class="li"><span class="sw" style="border-color:#C8A25B;border-top-style:dashed;"></span>理論値</span>${slType==='a'?'<span class="li" style="color:#E63946;">B=BIG</span><span class="li" style="color:#4FA3E0;">R=REG</span>':''}<button class="btn2" style="padding:4px 10px;font-size:11px;" onclick="runSL()">🔁 再試行</button></div></div>
@@ -2417,7 +2427,7 @@ function runSLYen(p,coins,pReg,coinsReg,mochi,costG,label,modoshi){
   const rate=slRate.rate,perG=50/mochi,buyCoins=Math.floor(1000/rate),MAXG=8000;
   const smart=slType==='at'&&slSmart;
   function once(record){
-    let cash=cash0,stock=0,G=0,lastB=0;const series=record?[0]:null,bonusRec=record?[]:null;
+    let cash=cash0,stock=0,G=0,lastB=0,valMin=0,complete=false;const series=record?[0]:null,bonusRec=record?[]:null;
     while(G<MAXG){
       if(stock<perG){if(cash>=1000){cash-=1000;stock+=buyCoins;}else break;}
       stock-=perG;G++;
@@ -2426,17 +2436,24 @@ function runSLYen(p,coins,pReg,coinsReg,mochi,costG,label,modoshi){
         if(Math.random()<p){stock+=coins;if(record){bonusRec.push({i:G,g:G-lastB,type:'BB',cum:(cash+stock*rate-cash0)/rate});lastB=G;}}
         else if(pReg>0&&Math.random()<pReg){stock+=coinsReg;if(record){bonusRec.push({i:G,g:G-lastB,type:'RB',cum:(cash+stock*rate-cash0)/rate});lastB=G;}}
       }
-      if(record)series.push(Math.round(cash+stock*rate-cash0));
+      const val=cash+stock*rate-cash0;
+      if(val<valMin)valMin=val;
+      if(record)series.push(Math.round(val));
+      if(smart&&(val-valMin)/rate>=19000){complete=true;break;}
     }
-    return{G,net:cash+stock*rate-cash0,bust:G<MAXG,series,bonusRec};
+    return{G,net:cash+stock*rate-cash0,bust:G<MAXG&&!complete,complete,series,bonusRec};
   }
   const main=once(true);
-  const RUNS=300;let bustN=0,gSum=0,winN=0;const histSamples=[];
-  for(let i=0;i<RUNS;i++){const r=once(false);if(r.bust)bustN++;if(r.net>0)winN++;gSum+=r.G;histSamples.push(Math.round(r.net));}
+  const RUNS=Math.max(50,Math.min(2000,Math.round(V('slYRuns'))||300));
+  let bustN=0,gSum=0,winN=0,completeN=0;const histSamples=[];
+  for(let i=0;i<RUNS;i++){const r=once(false);if(r.bust)bustN++;if(r.net>0)winN++;if(r.complete)completeN++;gSum+=r.G;histSamples.push(Math.round(r.net));}
   const eGain=slType==='at'?slEGain(coins,modoshi,smart):0;
   const evG=(slType==='at'?p*eGain:(p*coins+pReg*coinsReg))*rate-costG;
   const expG=Math.round(gSum/RUNS);
   const totalEV=evG*expG;
+  const hourly=evG*SL_G_PER_HOUR;
+  const pAny=slType==='a'?1-(1-p)*(1-pReg):p;
+  const p100=1-Math.pow(1-pAny,Math.min(100,expG));
   const evLine=main.series.map((_,i)=>Math.round(evG*i));
   $('sl-out').innerHTML=
     verdict(totalEV,'yen',`投資${yen(cash0)}は期待値プラスの条件です。`,`投資${yen(cash0)}を出玉優先で回すと平均${expG.toLocaleString()}G消化、平均${yen(Math.abs(totalEV))}負ける計算です。`)
@@ -2445,17 +2462,20 @@ function runSLYen(p,coins,pReg,coinsReg,mochi,costG,label,modoshi){
       <div class="stat"><div class="s-l">破産確率</div><div class="s-v">${pct(bustN/RUNS*100)}</div><div class="s-sub">上限G前に資金+出玉が尽きる確率</div></div>
       <div class="stat"><div class="s-l">勝率(プラス収支率)</div><div class="s-v">${pct(winN/RUNS*100)}</div><div class="s-sub">${RUNS}回中${winN}回プラス</div></div>
       <div class="stat"><div class="s-l">1Gあたり期待損益</div><div class="s-v">${yen(evG)}</div><div class="s-sub">${slType==='at'?'引き戻し'+pct(modoshi*100,0)+(smart?'・スマスロ規制込み':''):'出玉優先消費・再投資込み'}</div></div>
+      <div class="stat"><div class="s-l">時給換算(理論値)</div><div class="s-v">${yen(hourly)}/h</div><div class="s-sub">1G≒${SL_SEC_PER_G}秒(${num(SL_G_PER_HOUR,0)}G/時)で計算</div></div>
+      <div class="stat"><div class="s-l">100回転以内の連続当選率</div><div class="s-v">${pct(p100*100)}</div><div class="s-sub">${slType==='a'?'BIG・REGいずれか':label}が1回以上出る確率</div></div>
       <div class="stat"><div class="s-l">今回のシミュレーション</div><div class="s-v">${yen(main.net)}</div><div class="s-sub">${main.G.toLocaleString()}G / 差枚${cf(main.net/rate)}枚</div></div>
-      <div class="stat"><div class="s-l">結末</div><div class="s-v">${main.bust?'資金切れ':'打ち切り'}</div><div class="s-sub">${main.bust?'出玉も現金も尽きた':'上限G数まで生存'}</div></div>
+      <div class="stat"><div class="s-l">結末</div><div class="s-v">${main.complete?'コンプリート':(main.bust?'資金切れ':'打ち切り')}</div><div class="s-sub">${main.complete?'最下点から19,000枚到達':(main.bust?'出玉も現金も尽きた':'上限G数まで生存')}${smart?' / コンプリート到達率'+pct(completeN/RUNS*100):''}</div></div>
     </div>`
     +slBonusListHTML(main.bonusRec||[],p,pReg)
-    +`<div class="chart-card"><div class="chart-head"><div class="c-title">収支の分布(投資${yen(cash0)}を${RUNS}回シミュレーションした最終収支)</div></div><canvas id="slHistC"></canvas><div class="fhelp" style="margin-top:6px;">この分布は「同じ条件で何度も打ったとき、最終収支がどんな範囲にどれくらいの確率でばらつくか」を表します。山が右(プラス側)に寄るほど勝ちやすく、左に長い裾を引くほど大負けのリスクがあります。緑=プラス収支・赤=マイナス収支の回数です。</div></div>`
+    +`<div class="chart-card"><div class="chart-head"><div class="c-title">収支の分布(投資${yen(cash0)}を${RUNS}回シミュレーションした最終収支)</div></div><canvas id="slHistC"></canvas><div class="fhelp" style="margin-top:6px;">この分布は「同じ条件で何度も打ったとき、最終収支がどんな範囲にどれくらいの確率でばらつくか」を表します。山が右(プラス側)に寄るほど勝ちやすく、左に長い裾を引くほど大負けのリスクがあります。緑=プラス収支・赤=マイナス収支の回数です。コイン持ちを甘く見積もるほど左裾が伸びやすくなります。</div></div>`
     +`<div class="chart-card"><div class="chart-head"><div class="c-title">収支の推移(横軸: ゲーム数 / 投資${yen(cash0)})</div>
-      <div class="legend"><span class="li"><span class="sw" style="border-color:#39FF88;"></span>シミュレーション</span><span class="li"><span class="sw" style="border-color:#C8A25B;border-top-style:dashed;"></span>理論値</span><button class="btn2" style="padding:4px 10px;font-size:11px;" onclick="runSL()">🔁 再試行</button></div></div>
+      <div class="legend"><span class="li"><span class="sw" style="border-color:#39FF88;"></span>シミュレーション</span><span class="li"><span class="sw" style="border-color:#C8A25B;border-top-style:dashed;"></span>理論値</span><button class="btn2" style="padding:4px 10px;font-size:11px;" onclick="runSL()">🔁 再試行</button><button class="btn2 danger" style="padding:4px 10px;font-size:11px;" onclick="slYReset()">🗑 結果をクリア</button></div></div>
       <canvas id="slChart"></canvas></div>`;
   requestAnimationFrame(()=>{drawChart($('slChart'),main.series,evLine,{xLabel:'ゲーム数',yLabel:'収支(円)'});histInto('slHistC',histSamples,'円');});
   statAdd('スロット(投資)',main.net,cash0);
 }
+function slYReset(){$('sl-out').innerHTML='';}
 function funOver(){
   fun.over=true;
   const fb=$('funBanner');
@@ -3652,7 +3672,7 @@ function slVirtTime(gAbs){
   let startMin=600;
   const st=$('slStartTime');
   if(st&&st.value){const m=st.value.match(/^(\d{1,2}):(\d{2})/);if(m)startMin=(+m[1])*60+(+m[2]);}
-  const min=startMin+gAbs*3.5/60; // 1G≒3.5秒
+  const min=startMin+gAbs*SL_SEC_PER_G/60;
   const h=Math.floor(min/60)%24,mm=Math.floor(min%60);
   return String(h).padStart(2,'0')+':'+String(mm).padStart(2,'0');
 }
@@ -3694,9 +3714,10 @@ function slBonusListHTML(rec,p,pReg){
     +'<span>BB確率: 1/'+num(totalG/Math.max(1,bb),0)+'</span>'
     +(rb>0?'<span>RB確率: 1/'+num(totalG/rb,0)+'</span><span>合算: 1/'+num(totalG/(bb+rb),0)+'</span>':'')
     +'</div>';
-  return '<button class="run" id="slBonusBtn" style="margin:10px 0 0;" onclick="slToggleBonus()">'+(slBonusShown?'▲ ボーナス履歴を隠す':'▼ ボーナス履歴を表示する')+'('+rec.length+'回)</button>'
+  return '<div class="chart-card"><div class="chart-head"><div class="c-title">ボーナス履歴</div></div>'
+    +'<button class="run" id="slBonusBtn" style="margin:0 0 8px;" onclick="slToggleBonus()">'+(slBonusShown?'▲ ボーナス履歴を隠す':'▼ ボーナス履歴を表示する')+'('+rec.length+'回)</button>'
     +'<div id="slBonusBody" style="display:'+(slBonusShown?'':'none')+';">'
-    +'<div class="bh-wrap"><div class="bh-scroll">'+rows+'</div>'+foot+'</div></div>';
+    +'<div class="bh-wrap"><div class="bh-scroll">'+rows+'</div>'+foot+'</div></div></div>';
 }
 
 /* ---- アクセシビリティ: クリック可能div群にキーボード操作を付与 ---- */

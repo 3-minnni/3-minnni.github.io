@@ -2850,7 +2850,9 @@ function gcRender(last){
   $('gcSpentBig').textContent=cf(gcSpent);
   $('gcCountBig').textContent=cf(gcCount);
   const pity=Math.max(0,Math.round(V('gcPity')));
-  $('gcPityView').innerHTML=(pity>0?'<span class="rc gold">天井まで残り <b>'+Math.max(0,pity-gcSince)+'</b>回</span>':'')
+  const pityPct=pity>0?Math.min(100,gcSince/pity*100):0;
+  $('gcPityView').innerHTML=(pity>0?'<div class="gc-budget-bar" style="margin-bottom:6px;"><div class="gc-budget-fill" style="width:'+pityPct+'%;background:'+(pityPct>=90?'var(--gold-hi)':'var(--gold)')+';"></div></div>'
+    +'<span class="rc gold">天井まで残り <b>'+Math.max(0,pity-gcSince)+'</b>回</span>':'')
     +(gcEyeHits.length?'<span class="rc gold">'+(gcTiersDef[0]?gcTiersDef[0].name:'目玉')+'当選: '+gcEyeHits.map((n,i)=>(i+1)+'回目='+n+'連目').join(' / ')+'</span>':'')
     +(gcEye2Hits.length?'<span class="rc">第2目玉: '+gcEye2Hits.map((n,i)=>(i+1)+'回目='+n+'連目').join(' / ')+'</span>':'');
   $('gcCounts').innerHTML=gcTiersDef.map((t,i)=>'<span class="rc'+(gcHits[i]>0&&gcRank[i]<=2?' gold':'')+'">'+t.name+': <b>'+gcHits[i]+'</b>枚</span>').join('');

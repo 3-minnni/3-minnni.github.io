@@ -2115,15 +2115,6 @@ function confettiBurst(host){
 /* ---- 統計 ---- */
 function stAll(){try{return JSON.parse(localStorage.getItem('evlab_stats')||'{}');}catch(e){return window.__st||(window.__st={});}}
 function stSave(o){try{localStorage.setItem('evlab_stats',JSON.stringify(o));}catch(e){window.__st=o;}}
-function statAdd(cat,net){const s=stAll();s[cat]=s[cat]||{n:0,net:0};s[cat].n++;s[cat].net+=Math.round(net);stSave(s);}
-function stRender(){
-  const s=stAll(),keys=Object.keys(s);
-  const total=keys.reduce((a,k)=>a+s[k].net,0);
-  $('stBody').innerHTML=(keys.length
-    ?keys.map(k=>'<div class="st-row"><span class="st-n">'+k+'</span><span class="st-c">'+s[k].n+'回</span><span class="st-v" style="color:'+(s[k].net>=0?'var(--pos)':'var(--neg)')+';">'+(s[k].net>=0?'+':'−')+cf(Math.abs(s[k].net))+'</span></div>').join('')
-    :'<div class="fhelp">まだデータがありません。各タブで計算・実引きすると自動で積算されます。</div>')
-  +'<div class="st-row" style="border-top:2px solid var(--line2);border-bottom:none;"><span class="st-n">生涯トータル</span><span class="st-v" style="font-size:20px;color:'+(total>=0?'var(--pos)':'var(--neg)')+';">'+(total>=0?'+':'−')+cf(Math.abs(total))+'</span></div>';
-}
 function stReset(){confirmBox('統計をすべてリセットしますか?この操作は戻せません。',true,()=>{stSave({});stRender();});}
 /* ---- チュートリアル ---- */
 const TUT={

@@ -1674,23 +1674,10 @@ function ruSetAmerican(on){
   if($('ruStats'))ruUpdateStats();
 }
 let ruBetType='red',ruRot=0,ruSpinning=false,ruWallet=50000,ruStartW=50000,ruBal=0,ruSeries=[0],ruEvPer=0;
-function ruSetWallet(){ruWallet=parseFloat($('ruWalletSet').value)||0;ruStartW=ruWallet;ruBal=0;ruSeries=[0];ruRenderWallet();drawChart($('ruChart'),ruSeries,[0],{xLabel:'スピン回数',yLabel:'収支(円)'});}
 function ruRenderWallet(){
   $('ruWallet').textContent=cf(ruWallet);
   const d=ruWallet-ruStartW;const wd=$('ruWalletDiff');
   wd.textContent=(d>=0?'+':'−')+cf(Math.abs(d));wd.className='w-diff '+(d>=0?'up':'down');
-}
-function ruUpdateStats(){
-  const bet=V('ruBet');
-  let p,mult;
-  if(ruBetType==='num'){p=1/37;mult=36;}else{p=18/37;mult=2;}
-  ruEvPer=p*bet*mult-bet;
-  const ret=(p*mult)*100;
-  $('ruStats').innerHTML=`
-    <div class="stat"><div class="s-l">的中確率</div><div class="s-v">${pct(p*100,2)}</div><div class="s-sub">${ruBetType==='num'?'1/37':'18/37'}</div></div>
-    <div class="stat"><div class="s-l">回収率(理論値)</div><div class="s-v">${pct(ret,2)}</div><div class="s-sub">どの賭け方でも97.3%</div></div>
-    <div class="stat"><div class="s-l">1回の期待損益</div><div class="s-v">${yen(ruEvPer)}</div><div class="s-sub">胴元の取り分=0の存在</div></div>
-    <div class="stat"><div class="s-l">100回続けた期待損失</div><div class="s-v">${yen(ruEvPer*100)}</div><div class="s-sub">続けるほどここへ収束</div></div>`;
 }
 function ruDraw(rot,cvId,ball){
   const cv=$(cvId||'rouWheel');const ctx=cv.getContext('2d');
@@ -2112,20 +2099,6 @@ function ruJudge(type,numPick,n){
   if(type==='odd')return n%2===1?2:0;
   return n%2===0?2:0;
 }
-function rbSpin(){
-  if(rbSpinning||!rb)return;
-  rbSpinning=true;$('rbSpinBtn').textContent='回転中…';
-  const N=RU_ORDER().length;const idx=Math.floor(Math.random()*N);const seg=Math.PI*2/N;
-  const target=Math.PI*2*(FX==='full'?7:FX==='light'?3:1)+(Math.PI*2-(idx*seg+seg/2));
-  const startRot=rbRot%(Math.PI*2),t0=performance.now(),dur=FX==='full'?3600:FX==='light'?1500:250;
-  function frame(now){
-    const t=Math.min(1,(now-t0)/dur);const e=1-Math.pow(1-t,3);
-    rbRot=startRot+(target-startRot)*e;ruDraw(rbRot,'rbWheel');
-    if(t<1)requestAnimationFrame(frame);else rbSettle(RU_ORDER()[idx]);
-  }
-  requestAnimationFrame(frame);
-}
-
 /* ============================================================
    v6 OVERRIDES(後方の関数宣言が優先される仕様を利用した上書き)
    ============================================================ */
@@ -2508,7 +2481,6 @@ function ltDraw(rot){
 }
 /* ---- チンチロ: 演出強化 ---- */
 /* ---- ルーレット: 本格カジノ盤 ---- */
-function rtChip(el){rtAmt=+el.dataset.v;document.querySelectorAll('.rt-chip').forEach(x=>x.classList.remove('on'));el.classList.add('on');}
 function rtBuild(){
   const T=$('rtTable');
   let h='<div class="rt-table'+(ruAmerican?' american':'')+'">';

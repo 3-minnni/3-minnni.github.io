@@ -993,6 +993,29 @@
       <div class="rt-hint">← 横にスクロールできます →</div>
       <div class="rt-scroll"><div id="rtTable" style="margin-bottom:10px;"></div></div>
       <div class="remain" id="rtBets"></div>
+      <div class="field full" style="margin-top:10px;">
+        <div class="flabel">詳細ベット(ガチ勢向け)</div>
+        <div class="fhelp">通常の1点・アウトサイドに加えて、スプリット/ストリート/コーナーを組めます</div>
+        <div class="chips" id="rtDetailType">
+          <div class="chip on" data-t="street" onclick="rtDetailSetType(this)">ストリート(3数字・11倍)</div>
+          <div class="chip" data-t="splith" onclick="rtDetailSetType(this)">スプリット横(2数字・17倍)</div>
+          <div class="chip" data-t="splitv" onclick="rtDetailSetType(this)">スプリット縦(2数字・17倍)</div>
+          <div class="chip" data-t="corner" onclick="rtDetailSetType(this)">コーナー(4数字・8倍)</div>
+        </div>
+        <div class="igroup" style="max-width:220px;margin-top:8px;"><span class="pre">基準の数字</span><input type="number" id="rtDetailAnchor" value="1" min="1" max="36" oninput="rtDetailPreview()"></div>
+        <div class="fhelp" id="rtDetailPreview" style="margin-top:4px;"></div>
+        <button class="btn2 accent" style="margin-top:6px;" onclick="rtDetailBet()">現在のチップ額でこのベットを置く</button>
+      </div>
+      <div class="field full" style="margin-top:10px;">
+        <div class="flabel">セクターベット(フランス式・隣接まとめ買い)</div>
+        <div class="fhelp">実物のルーレット盤で物理的に隣接する数字グループへ、チップ額を各数字に均等配置します</div>
+        <div class="chips">
+          <div class="chip" onclick="rtSectorBet('voisins')">ヴォワザン・ドゥ・ゼロ(0近傍・17数字)</div>
+          <div class="chip" onclick="rtSectorBet('tiers')">ティエ・ドゥ・シランドル(対面・12数字)</div>
+          <div class="chip" onclick="rtSectorBet('orphelins')">オルファン(残り・8数字)</div>
+        </div>
+      </div>
+      <div id="ruBiasBox" style="margin-top:10px;"></div>
     </div>
     <div class="card ru-solo">
       <div class="wallet">
@@ -2524,8 +2547,60 @@ function rtBuild(){
 }
 function rtClear(){rtBets={};rtRender();}
 function rtTotal(){return Object.values(rtBets).reduce((a,b)=>a+b,0);}
+/* ---- ルーレット: 詳細ベット(ストリート/スプリット/コーナー)・セクターベット ---- */
+let rtDetailType='street';
+function rtDetailSetType(el){
+  rtDetailType=el.dataset.t;
+  [...$('rtDetailType').children].forEach(x=>x.classList.remove('on'));
+  el.classList.add('on');
+  rtDetailPreview();
+}
+function rtDetailCompute(){
+  const a=Math.max(1,Math.min(36,Math.round(V('rtDetailAnchor'))||1));
+  const c=Math.floor((a-1)/3),r=((a-1)%3)+1;
+  if(rtDetailType==='street')return{key:'street'+c,nums:[3*c+1,3*c+2,3*c+3],mult:11};
+  if(rtDetailType==='splitv'){
+    if(r===3)return null;
+    return{key:'split'+a+'_'+(a+1),nums:[a,a+1],mult:17};
+  }
+  if(rtDetailType==='splith'){
+    if(c>=11)return null;
+    const lo=Math.min(a,a+3),hi=Math.max(a,a+3);
+    return{key:'split'+lo+'_'+hi,nums:[a,a+3],mult:17};
+  }
+  if(rtDetailType==='corner'){
+    if(r===3||c>=11)return null;
+    return{key:'corner'+a,nums:[a,a+1,a+3,a+4],mult:8};
+  }
+  return null;
+}
+function rtDetailPreview(){
+  const r=rtDetailCompute();
+  $('rtDetailPreview').innerHTML=r?('対象: '+r.nums.join('・')+'番 / 的中'+r.mult+'倍'):'<span style="color:var(--neg);">この基準の数字ではこのベットは組めません(別の数字を試してください)</span>';
+}
+function rtDetailBet(){
+  const r=rtDetailCompute();
+  if(!r){alert('この基準の数字ではベットを組めません');return;}
+  if(rtTotal()+rtAmt>ruWallet){alert('所持金('+cf(ruWallet)+')を超えています');return;}
+  rtBets[r.key]=(rtBets[r.key]||0)+rtAmt;
+  rtRender();rtDetailPreview();
+}
+const RU_SECTORS={
+  voisins:[0,2,3,4,7,12,15,18,19,21,22,25,26,28,29,32,35],
+  tiers:[27,13,36,11,30,8,23,10,5,24,16,33],
+  orphelins:[17,34,6,1,20,14,31,9]
+};
+function rtSectorBet(name){
+  const nums=RU_SECTORS[name];if(!nums)return;
+  if(rtTotal()+nums.length*rtAmt>ruWallet){alert('所持金('+cf(ruWallet)+')を超えています(このセクターは'+nums.length+'数字×チップ額が必要です)');return;}
+  nums.forEach(num=>{rtBets['n'+num]=(rtBets['n'+num]||0)+rtAmt;});
+  rtRender();
+}
 function rtLabel(k){
   if(k[0]==='n')return k.slice(1)+'番(36倍)';
+  if(k.startsWith('street'))return 'ストリート(11倍)';
+  if(k.startsWith('split'))return 'スプリット '+k.slice(5).replace('_','-')+'(17倍)';
+  if(k.startsWith('corner'))return 'コーナー '+k.slice(6)+'番〜(8倍)';
   if(k.startsWith('col'))return '列'+k[3]+'(3倍)';
   if(k.startsWith('doz'))return ['1〜12','13〜24','25〜36'][+k[3]]+'(3倍)';
   return {low:'1〜18',high:'19〜36',red:'赤',black:'黒',odd:'奇数',even:'偶数'}[k]+'(2倍)';
@@ -2545,6 +2620,9 @@ function rtJudge(k,n){
   if(k==='n'+n)return 36;
   if(k[0]==='n')return 0;
   if(n===0||n==='00')return 0;
+  if(k.startsWith('street'))return Math.floor((n-1)/3)===+k.slice(6)?11:0;
+  if(k.startsWith('split')){const[a,b]=k.slice(5).split('_').map(Number);return(n===a||n===b)?17:0;}
+  if(k.startsWith('corner')){const a=+k.slice(6);return[a,a+1,a+3,a+4].includes(n)?8:0;}
   if(k.startsWith('col'))return ((n-1)%3+1)===+k[3]?3:0;
   if(k.startsWith('doz'))return Math.floor((n-1)/12)===+k[3]?3:0;
   if(k==='red')return RU_RED.has(n)?2:0;
@@ -2569,7 +2647,7 @@ function ruUpdateStats(){
 function ruSetWallet(){
   ruWallet=parseFloat($('ruWalletSet').value)||0;ruStartW=ruWallet;
   ruBal=0;ruSeries=[0];ruEvSeries=[0];
-  ruHist=[];ruHistRender();
+  ruHist=[];ruHistRender();ruBiasRender();
   ruSpinLog=[];ruTotalInvest=0;ruTotalPayout=0;ruDetailLogRender();
   ruRenderWallet();ruUpdateStats();
   drawChart($('ruChart'),ruSeries,ruEvSeries,{xLabel:'スピン回数',yLabel:'収支(円)'});
@@ -3371,6 +3449,25 @@ function ruDetailLogRender(){
   }).join('');
   box.innerHTML=foldBlock('試行別履歴('+ruSpinLog.length+'件・賭け金/払戻/収支)',rows,false);
 }
+function ruBiasRender(){
+  const box=$('ruBiasBox');if(!box)return;
+  const total=ruHist.length;
+  if(total<10){box.innerHTML='<div class="fhelp">10回以上スピンすると出目統計が表示されます(現在'+total+'回)。</div>';return;}
+  const order=RU_ORDER();
+  const counts={};order.forEach(n=>counts[n]=0);
+  ruHist.forEach(n=>{counts[n]=(counts[n]||0)+1;});
+  const expected=total/order.length;
+  const rows=order.map(n=>({n,c:counts[n],dev:(counts[n]-expected)/expected*100})).sort((a,b)=>b.dev-a.dev);
+  const hot=rows.slice(0,5),cold=[...rows].reverse().slice(0,5);
+  box.innerHTML=
+    '<div class="flabel">出目統計・偏り分析(通算'+cf(total)+'回)</div>'
+    +'<div class="fhelp">理論上の1数字あたり期待回数: '+num(expected,1)+'回</div>'
+    +'<div class="flabel" style="margin-top:8px;">出やすい数字(実測上位5)</div>'
+    +'<div class="remain">'+hot.map(r=>'<span class="rc gold">'+r.n+'番: <b>'+r.c+'</b>回('+(r.dev>=0?'+':'')+num(r.dev,0)+'%)</span>').join('')+'</div>'
+    +'<div class="flabel" style="margin-top:8px;">出ていない数字(実測下位5)</div>'
+    +'<div class="remain">'+cold.map(r=>'<span class="rc">'+r.n+'番: <b>'+r.c+'</b>回('+(r.dev>=0?'+':'')+num(r.dev,0)+'%)</span>').join('')+'</div>'
+    +'<div class="fhelp" style="margin-top:6px;">乱数のブレはサンプル数が少ないうちは大きく出ます。数百〜数千回で理論値(均等)に収束するのが正常です。「偏り」を過信しないための学習用機能です。</div>';
+}
 function rtChip(el){
   if(el.dataset.v==='custom'){
     const v=Math.max(1,Math.round(V('rtCustomAmt')));
@@ -3438,7 +3535,7 @@ function ruSettle(n){
   ruWallet+=delta;ruBal+=delta;
   ruSeries.push(ruBal);
   ruEvSeries.push(ruEvSeries[ruEvSeries.length-1]-total/RU_ORDER().length);
-  ruHist.unshift(n);ruHistRender();
+  ruHist.unshift(n);ruHistRender();ruBiasRender();
   ruTotalInvest+=total;ruTotalPayout+=payout;
   ruSpinLog.unshift({no:ruHist.length,n,total,payout,delta});ruDetailLogRender();
   ruRenderWallet();ruUpdateStats();
@@ -4044,6 +4141,7 @@ hkInit();
 if($('rsDate')){const today=new Date().toISOString().slice(0,10);$('rsDate').value=today;}
 rsRender();
 ruHistRender();
+ruBiasRender();
 </script>
 </body>
 </html>

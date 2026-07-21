@@ -731,6 +731,28 @@
     <div id="sl-out"></div>
     <div id="cmp-sl"></div>
 
+    <div id="slAtTools">
+      <div class="card">
+        <div class="card-title"><span class="step">TOOL</span><h3>差枚数ペース管理</h3><span class="hint">実戦の差枚推移を1500枚区切りで確認</span></div>
+        <div class="fgrid">
+          <div class="field"><div class="flabel">現在のゲーム数</div><div class="fhelp"></div>
+            <div class="igroup"><input type="number" id="slPaceG" value="0" min="0" oninput="slPaceCalc()"><span class="unit">G</span></div></div>
+          <div class="field"><div class="flabel">現在の差枚</div><div class="fhelp">マイナスの場合は負の数で入力</div>
+            <div class="igroup"><input type="number" id="slPaceDiff" value="0" oninput="slPaceCalc()"><span class="unit">枚</span></div></div>
+        </div>
+        <div id="slPaceOut"></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="step">TOOL</span><h3>有利区間の残りゲーム数管理</h3><span class="hint">1500G上限までの目安</span></div>
+        <div class="fgrid">
+          <div class="field"><div class="flabel">有利区間に入ってからのゲーム数</div><div class="fhelp"></div>
+            <div class="igroup"><input type="number" id="slYuriG" value="0" min="0" max="1500" oninput="slYuriCalc()"><span class="unit">G</span></div></div>
+        </div>
+        <div id="slYuriOut"></div>
+        <div class="fhelp" style="margin-top:6px;">有利区間は上限1500Gで強制的に終了します(差枚が2,400枚に達した場合はそこで区間が切られ通常時に戻ります)。残りゲーム数の目安把握にお使いください。</div>
+      </div>
+    </div>
+
     <div class="card" id="slKachi" style="display:none;">
       <div class="card-title"><span class="step">TOOL</span><h3>スロット設定判別カウンター</h3><span class="hint">実戦データから設定を推測</span></div>
       <div class="fgrid" style="margin-bottom:10px;">
@@ -2398,12 +2420,17 @@ function runSL(){
         <div class="stat"><div class="s-l">今回のシミュレーション</div><div class="s-v">${yen(bal)}</div><div class="s-sub">${label}${hits}回${slType==='a'?' / REG'+regs+'回':''}${smart?' / 区間+2,400枚規制込み':''}</div></div>
       </div>`
       +slBonusListHTML(bonusRec,p,pReg)
+      +(bonusRec.length>=5?`<div class="chart-card"><div class="chart-head"><div class="c-title">ボーナス間隔の分布(今回のシミュレーション・${bonusRec.length}回)</div></div><canvas id="slGapHistC"></canvas><div class="fhelp" style="margin-top:6px;">1回のボーナスから次のボーナスまでに要したゲーム数の分布です。山が左に寄るほど連続当選しやすく、右に長い裾を引くほどハマりやすい機種です。</div></div>`:'')
       +`<div class="chart-card"><div class="chart-head"><div class="c-title">収支の分布(${histCampaigns}回シミュレーションを繰り返した結果 / ${histG.toLocaleString()}Gごと)</div></div><canvas id="slHistC"></canvas><div class="fhelp" style="margin-top:6px;">この分布は「同じ条件で何度も打ったとき、最終収支がどんな範囲にどれくらいの確率でばらつくか」を表します。山が右(プラス側)に寄るほど勝ちやすく、左に長い裾を引くほど大負けのリスクがあります。緑=プラス収支・赤=マイナス収支の回数です。コイン持ちを甘く見積もるほど左裾が伸びやすくなります。</div></div>`
       +`<div style="margin:4px 0 10px;"><button class="btn2" onclick="cmpAdd('sl',{label:'${(new Date()).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})}',evPositive:${totalEV>=0},vals:['${(evG>=0?'+':'−')+cf(Math.abs(Math.round(evG)))}','${num(1000/costG)}G/千円','${pct(kikai)}']})">📊 このスペックを比較に追加</button></div>`
       +`<div class="chart-card"><div class="chart-head"><div class="c-title">当選図(横軸: ゲーム数 / ●=当選位置とG数)</div>
         <div class="legend"><span class="li"><span class="sw" style="border-color:#39FF88;"></span>シミュレーション</span><span class="li"><span class="sw" style="border-color:#C8A25B;border-top-style:dashed;"></span>理論値</span>${slType==='a'?'<span class="li" style="color:#E63946;">B=BIG</span><span class="li" style="color:#4FA3E0;">R=REG</span>':''}<button class="btn2" style="padding:4px 10px;font-size:11px;" onclick="runSL()">🔁 再試行</button></div></div>
         <canvas id="slChart"></canvas></div>`;
-    requestAnimationFrame(()=>{drawChart($('slChart'),series,evLine,{xLabel:'ゲーム数',yLabel:'収支(円)',markers});histInto('slHistC',histSamples,'円');});
+    requestAnimationFrame(()=>{
+      drawChart($('slChart'),series,evLine,{xLabel:'ゲーム数',yLabel:'収支(円)',markers});
+      histInto('slHistC',histSamples,'円');
+      if(bonusRec.length>=5)histInto('slGapHistC',bonusRec.map(r=>r.g),'G');
+    });
     if(complete)confettiBurst($('slComp'));
     statAdd('スロット',bal,totalCost);
   };
@@ -2426,7 +2453,7 @@ function runSLYen(p,coins,pReg,coinsReg,mochi,costG,label,modoshi){
   const cash0=Math.max(1000,V('slYen'));
   const rate=slRate.rate,perG=50/mochi,buyCoins=Math.floor(1000/rate),MAXG=8000;
   const smart=slType==='at'&&slSmart;
-  function once(record){
+  function once(record,winStop,lossStop){
     let cash=cash0,stock=0,G=0,lastB=0,valMin=0,complete=false;const series=record?[0]:null,bonusRec=record?[]:null;
     while(G<MAXG){
       if(stock<perG){if(cash>=1000){cash-=1000;stock+=buyCoins;}else break;}
@@ -2440,13 +2467,21 @@ function runSLYen(p,coins,pReg,coinsReg,mochi,costG,label,modoshi){
       if(val<valMin)valMin=val;
       if(record)series.push(Math.round(val));
       if(smart&&(val-valMin)/rate>=19000){complete=true;break;}
+      if(winStop!=null&&val>=winStop)break;
+      if(lossStop!=null&&val<=-lossStop)break;
     }
     return{G,net:cash+stock*rate-cash0,bust:G<MAXG&&!complete,complete,series,bonusRec};
   }
   const main=once(true);
   const RUNS=Math.max(50,Math.min(2000,Math.round(V('slYRuns'))||300));
+  function runRule(winStop,lossStop){
+    let bustN=0,gSum=0,winN=0;
+    for(let i=0;i<RUNS;i++){const r=once(false,winStop,lossStop);if(r.bust)bustN++;if(r.net>0)winN++;gSum+=r.G;}
+    return{expG:Math.round(gSum/RUNS),bustPct:bustN/RUNS*100,winPct:winN/RUNS*100};
+  }
   let bustN=0,gSum=0,winN=0,completeN=0;const histSamples=[];
   for(let i=0;i<RUNS;i++){const r=once(false);if(r.bust)bustN++;if(r.net>0)winN++;if(r.complete)completeN++;gSum+=r.G;histSamples.push(Math.round(r.net));}
+  const ruleWin=runRule(cash0*0.5,null),ruleLoss=runRule(null,cash0*0.5);
   const eGain=slType==='at'?slEGain(coins,modoshi,smart):0;
   const evG=(slType==='at'?p*eGain:(p*coins+pReg*coinsReg))*rate-costG;
   const expG=Math.round(gSum/RUNS);
@@ -2467,12 +2502,24 @@ function runSLYen(p,coins,pReg,coinsReg,mochi,costG,label,modoshi){
       <div class="stat"><div class="s-l">今回のシミュレーション</div><div class="s-v">${yen(main.net)}</div><div class="s-sub">${main.G.toLocaleString()}G / 差枚${cf(main.net/rate)}枚</div></div>
       <div class="stat"><div class="s-l">結末</div><div class="s-v">${main.complete?'コンプリート':(main.bust?'資金切れ':'打ち切り')}</div><div class="s-sub">${main.complete?'最下点から19,000枚到達':(main.bust?'出玉も現金も尽きた':'上限G数まで生存')}${smart?' / コンプリート到達率'+pct(completeN/RUNS*100):''}</div></div>
     </div>`
+    +`<div class="chart-card"><div class="chart-head"><div class="c-title">やめどき比較(${RUNS}回試行/ルール)</div></div>
+      <div style="overflow-x:auto;"><table class="rs-table"><thead><tr><th>ルール</th><th>平均消化G数</th><th>勝率</th><th>破産確率</th></tr></thead><tbody>
+        <tr><td>全額使い切るまで</td><td>${expG.toLocaleString()}G</td><td>${pct(winN/RUNS*100)}</td><td>${pct(bustN/RUNS*100)}</td></tr>
+        <tr><td>+50%で勝ち逃げ</td><td>${ruleWin.expG.toLocaleString()}G</td><td>${pct(ruleWin.winPct)}</td><td>${pct(ruleWin.bustPct)}</td></tr>
+        <tr><td>−50%で損切り</td><td>${ruleLoss.expG.toLocaleString()}G</td><td>${pct(ruleLoss.winPct)}</td><td>${pct(ruleLoss.bustPct)}</td></tr>
+      </tbody></table></div>
+      <div class="fhelp" style="margin-top:6px;">「勝ち逃げ/損切り」は、その時点の収支が投資額の±50%に達したら即座にやめた場合の理論値です。</div></div>`
     +slBonusListHTML(main.bonusRec||[],p,pReg)
+    +((main.bonusRec&&main.bonusRec.length>=5)?`<div class="chart-card"><div class="chart-head"><div class="c-title">ボーナス間隔の分布(今回のシミュレーション・${main.bonusRec.length}回)</div></div><canvas id="slGapHistC"></canvas><div class="fhelp" style="margin-top:6px;">1回のボーナスから次のボーナスまでに要したゲーム数の分布です。山が左に寄るほど連続当選しやすく、右に長い裾を引くほどハマりやすい機種です。</div></div>`:'')
     +`<div class="chart-card"><div class="chart-head"><div class="c-title">収支の分布(投資${yen(cash0)}を${RUNS}回シミュレーションした最終収支)</div></div><canvas id="slHistC"></canvas><div class="fhelp" style="margin-top:6px;">この分布は「同じ条件で何度も打ったとき、最終収支がどんな範囲にどれくらいの確率でばらつくか」を表します。山が右(プラス側)に寄るほど勝ちやすく、左に長い裾を引くほど大負けのリスクがあります。緑=プラス収支・赤=マイナス収支の回数です。コイン持ちを甘く見積もるほど左裾が伸びやすくなります。</div></div>`
     +`<div class="chart-card"><div class="chart-head"><div class="c-title">収支の推移(横軸: ゲーム数 / 投資${yen(cash0)})</div>
       <div class="legend"><span class="li"><span class="sw" style="border-color:#39FF88;"></span>シミュレーション</span><span class="li"><span class="sw" style="border-color:#C8A25B;border-top-style:dashed;"></span>理論値</span><button class="btn2" style="padding:4px 10px;font-size:11px;" onclick="runSL()">🔁 再試行</button><button class="btn2 danger" style="padding:4px 10px;font-size:11px;" onclick="slYReset()">🗑 結果をクリア</button></div></div>
       <canvas id="slChart"></canvas></div>`;
-  requestAnimationFrame(()=>{drawChart($('slChart'),main.series,evLine,{xLabel:'ゲーム数',yLabel:'収支(円)'});histInto('slHistC',histSamples,'円');});
+  requestAnimationFrame(()=>{
+    drawChart($('slChart'),main.series,evLine,{xLabel:'ゲーム数',yLabel:'収支(円)'});
+    histInto('slHistC',histSamples,'円');
+    if(main.bonusRec&&main.bonusRec.length>=5)histInto('slGapHistC',main.bonusRec.map(r=>r.g),'G');
+  });
   statAdd('スロット(投資)',main.net,cash0);
 }
 function slYReset(){$('sl-out').innerHTML='';}
@@ -3108,6 +3155,26 @@ function slSetType(t){
   $('slFormA').style.display=t==='a'?'':'none';
   $('slFormTitle').textContent=t==='at'?'AT機の条件':'Aタイプの条件';
   $('sl-out').innerHTML='';
+  if($('slAtTools'))$('slAtTools').style.display=t==='at'?'':'none';
+}
+function slPaceCalc(){
+  const G=Math.max(1,Math.round(V('slPaceG'))||1);
+  const diff=V('slPaceDiff')||0;
+  const pace=diff/G;
+  const block=Math.floor(Math.abs(diff)/1500);
+  const nextMilestone=(block+1)*1500*(diff>=0?1:-1);
+  const proj1500=pace*1500;
+  $('slPaceOut').innerHTML='<div class="stats">'
+    +'<div class="stat"><div class="s-l">現在のペース</div><div class="s-v">'+num(pace,2)+'枚/G</div><div class="s-sub">'+cf(G)+'G消化時点・差枚'+(diff>=0?'+':'')+cf(diff)+'枚</div></div>'
+    +'<div class="stat"><div class="s-l">1500G換算</div><div class="s-v">'+(proj1500>=0?'+':'')+num(proj1500,0)+'枚</div><div class="s-sub">このペースを1500Gまで続けた場合</div></div>'
+    +'<div class="stat"><div class="s-l">次の1500枚区切りまで</div><div class="s-v">'+cf(Math.abs(nextMilestone-diff))+'枚</div><div class="s-sub">区切り: '+(nextMilestone>=0?'+':'')+cf(nextMilestone)+'枚</div></div>'
+    +'</div>';
+}
+function slYuriCalc(){
+  const g=Math.max(0,Math.min(1500,Math.round(V('slYuriG'))||0));
+  const remain=1500-g,p=g/1500*100;
+  $('slYuriOut').innerHTML='<div class="gc-budget-bar" style="margin:8px 0;"><div class="gc-budget-fill" style="width:'+p+'%;background:'+(p>=90?'var(--neg)':(p>=70?'#E8C879':'var(--pos)'))+';"></div></div>'
+    +'<div class="remain"><span class="rc gold">残り: <b>'+cf(remain)+'</b>G</span><span class="rc">進捗: <b>'+num(p,0)+'%</b></span></div>';
 }
 /* ---- オリパ: 分離入力・円グラフ・履歴・折りたたみ ---- */
 let opHistArr=[],opWinList=[],opBatchNo=0;
@@ -4163,6 +4230,8 @@ if($('rsDate')){const today=new Date().toISOString().slice(0,10);$('rsDate').val
 rsRender();
 ruHistRender();
 ruBiasRender();
+slPaceCalc();
+slYuriCalc();
 </script>
 </body>
 </html>

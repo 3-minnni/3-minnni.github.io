@@ -310,6 +310,10 @@
   .st-row .st-n{font-size:13px;font-weight:700;width:130px;}
   .st-row .st-c{font-size:11px;color:var(--ink-3);}
   .st-row .st-v{font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:600;margin-left:auto;}
+  .st-row .st-del{cursor:pointer;color:var(--ink-3);font-size:15px;padding:0 2px;}
+  .st-row .st-del:hover{color:var(--neg);}
+  .st-genre{margin-bottom:6px;}
+  .st-genre-h{font-size:11px;color:var(--gold);letter-spacing:.05em;margin-top:10px;font-weight:700;}
 
   .gc-big{display:flex;align-items:baseline;gap:10px;background:var(--card2);border:1px solid var(--gold-deep);border-radius:13px;padding:12px 16px;margin-bottom:10px;flex-wrap:wrap;}
   .gc-big .l{font-size:11px;color:var(--gold);}
@@ -335,6 +339,7 @@
   .rs-table td{padding:8px;border-bottom:1px solid var(--line);font-family:'IBM Plex Mono',monospace;}
   .rs-table tr.win td{background:rgba(230,120,60,.10);}
   .rs-table tr.lose td{background:rgba(60,120,230,.10);}
+  .rs-table .rs-memo{max-width:80px;color:var(--ink-2);font-size:11px;cursor:help;}
   .rs-table .rs-del{cursor:pointer;color:var(--ink-3);}
   .rs-table .rs-del:hover{color:var(--neg);}
   .rs-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:12px 0;}
@@ -595,6 +600,7 @@
     </div>
     <div id="pk-out"></div>
     <div id="cmp-pk"></div>
+    <div id="rsQuickHost-pk"></div>
     <div class="card" id="pkFun" style="display:none;">
       <div class="card-title"><span class="step">PLAY</span><h3>投資金額設定モード</h3><span class="hint">指定金額でどこまで回せるか+理論値</span></div>
       <div class="fgrid" style="margin-bottom:10px;">
@@ -739,6 +745,7 @@
     </div>
     <div id="sl-out"></div>
     <div id="cmp-sl"></div>
+    <div id="rsQuickHost-sl"></div>
 
     <div id="slAtTools">
       <div class="card">
@@ -911,6 +918,7 @@
       </div>
       <div id="op-theory"></div>
     </div>
+    <div id="rsQuickHost-op"></div>
 
     <div class="warn">
       <b>相場の自動取得について:</b> スクショやガチャURLから封入カードを認識して相場を表示する機能は、単体アプリでは実装不可です(各社が外部読み取り用APIを非公開・ブラウザのCORS制限・相場サイトに無料公開APIなし)。当たりカードの相場を自分で調べて「獲得コイン」欄に入力してください。
@@ -994,6 +1002,7 @@
       <div class="pull-log" id="gcLog"></div>
       <div id="gc-theory"></div>
     </div>
+    <div id="rsQuickHost-gc"></div>
   </div>
 
   <!-- ================= ルーレット ================= -->
@@ -1078,6 +1087,7 @@
       </div>
       <div class="pull-log" id="ruDetailLog"></div>
     </div>
+    <div id="rsQuickHost-ru" class="ru-solo"></div>
 
     <div class="card ru-battle" id="rbSetup" style="display:none;">
       <div class="card-title"><span class="step">STEP 1</span><h3>対戦設定</h3><span class="hint">同じ端末を回してベット</span></div>
@@ -1212,7 +1222,10 @@
   <div class="panel" id="panel-st">
     <div class="card">
       <div class="card-title"><span class="step">DATA</span><h3>データのバックアップ</h3><span class="hint">ブラウザデータ削除・機種変更に備える</span></div>
-      <div class="fhelp" style="margin-bottom:10px;">リアル統計・シミュ統計・保存スペックをまとめてJSONファイルに書き出せます。localStorageはブラウザのデータを消すと失われるので、定期的なエクスポートを推奨します。</div>
+      <div class="fhelp" style="margin-bottom:10px;">
+        <b>使い方:</b> ①「エクスポート」を押すとこの端末の記録(リアル統計・シミュ統計・保存スペック)が1つのJSONファイルとしてダウンロードされます → ②機種変更・ブラウザのデータ削除・再インストールの前に、このファイルをどこかに保存しておいてください → ③新しい環境でこのページを開き、「インポート」で保存しておいたファイルを選ぶと元通りに復元されます。<br>
+        <span style="color:var(--neg);">注意: インポートすると現在このページに表示されている記録は上書きされます(消えます)。</span> ブラウザのlocalStorageはキャッシュ削除等で失われるため、定期的なエクスポートを推奨します。
+      </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <button class="btn2 accent" onclick="dataExport()">📤 エクスポート(ダウンロード)</button>
         <button class="btn2" onclick="$('dataImportFile').click()">📥 インポート(ファイル選択)</button>
@@ -1227,7 +1240,7 @@
           <div class="igroup"><input type="date" id="rsDate" class="date-in"></div></div>
         <div class="field"><div class="flabel">ギャンブル種別</div><div class="fhelp"></div>
           <div class="igroup"><select id="rsKind" class="sel-in">
-            <option>パチンコ</option><option>スロット</option><option>オリパ</option><option>ガチャ(課金)</option><option>競馬</option><option>競艇</option><option>宝くじ</option><option>その他</option>
+            <option>パチンコ</option><option>スロット</option><option>オリパ</option><option>ガチャ(課金)</option><option>ルーレット</option><option>競馬</option><option>競艇</option><option>宝くじ</option><option>その他</option>
           </select></div></div>
         <div class="field"><div class="flabel">投資金額</div><div class="fhelp"></div>
           <div class="igroup"><input type="number" id="rsInv" min="0" step="1000" placeholder="20000"><span class="unit">円</span></div></div>
@@ -1235,6 +1248,8 @@
           <div class="igroup"><input type="number" id="rsRet" min="0" step="1000" placeholder="15000"><span class="unit">円</span></div></div>
         <div class="field"><div class="flabel">実践時間</div><div class="fhelp">任意。時給換算に使用</div>
           <div class="igroup"><input type="number" id="rsHours" min="0" step="0.5" placeholder="4"><span class="unit">時間</span></div></div>
+        <div class="field full"><div class="flabel">メモ</div><div class="fhelp">任意。台の挙動・立ち回りメモなど</div>
+          <div class="igroup"><input type="text" id="rsMemo" placeholder="例: 設定6っぽい挙動だった"></div></div>
       </div>
       <div style="height:10px"></div>
       <button class="run" onclick="rsAdd()">この収支を記録する</button>
@@ -1245,7 +1260,7 @@
         <span class="fhelp" style="margin:0;">〜</span>
         <input type="date" id="rsTo" class="date-in" style="max-width:150px;" onchange="rsRender()">
         <select id="rsFilterKind" class="sel-in" style="max-width:130px;" onchange="rsRender()">
-          <option value="all">全種別</option><option>パチンコ</option><option>スロット</option><option>オリパ</option><option>ガチャ(課金)</option><option>競馬</option><option>競艇</option><option>宝くじ</option><option>その他</option>
+          <option value="all">全種別</option><option>パチンコ</option><option>スロット</option><option>オリパ</option><option>ガチャ(課金)</option><option>ルーレット</option><option>競馬</option><option>競艇</option><option>宝くじ</option><option>その他</option>
         </select>
       </div>
       <div id="rsHero"></div>
@@ -2971,12 +2986,34 @@ function rsAll(){try{return JSON.parse(localStorage.getItem('evlab_real')||'[]')
 function rsSave(a){try{localStorage.setItem('evlab_real',JSON.stringify(a));}catch(e){window.__rs=a;}}
 function rsAdd(){
   const d=$('rsDate').value,g=$('rsKind').value,inv=Math.round(V('rsInv')),ret=Math.round(V('rsRet')),hours=V('rsHours');
+  const memo=($('rsMemo')&&$('rsMemo').value||'').trim();
   if(!d){alert('日程を選択してください');return;}
-  const a=rsAll();a.push({d,g,inv,ret,hours});a.sort((x,y)=>x.d<y.d?1:-1);rsSave(a);
-  $('rsInv').value='';$('rsRet').value='';$('rsHours').value='';
+  const a=rsAll();a.push({d,g,inv,ret,hours,memo});a.sort((x,y)=>x.d<y.d?1:-1);rsSave(a);
+  $('rsInv').value='';$('rsRet').value='';$('rsHours').value='';if($('rsMemo'))$('rsMemo').value='';
   rsRender();
 }
 function rsDel(i){const a=rsAll();a.splice(i,1);rsSave(a);rsRender();}
+function rsQuickWidget(tabKey,kind){
+  return '<div class="card">'
+    +'<div class="card-title"><span class="step">記録</span><h3>今日の実践収支を記録</h3><span class="hint">統計タブに反映されます</span></div>'
+    +'<div class="fgrid">'
+    +'<div class="field"><div class="flabel">投資</div><div class="fhelp"></div><div class="igroup"><input type="number" id="rsQ_'+tabKey+'_inv" min="0" step="1000" placeholder="20000"><span class="unit">円</span></div></div>'
+    +'<div class="field"><div class="flabel">回収</div><div class="fhelp"></div><div class="igroup"><input type="number" id="rsQ_'+tabKey+'_ret" min="0" step="1000" placeholder="15000"><span class="unit">円</span></div></div>'
+    +'</div>'
+    +'<button class="btn2 accent" onclick="rsQuickAdd(\''+tabKey+'\',\''+kind+'\')">この収支を記録する</button>'
+    +'<div id="rsQ_'+tabKey+'_msg" class="fhelp" style="margin-top:6px;"></div>'
+    +'</div>';
+}
+function rsQuickAdd(tabKey,kind){
+  const invEl=$('rsQ_'+tabKey+'_inv'),retEl=$('rsQ_'+tabKey+'_ret'),msgEl=$('rsQ_'+tabKey+'_msg');
+  const inv=Math.round(parseFloat(invEl.value))||0,ret=Math.round(parseFloat(retEl.value))||0;
+  if(inv<=0){if(msgEl)msgEl.innerHTML='<span style="color:var(--neg);">投資金額を入力してください</span>';return;}
+  const today=new Date().toISOString().slice(0,10);
+  const a=rsAll();a.push({d:today,g:kind,inv,ret,hours:0,memo:''});a.sort((x,y)=>x.d<y.d?1:-1);rsSave(a);
+  invEl.value='';retEl.value='';
+  if(msgEl)msgEl.innerHTML='<span style="color:var(--pos);">✓ 統計タブに記録しました('+today+' '+kind+' '+(ret-inv>=0?'+':'−')+cf(Math.abs(ret-inv))+')</span>';
+  if(curTab==='st')rsRender();
+}
 function rsRender(){
   const a=rsAll();
   const from=$('rsFrom')&&$('rsFrom').value,to=$('rsTo')&&$('rsTo').value;
@@ -3010,8 +3047,8 @@ function rsRender(){
     requestAnimationFrame(()=>drawChart($('rsChart'),rsSeries,null,{xLabel:'記録順',yLabel:'累計収支(円)'}));
   }
   $('rsTable').innerHTML=f.length
-    ?'<table class="rs-table"><thead><tr><th>日付</th><th>種別</th><th>投資</th><th>回収</th><th>時間</th><th>収支</th><th></th></tr></thead><tbody>'
-      +f.map((r,i)=>{const n=r.ret-r.inv;return '<tr class="'+(n>=0?'win':'lose')+'"><td>'+r.d+'</td><td>'+r.g+'</td><td>'+cf(r.inv)+'</td><td>'+cf(r.ret)+'</td><td>'+(r.hours?num(r.hours,1)+'h':'—')+'</td><td style="color:'+(n>=0?'var(--pos)':'var(--neg)')+'">'+(n>=0?'+ ':'− ')+cf(Math.abs(n))+'</td><td class="rs-del" onclick="rsDel('+a.indexOf(r)+')">×</td></tr>';}).join('')
+    ?'<table class="rs-table"><thead><tr><th>日付</th><th>種別</th><th>投資</th><th>回収</th><th>時間</th><th>収支</th><th>メモ</th><th></th></tr></thead><tbody>'
+      +f.map((r,i)=>{const n=r.ret-r.inv;const memo=r.memo?escHtml(r.memo):'';return '<tr class="'+(n>=0?'win':'lose')+'"><td>'+r.d+'</td><td>'+r.g+'</td><td>'+cf(r.inv)+'</td><td>'+cf(r.ret)+'</td><td>'+(r.hours?num(r.hours,1)+'h':'—')+'</td><td style="color:'+(n>=0?'var(--pos)':'var(--neg)')+'">'+(n>=0?'+ ':'− ')+cf(Math.abs(n))+'</td><td class="rs-memo" title="'+memo+'">'+(memo?(memo.length>10?memo.slice(0,10)+'…':memo):'—')+'</td><td class="rs-del" onclick="rsDel('+a.indexOf(r)+')">×</td></tr>';}).join('')
       +'</tbody></table>'
     :'<div class="fhelp">記録がありません。上のフォームから追加してください。</div>';
 }
@@ -3189,13 +3226,24 @@ function statAdd(cat,net,inv){
   s[cat].n++;s[cat].net+=Math.round(net);s[cat].inv=(s[cat].inv||0)+Math.round(inv||0);
   stSave(s);
 }
+function stDelCat(cat){
+  confirmBox('シミュ統計の「'+escHtml(cat)+'」を削除しますか?<br>この操作は元に戻せません。',true,()=>{
+    const s=stAll();delete s[cat];stSave(s);stRender();
+  });
+}
 function stRender(){
   const s=stAll(),keys=Object.keys(s);
   const total=keys.reduce((a,k)=>a+s[k].net,0);
   const totalInv=keys.reduce((a,k)=>a+(s[k].inv||0),0);
+  const genres={};
+  keys.forEach(k=>{const genre=k.split('(')[0];genres[genre]=genres[genre]||[];genres[genre].push(k);});
   $('stBody').innerHTML=(keys.length
-    ?keys.map(k=>{const v=s[k];const rate=(v.inv||0)>0?((v.inv+v.net)/v.inv*100):null;
-      return '<div class="st-row"><span class="st-n">'+k+'</span><span class="st-c">'+v.n+'回 / 投資'+cf(v.inv||0)+(rate!==null?' / 回収率'+pct(rate):'')+'</span><span class="st-v" style="color:'+(v.net>=0?'var(--pos)':'var(--neg)')+';">'+(v.net>=0?'+':'−')+cf(Math.abs(v.net))+'</span></div>';}).join('')
+    ?Object.entries(genres).map(([genre,cats])=>{
+      const rows=cats.map(k=>{const v=s[k];const rate=(v.inv||0)>0?((v.inv+v.net)/v.inv*100):null;
+        return '<div class="st-row"><span class="st-n">'+k+'</span><span class="st-c">'+v.n+'回 / 投資'+cf(v.inv||0)+(rate!==null?' / 回収率'+pct(rate):'')+'</span><span class="st-v" style="color:'+(v.net>=0?'var(--pos)':'var(--neg)')+';">'+(v.net>=0?'+':'−')+cf(Math.abs(v.net))+'</span><span class="st-del" onclick="stDelCat(\''+k.replace(/'/g,"\\'")+'\')">×</span></div>';
+      }).join('');
+      return '<div class="st-genre"><div class="st-genre-h">'+escHtml(genre)+'</div>'+rows+'</div>';
+    }).join('')
     :'<div class="fhelp">まだデータがありません。各タブで計算・実引きすると自動で積算されます。</div>')
   +'<div class="st-row" style="border-top:2px solid var(--line2);border-bottom:none;"><span class="st-n">生涯トータル</span><span class="st-c">総投資 '+cf(totalInv)+(totalInv>0?' / 回収率'+pct((totalInv+total)/totalInv*100):'')+'</span><span class="st-v" style="font-size:20px;color:'+(total>=0?'var(--pos)':'var(--neg)')+';">'+(total>=0?'+':'−')+cf(Math.abs(total))+'</span></div>';
 }
@@ -4298,6 +4346,9 @@ ruHistRender();
 ruBiasRender();
 slPaceCalc();
 slYuriCalc();
+[['pk','パチンコ'],['sl','スロット'],['op','オリパ'],['gc','ガチャ(課金)'],['ru','ルーレット']].forEach(([tabKey,kind])=>{
+  const host=$('rsQuickHost-'+tabKey);if(host)host.innerHTML=rsQuickWidget(tabKey,kind);
+});
 </script>
 </body>
 </html>

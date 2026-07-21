@@ -747,7 +747,7 @@
   <!-- ================= オリパ ================= -->
   <div class="panel" id="panel-op">
     <div class="card">
-      <div class="card-title"><span class="step">STEP 1</span><h3>オリパの設計</h3><span class="hint">オリパワン・DOPA等を参考に入力</span></div>
+      <div class="card-title"><span class="step">STEP 1</span><h3>オリパの設計</h3><span class="hint">等級・獲得コイン・封入枚数を入力</span></div>
       <div class="fgrid" style="margin-bottom:12px;">
         <div class="field">
           <div class="flabel">総口数</div><div class="fhelp"></div>
@@ -756,6 +756,10 @@
         <div class="field">
           <div class="flabel">1口の価格</div><div class="fhelp"></div>
           <div class="igroup"><input type="number" id="opCost" value="500" min="0" step="50"><span class="unit">コイン</span></div>
+        </div>
+        <div class="field">
+          <div class="flabel">コインの実額換算</div><div class="fhelp">課金相場。円換算が不要なら0を入力してください</div>
+          <div class="igroup"><input type="number" id="opYenPerCoin" value="0.1" min="0" step="0.01" oninput="opBudgetRender()"><span class="unit">円/コイン</span></div>
         </div>
         <div class="field full">
           <div class="flabel">最低保証(ハズレ時の獲得コイン)</div>
@@ -807,7 +811,25 @@
         </div>
       </div>
       <div class="remain" id="opRemain"></div>
+      <div class="field full" style="margin-top:6px;">
+        <div class="flabel">今月の課金予算トラッカー</div>
+        <div class="fhelp">OFFのときは予算の表示のみ行いません(消費の記録自体は裏で継続します)</div>
+        <div class="chips">
+          <div class="chip on" id="opBudgetOff" onclick="opBudgetSetEnabled(false)">OFF</div>
+          <div class="chip" id="opBudgetOn" onclick="opBudgetSetEnabled(true)">ON</div>
+        </div>
+      </div>
+      <div class="gc-budget-card" id="opBudgetCard" style="display:none;">
+        <div class="flabel" style="margin-bottom:6px;">今月の課金予算</div>
+        <div class="igroup" style="max-width:220px;margin-bottom:8px;"><input type="number" id="opBudgetSet" value="10000" min="0" step="1000"><span class="unit">円/月</span><button class="btn2" onclick="opBudgetSave()" style="margin-left:6px;">設定</button></div>
+        <div id="opBudgetView"></div>
+        <button class="btn2" onclick="opBudgetReset()" style="margin-top:8px;">今月の予算をリセット</button>
+      </div>
       <div class="result-banner" id="opResult"><div class="r-tier">↓ ボタンを押して引く</div><div class="r-coin">—</div></div>
+      <div class="gc-pie-compare">
+        <div id="opTheoryPie"></div>
+        <div id="opActualPie"></div>
+      </div>
       <div class="pull-area">
         <button class="btn2 accent" onclick="opPull(1)">1口引く</button>
         <button class="btn2 accent" onclick="opPull(10)">10連で引く</button>
@@ -2560,7 +2582,8 @@ const TEMPLATES={
 };
 function presetSnap(p){
   const panel=$('panel-'+p);
-  const s={ids:{},rows:{},extra:{pkType,slType,slMode,lt:pkLt,jt:pkJt,smart:slSmart}};
+  const s={ids:{},rows:{},extra:{pkType,slType,slMode,lt:pkLt,jt:pkJt,smart:slSmart,
+    opGuar:opGuarOn,opGuarTierSel:($('opGuarTier')&&$('opGuarTier').value)||'0'}};
   (PROWS[p]||[]).forEach(rd=>{
     s.rows[rd.box]=[...$(rd.box).querySelectorAll('.tier-row')].map(r=>[...r.querySelectorAll('input')].map(i=>i.value));
   });
@@ -2584,6 +2607,7 @@ function presetRestore(p,s){
   if(s.extra){
     if(p==='pk'){pkSetType(s.extra.pkType||'at');pkSetLt(!!s.extra.lt);pkSetJt(!!s.extra.jt);}
     if(p==='sl'){slSetType(s.extra.slType||'at');slSetMode(s.extra.slMode||'g');slSetSmart(s.extra.smart!==false);}
+    if(p==='op'){opSetGuar(!!s.extra.opGuar);if($('opGuarTier'))$('opGuarTier').value=s.extra.opGuarTierSel||'0';}
   }
   if(p==='pk')pkPie();
   if(p==='lt')ltPct();
@@ -3073,14 +3097,12 @@ function opBuild(){
   const evReturn=(tiersUse.reduce((s,t)=>s+t.coin*t.count,0)+(useT-winSum)*floor)/useT;
   opEvPer=evReturn-cost;
   const kangen=cost>0?evReturn/cost*100:0;
-  const p10=probHyper(useT,tiersUse[0]?tiersUse[0].count:0,Math.min(10,useT));
-  const p100=probHyper(useT,tiersUse[0]?tiersUse[0].count:0,Math.min(100,useT));
   const affordable=cost>0?Math.min(useT,Math.floor(opWallet/cost)):0;
-  const pWallet=probHyper(useT,tiersUse[0]?tiersUse[0].count:0,affordable);
   const winRateRows=tiersUse.slice(0,3).map((t,i)=>{
+    const w10=probHyper(useT,t.count,Math.min(10,useT));
     const w100=probHyper(useT,t.count,Math.min(100,useT));
     const wWallet=probHyper(useT,t.count,affordable);
-    return '<span class="rc'+(opRank[i]===1?' gold':'')+'">'+t.name+'<span class="rankb r'+opRank[i]+'" style="margin:0 4px;">'+opRank[i]+'位</span>: 100連で<b>'+pct(w100*100)+'</b> / 全ツッパ('+affordable+'口)で<b>'+pct(wWallet*100)+'</b></span>';
+    return '<span class="rc'+(opRank[i]===1?' gold':'')+'">'+t.name+'<span class="rankb r'+opRank[i]+'" style="margin:0 4px;">'+opRank[i]+'位</span>: 10連で<b>'+pct(w10*100)+'</b> / 100連で<b>'+pct(w100*100)+'</b> / 全ツッパ('+affordable+'口)で<b>'+pct(wWallet*100)+'</b></span>';
   }).join('');
   const COLS=['#E8B33C','#8E6BFF','#3DDC97','#FF3D68','#4FA3E0','#C4A788'];
   const segs=tiersUse.map((t,i)=>({name:t.name,v:t.count,color:COLS[i%6],rainbow:opRank[i]===1}));
@@ -3096,18 +3118,90 @@ function opBuild(){
       +(tiersUse[0]?'<span style="font-size:11px;color:var(--gold);">'+tiersUse[0].name+'</span> <span class="pct-big">1/'+num(useT/Math.max(1,tiersUse[0].count),0)+'</span>':'')
       +(tiersUse[1]?'<span style="font-size:11px;color:var(--ink-2);margin-left:10px;">'+tiersUse[1].name+'</span> <span class="mono" style="font-size:16px;color:var(--ink);">1/'+num(useT/Math.max(1,tiersUse[1].count),0)+'</span>':'')
     +'</div>'
-    +'<div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:8px;"><canvas id="opPie" style="width:160px;height:160px;flex:none;"></canvas><div class="legend" style="flex-direction:column;gap:5px;align-items:flex-start;">'+pieLegend(segs)+'</div></div>'
     +tiersUse.map((t,i)=>'<div class="remain" style="margin-bottom:4px;"><span class="rc gold">'+t.name+' <span class="rankb r'+opRank[i]+'">'+opRank[i]+'位</span>: <b>1/'+num(useT/Math.max(1,t.count),0)+'</b> で <b>'+cf(t.coin)+'</b>コイン ('+t.count+'枚封入)</span></div>').join('')
     +'<div class="remain"><span class="rc">総還元率: <b>'+pct(kangen,2)+'</b></span><span class="rc">1口の期待損益: <b>'+(opEvPer>=0?'+':'−')+cf(Math.abs(opEvPer))+'</b>コイン</span></div>'
     +'<div class="flabel" style="margin-top:8px;">上位賞の当選確率</div><div class="remain">'+winRateRows+'</div>';
+  $('opTheoryPie').innerHTML=
+    '<div class="gc-pie-col"><div class="gc-pie-h">確率上の当たり割合</div><canvas id="opPie"></canvas><div class="legend">'+pieLegend(segs)+'</div></div>';
+  $('opActualPie').innerHTML=
+    '<div class="gc-pie-col"><div class="gc-pie-h">実際の当たり割合</div><div class="fhelp" style="margin-top:24px;">まだ引いていません</div></div>';
   $('opPlay').style.display='';
   opRender(null);
+  opBudgetRender();
   $('opLog').innerHTML='';
   $('op-theory').innerHTML='';
   requestAnimationFrame(()=>{
     pieInto('opPie',segs,'当たり割合','還元'+pct(kangen,0));
     drawChart($('opChart'),opSeries,[0],{xLabel:'引いた口数',yLabel:'収支(コイン)'});
   });
+}
+function opActualPieRender(){
+  const totalHit=opHits.reduce((a,b)=>a+b,0);
+  const other=opDrawn-totalHit;
+  if(opDrawn===0)return;
+  const COLS=['#E8B33C','#8E6BFF','#3DDC97','#FF3D68','#4FA3E0','#C4A788'];
+  const segs=opTierDefs.map((t,i)=>({name:t.name,v:opHits[i],color:COLS[i%6],rainbow:opRank[i]===1})).filter(s=>s.v>0);
+  if(other>0)segs.push({name:'ハズレ',v:other,color:'#3A3A50'});
+  $('opActualPie').innerHTML=
+    '<div class="gc-pie-col"><div class="gc-pie-h">実際の当たり割合(通算'+cf(opDrawn)+'口)</div><canvas id="opActPieC"></canvas><div class="legend">'
+    +segs.map((s,i)=>'<span class="li"><span class="sw" style="background:'+s.color+';border-color:'+s.color+';"></span>'+s.name+' '+pct(s.v/opDrawn*100,1)+(opTierDefs[i]?'(理論'+pct(opTierDefs[i].count/(opDeck.length)*100,1)+')':'')+'</span>').join('')
+    +'</div><div class="fhelp" style="margin-top:6px;">試行が少ないとブレます</div></div>';
+  requestAnimationFrame(()=>pieInto('opActPieC',segs,'実当選',cf(opDrawn)+'口'));
+}
+/* ---- オリパ: 月次予算トラッカー(ガチャ版のコイン移植) ---- */
+function opBudgetKey(){const d=new Date();return 'evlab_opbudget_'+d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
+function opBudgetAll(){
+  try{return JSON.parse(localStorage.getItem(opBudgetKey())||'{"limit":10000,"spentCoin":0}');}
+  catch(e){return{limit:10000,spentCoin:0};}
+}
+function opBudgetSaveState(o){try{localStorage.setItem(opBudgetKey(),JSON.stringify(o));}catch(e){}}
+function opBudgetEnabled(){try{return localStorage.getItem('evlab_opbudget_enabled')==='1';}catch(e){return !!window.__opBudgetEnabled;}}
+function opBudgetSetEnabled(on){
+  try{localStorage.setItem('evlab_opbudget_enabled',on?'1':'0');}catch(e){window.__opBudgetEnabled=on;}
+  opBudgetRender();
+}
+function opBudgetReset(){
+  confirmBox('今月の課金予算(累計消費)をリセットしますか?<br>この操作は元に戻せません。',true,()=>{
+    const o=opBudgetAll();o.spentCoin=0;opBudgetSaveState(o);opBudgetRender();
+  });
+}
+function opBudgetSave(){
+  const o=opBudgetAll();
+  o.limit=Math.max(0,Math.round(V('opBudgetSet')));
+  opBudgetSaveState(o);
+  opBudgetRender();
+}
+function opBudgetAddSpend(coinAmount){
+  const o=opBudgetAll();
+  o.spentCoin=(o.spentCoin||0)+coinAmount;
+  opBudgetSaveState(o);
+  opBudgetRender();
+}
+function opBudgetRender(){
+  const box=$('opBudgetView');if(!box)return;
+  const enabled=opBudgetEnabled();
+  if($('opBudgetOn')){$('opBudgetOn').classList.toggle('on',enabled);$('opBudgetOff').classList.toggle('on',!enabled);}
+  if($('opBudgetCard'))$('opBudgetCard').style.display=enabled?'':'none';
+  const o=opBudgetAll();
+  const yenPerCoin=Math.max(0,V('opYenPerCoin'));
+  const cost=Math.max(0,V('opCost'));
+  const spentYen=o.spentCoin*yenPerCoin;
+  const remain=o.limit-spentYen;
+  const usedPct=o.limit>0?Math.min(100,spentYen/o.limit*100):0;
+  const yenPerPull=cost*yenPerCoin;
+  const pullsLeft=yenPerPull>0?Math.max(0,Math.floor(remain/yenPerPull)):0;
+  const topCount=opTierDefs[0]?opTierDefs[0].count:0;
+  const pTopBudget=opDeck.length?probHyper(opDeck.length,topCount,Math.min(pullsLeft,opDeck.length)):0;
+  if($('opBudgetSet')&&document.activeElement!==$('opBudgetSet'))$('opBudgetSet').value=o.limit;
+  box.innerHTML=
+    '<div class="gc-budget-bar"><div class="gc-budget-fill" style="width:'+usedPct+'%;background:'+(usedPct>=100?'var(--neg)':(usedPct>=80?'#E8C879':'var(--pos)'))+';"></div></div>'
+    +'<div class="remain">'
+    +'<span class="rc'+(remain<0?'':' gold')+'" style="color:'+(remain<0?'var(--neg)':'var(--ink)')+';">今月あと残り: <b>'+(remain<0?'−':'')+yen(Math.abs(Math.round(remain)))+'</b></span>'
+    +'<span class="rc">今月の消費: <b>'+yen(Math.round(spentYen))+'</b> ('+cf(o.spentCoin)+'コイン)</span>'
+    +'<span class="rc">1口あたり: <b>'+yen(Math.round(yenPerPull))+'</b></span>'
+    +(yenPerPull>0?'<span class="rc">予算内であと<b>'+pullsLeft+'</b>口引ける</span>':'')
+    +(yenPerPull>0&&topCount>0?'<span class="rc gold">予算内で上位賞を1枚以上: <b>'+pct(pTopBudget*100)+'</b></span>':'')
+    +'</div>';
 }
 function opPull(n){
   const cost=V('opCost'),floor=V('opFloor');
@@ -3122,7 +3216,7 @@ function opPull(n){
     opWallet+=coin-cost;opBal+=coin-cost;gained+=coin;
     if(t>=0){
       opHits[t]++;if(t<bestTier)bestTier=t;
-      if(opRank[t]<=2)opWinList.push({kuchi:opDrawn,name:opTierDefs[t].name});
+      if(opRank[t]<=2)opWinList.push({kuchi:opDrawn,name:opTierDefs[t].name,rank:opRank[t]});
     }
     opSeries.push(opBal);log.push(t);
   }
@@ -3139,8 +3233,8 @@ function opPull(n){
   const RCOL=['#E8B33C','#8E6BFF','#3DDC97','#FF3D68','#4FA3E0','#C4A788'];
   $('opLog').innerHTML=
     foldBlock('開封履歴('+pulled+'口 / 先頭200件)',
-      '<div style="display:flex;flex-wrap:wrap;gap:4px;padding-top:6px;">'+draw.map(t=>'<span class="pl '+(t===0?'t0':t===1?'t1':t>=2?'t2':'tx')+'">'+(t>=0?['1','2','3','4','5','6'][t]||'★':'—')+'</span>').join('')+'</div>',pulled<=50)
-    +(opWinList.length?foldBlock('上位賞の当選口('+opWinList.length+'件)','<div class="remain" style="padding-top:6px;">'+opWinList.map(w=>{const ci=opTierDefs.findIndex(td=>td.name===w.name);const col=ci>=0?RCOL[ci%6]:'#E8B33C';const rk=ci>=0?opRank[ci]:1;return '<span class="rc" style="border-color:'+col+';color:'+col+';font-weight:700;"><span class="rankb r'+rk+'" style="margin-right:4px;">'+rk+'位</span>'+w.kuchi+'口目 / '+w.name+'</span>';}).join('')+'</div>',true):'')
+      '<div style="display:flex;flex-wrap:wrap;gap:4px;padding-top:6px;">'+draw.map(t=>'<span class="pl '+(t===0?'t0':t===1?'t1':t>=2?'t2':'tx')+'">'+(t>=0?['1','2','3','4','5','6'][t]||'★':'—')+'</span>').join('')+'</div>',false)
+    +(opWinList.length?foldBlock('上位賞の当選口('+opWinList.length+'件)','<div class="remain" style="padding-top:6px;">'+opWinList.map(w=>{const ci=opTierDefs.findIndex(td=>td.name===w.name);const col=ci>=0?RCOL[ci%6]:'#E8B33C';const rk=ci>=0?opRank[ci]:1;return '<span class="rc" style="border-color:'+col+';color:'+col+';font-weight:700;"><span class="rankb r'+rk+'" style="margin-right:4px;">'+rk+'位</span>'+w.kuchi+'口目 / '+w.name+'</span>';}).join('')+'</div>',false):'')
     +foldBlock('収支履歴','<div style="padding-top:6px;">'+opHistArr.map(h=>'<div class="cclog-line" style="color:'+(h.net>=0?'var(--pos)':'var(--neg)')+'">'+h.pulls+'連('+h.from+'口〜'+h.to+'口) '+(h.net>=0?'+ ':'− ')+cf(Math.abs(h.net))+'coin</div>').join('')+'</div>',true);
   const hit=bestTier<99;
   const rank=hit?opRank[bestTier]:6;
@@ -3150,9 +3244,12 @@ function opPull(n){
       +'<div class="r-coin">+'+cf(gained)+' 獲得 / 差枚 '+(net>=0?'+':'−')+cf(Math.abs(net))+'</div>';
     if(hit&&rank===1){confettiBurst(rb);SFX.jackpot();}else if(hit&&rank<=2)SFX.win();else if(!hit&&pulled>=10)SFX.lose();
     opRender(true);
-    drawChart($('opChart'),opSeries,opSeries.map((_,i)=>opEvPer*i),{xLabel:'引いた口数',yLabel:'収支(コイン)'});
+    opActualPieRender();
+    const markers=opWinList.filter(w=>w.rank===1).map(w=>({i:w.kuchi,color:'#E8C879',label:'🌈1等'}));
+    drawChart($('opChart'),opSeries,opSeries.map((_,i)=>opEvPer*i),{xLabel:'引いた口数',yLabel:'収支(コイン)',markers});
     if(opWallet<cost)$('op-theory').innerHTML='<div class="warn">所持コインが1口分を下回りました。これが「追い銭したくなる瞬間」です。理論値マイナスのオリパは追うほど負けが理論値に近づきます。</div>';
     statAdd('オリパ',net,cost*pulled);
+    opBudgetAddSpend(cost*pulled);
   };
   if(fxOn()){
     rb.className='result-banner pop';

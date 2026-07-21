@@ -1481,16 +1481,6 @@ SL_RATES.forEach((r,i)=>{
   c.onclick=()=>{slRate=r;document.querySelectorAll('#slRates .chip').forEach(x=>x.classList.remove('on'));c.classList.add('on');};
   $('slRates').appendChild(c);
 });
-function slSetType(t){
-  slType=t;
-  $('slTypeAT').classList.toggle('on',t==='at');
-  $('slTypeA').classList.toggle('on',t==='a');
-  $('slFormAT').style.display=t==='at'?'':'none';
-  $('slFormA').style.display=t==='a'?'':'none';
-  $('slFormTitle').textContent=t==='at'?'AT機の条件':'Aタイプの条件';
-  $('slKachi').style.display=t==='a'?'':'none';
-  $('sl-out').innerHTML='';
-}
 function slSetMode(m){
   slMode=m;
   $('slModeG').classList.toggle('on',m==='g');
@@ -1624,12 +1614,6 @@ function parseCount(str,total){
   if(frac){const d=parseFloat(frac[1]);return d>0?Math.max(1,Math.round(total/d)):0;}
   const n=parseFloat(str);
   return isFinite(n)?Math.max(0,Math.round(n)):0;
-}
-function opGetTiers(total){
-  return [...document.querySelectorAll('#opTiers .tier-row')].map(r=>{
-    const ins=r.querySelectorAll('input');
-    return{name:ins[0].value||'賞',coin:parseFloat(ins[1].value)||0,count:parseCount(ins[2].value,total)};
-  }).filter(t=>t.count>0);
 }
 function opSetWallet(){opWallet=parseFloat($('opWalletSet').value)||0;opStart=opWallet;opRender(null);}
 function opRender(lastResult){
@@ -1985,14 +1969,6 @@ function funPress(amount){
     $('funBall').innerHTML=ballHTML(gainedTotal>=10000?'gold':'red');
     setTimeout(()=>{$('funBall').innerHTML='';show();},1350);
   }else show();
-}
-function funOver(){
-  fun.over=true;
-  const fb=$('funBanner');
-  fb.className='result-banner pop';
-  fb.innerHTML='<div class="r-tier">GAME OVER</div><div class="r-coin">'+cf(fun.spins)+'回転</div>'
-    +'<div class="r-tier">最終収支 '+yen(fun.cash+fun.tama-fun.start)+' — もう一度スタートで再挑戦</div>';
-  statAdd('パチンコ(遊び)',fun.cash+fun.tama-fun.start,fun.start);
 }
 
 /* ===================== 設定判別(設定1〜6比較) ===================== */

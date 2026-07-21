@@ -165,12 +165,27 @@
   .reel{width:78px;height:92px;background:linear-gradient(180deg,#0D0F15,#1A1F2C 50%,#0D0F15);border:2px solid var(--gold-deep);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:900;font-family:'IBM Plex Mono',monospace;color:var(--gold-hi);text-shadow:0 0 14px rgba(232,179,60,.6);overflow:hidden;}
   .reel.spin{color:var(--ink-2);text-shadow:none;}
 
-  .kk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;}
-  .kk-btn{background:var(--card2);border:1px solid var(--line2);border-radius:12px;padding:12px 6px;text-align:center;cursor:pointer;user-select:none;transition:.1s;}
-  .kk-btn:active{transform:scale(.96);background:var(--card3);}
-  .kk-btn .k-name{font-size:12px;font-weight:700;}
-  .kk-btn .k-count{font-family:'IBM Plex Mono',monospace;font-size:21px;font-weight:700;color:var(--gold-hi);}
-  .kk-btn .k-rate{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-2);}
+  .kk-device{background:linear-gradient(160deg,#1C202C,#10121A);border:1px solid var(--line2);border-radius:18px;padding:14px;margin-bottom:12px;box-shadow:inset 0 0 26px rgba(0,0,0,.4);}
+  .kk-lcd{background:#0B1B12;border:1px solid #1F3D28;border-radius:10px;padding:8px 12px;margin-bottom:12px;box-shadow:inset 0 0 12px rgba(0,0,0,.6);display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px;}
+  .kk-lcd .kk-lcd-l{font-size:10px;letter-spacing:.08em;color:#6FCF97;opacity:.8;}
+  .kk-lcd .kk-lcd-v{font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:700;color:#8FE8A8;text-shadow:0 0 8px rgba(143,232,168,.5);}
+  .kk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:10px;}
+  .kk-btn{border-radius:16px;padding:14px 6px;text-align:center;cursor:pointer;user-select:none;transition:.08s;border:none;box-shadow:0 3px 0 rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.18);}
+  .kk-btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.1);}
+  .kk-btn .k-name{font-size:11px;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,.35);}
+  .kk-btn .k-count{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:800;text-shadow:0 1px 2px rgba(0,0,0,.25);}
+  .kk-btn .k-rate{font-family:'IBM Plex Mono',monospace;font-size:10px;opacity:.85;}
+  .kk-btn.kk-c-gold{background:linear-gradient(160deg,#F3CF6E,#B8892C);color:#241A02;}
+  .kk-btn.kk-c-silver{background:linear-gradient(160deg,#D8DCE4,#9AA3B0);color:#1A1D22;}
+  .kk-btn.kk-c-white{background:linear-gradient(160deg,#FBFBFB,#CFCFCF);color:#1A1A1A;}
+  .kk-btn.kk-c-red{background:linear-gradient(160deg,#FF7676,#D6362F);color:#fff;}
+  .kk-btn.kk-c-green{background:linear-gradient(160deg,#6FE3A0,#2C9D63);color:#08251A;}
+  .kk-btn.kk-c-yellow{background:linear-gradient(160deg,#FFE27A,#E0B23C);color:#3A2A00;}
+  @media (orientation:landscape) and (max-height:520px){
+    #panel-hk .kk-grid{grid-template-columns:repeat(6,1fr);}
+    #panel-hk .kk-btn{padding:20px 4px;}
+    #panel-hk .kk-btn .k-count{font-size:27px;}
+  }
 
   .calc-fab{position:fixed;right:16px;bottom:16px;width:52px;height:52px;border-radius:50%;background:var(--gold-grad);color:#241A02;border:none;font-size:20px;font-weight:700;cursor:pointer;box-shadow:0 4px 18px rgba(232,179,60,.4);z-index:50;}
   .calc-panel{position:fixed;right:16px;bottom:78px;width:232px;background:var(--card);border:1px solid var(--line2);border-radius:14px;padding:12px;box-shadow:0 10px 34px rgba(0,0,0,.55);z-index:50;display:none;}
@@ -218,7 +233,8 @@
   .ball.roll{animation:ballRoll 1.3s cubic-bezier(.35,.55,.55,1) forwards;}
   @keyframes ballRoll{0%{transform:translate(0,-8px) rotate(0);}22%{transform:translate(28px,66px) rotate(200deg);}72%{transform:translate(210px,80px) rotate(760deg);}100%{transform:translate(255px,130px) rotate(1080deg);opacity:.85;}}
 
-  .kj-grid{display:grid;grid-template-columns:56px repeat(3,1fr);gap:5px;align-items:center;margin-top:6px;}
+  .kj-grid{display:grid;grid-template-columns:52px repeat(6,72px);gap:5px;align-items:center;margin-top:6px;width:max-content;min-width:100%;}
+  .kj-grid-wrap{overflow-x:auto;}
   .kj-grid .kj-h{font-size:10.5px;color:var(--ink-3);}
   .kj-grid input{border:1px solid var(--line2);border-radius:8px;padding:7px 8px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;width:100%;color:var(--ink);background:var(--bg2);}
   .kj-grid input:focus{outline:none;border-color:var(--gold);}
@@ -712,7 +728,7 @@
     <div id="cmp-sl"></div>
 
     <div class="card" id="slKachi" style="display:none;">
-      <div class="card-title"><span class="step">TOOL</span><h3>カチカチくん(小役カウンター)</h3><span class="hint">実戦データから設定を推測</span></div>
+      <div class="card-title"><span class="step">TOOL</span><h3>スロット設定判別カウンター</h3><span class="hint">実戦データから設定を推測</span></div>
       <div class="fgrid" style="margin-bottom:10px;">
         <div class="field">
           <div class="flabel">カウント中の総ゲーム数</div>
@@ -720,15 +736,29 @@
           <div class="igroup"><input type="number" id="kkG" value="0" min="0" step="100" oninput="kkRender()"><span class="unit">G</span></div>
         </div>
         <div class="field">
-          <div class="flabel">子役の名前</div>
-          <div class="fhelp">ブドウ・ベル・スイカなど</div>
-          <div class="igroup"><input type="text" id="kkName" value="ブドウ" oninput="kkRender()"></div>
+          <button class="btn2" id="kkFsBtn" onclick="kkFullscreen()" style="margin-top:20px;">📱 全画面表示(横向き推奨)</button>
         </div>
       </div>
-      <div class="kk-grid">
-        <div class="kk-btn" onclick="kkAdd('big')"><div class="k-name">BIG</div><div class="k-count" id="kkBigC">0</div><div class="k-rate" id="kkBigR">—</div></div>
-        <div class="kk-btn" onclick="kkAdd('reg')"><div class="k-name">REG</div><div class="k-count" id="kkRegC">0</div><div class="k-rate" id="kkRegR">—</div></div>
-        <div class="kk-btn" onclick="kkAdd('koyaku')"><div class="k-name" id="kkKName">ブドウ</div><div class="k-count" id="kkKC">0</div><div class="k-rate" id="kkKR">—</div></div>
+      <div class="fgrid" style="margin-bottom:10px;">
+        <div class="field"><div class="flabel">白ボタンの役名</div><div class="fhelp">チャンス目・こぼし目・単独チェリー等</div>
+          <div class="igroup"><input type="text" id="kkName1" value="チャンス目" oninput="kkRender()"></div></div>
+        <div class="field"><div class="flabel">赤ボタンの役名</div><div class="fhelp">チェリー等</div>
+          <div class="igroup"><input type="text" id="kkName2" value="チェリー" oninput="kkRender()"></div></div>
+        <div class="field"><div class="flabel">緑ボタンの役名</div><div class="fhelp">スイカ等</div>
+          <div class="igroup"><input type="text" id="kkName3" value="スイカ" oninput="kkRender()"></div></div>
+        <div class="field"><div class="flabel">黄ボタンの役名</div><div class="fhelp">ベル等</div>
+          <div class="igroup"><input type="text" id="kkName4" value="ベル" oninput="kkRender()"></div></div>
+      </div>
+      <div class="kk-device">
+        <div class="kk-lcd"><span class="kk-lcd-l">総ゲーム数</span><span class="kk-lcd-v" id="kkLcdG">0G</span></div>
+        <div class="kk-grid">
+          <div class="kk-btn kk-c-gold" onclick="kkAdd('big')"><div class="k-name">BIG</div><div class="k-count" id="kkBigC">0</div><div class="k-rate" id="kkBigR">—</div></div>
+          <div class="kk-btn kk-c-silver" onclick="kkAdd('reg')"><div class="k-name">REG</div><div class="k-count" id="kkRegC">0</div><div class="k-rate" id="kkRegR">—</div></div>
+          <div class="kk-btn kk-c-white" onclick="kkAdd('k1')"><div class="k-name" id="kkK1Name">チャンス目</div><div class="k-count" id="kkK1C">0</div><div class="k-rate" id="kkK1R">—</div></div>
+          <div class="kk-btn kk-c-red" onclick="kkAdd('k2')"><div class="k-name" id="kkK2Name">チェリー</div><div class="k-count" id="kkK2C">0</div><div class="k-rate" id="kkK2R">—</div></div>
+          <div class="kk-btn kk-c-green" onclick="kkAdd('k3')"><div class="k-name" id="kkK3Name">スイカ</div><div class="k-count" id="kkK3C">0</div><div class="k-rate" id="kkK3R">—</div></div>
+          <div class="kk-btn kk-c-yellow" onclick="kkAdd('k4')"><div class="k-name" id="kkK4Name">ベル</div><div class="k-count" id="kkK4C">0</div><div class="k-rate" id="kkK4R">—</div></div>
+        </div>
       </div>
       <div class="remain" id="kkSummary"></div>
       <div style="display:flex;gap:8px;">
@@ -737,7 +767,7 @@
       </div>
       <div class="flabel" style="margin-top:14px;">設定1〜6の理論値を入力して期待度を比較</div>
       <div class="fhelp">解析サイト・雑誌の設定別確率「1/x」のxを入力(空欄の役は無視)。機種名は保存名で管理してください。</div>
-      <div id="kjTable"></div>
+      <div id="kjTable" class="kj-grid-wrap"></div>
       <button class="btn2" onclick="kjCalc()" style="margin-top:8px;">設定期待度を計算</button>
       <div id="kjOut" style="margin-top:10px;"></div>
       <div class="fhelp" style="margin-top:8px;">タップでカウント。表示される1/xを機種の設定別確率表(雑誌・解析サイト)と見比べて設定を推測してください。設定別確率はメーカー非公開の機種も多く、アプリ内蔵は正確性を保証できないため見比べ方式にしています。</div>
@@ -1529,16 +1559,27 @@ function slSetMode(m){
 const SL_SYMBOLS=['7','BAR','🍒','🔔','🍇','★'];
 
 /* --- カチカチくん --- */
-let kk={big:0,reg:0,koyaku:0},kkHist=[];
+let kk={big:0,reg:0,k1:0,k2:0,k3:0,k4:0},kkHist=[];
 function kkAdd(k){kk[k]++;kkHist.push(k);kkRender();}
 function kkUndo(){const last=kkHist.pop();if(last)kk[last]--;kkRender();}
-function kkReset(){kk={big:0,reg:0,koyaku:0};kkHist=[];kkRender();}
+function kkReset(){kk={big:0,reg:0,k1:0,k2:0,k3:0,k4:0};kkHist=[];kkRender();}
+function kkFullscreen(){
+  const el=document.documentElement;
+  if(!document.fullscreenElement){if(el.requestFullscreen)el.requestFullscreen().catch(()=>{});}
+  else if(document.exitFullscreen)document.exitFullscreen();
+}
 function kkRender(){
   const G=Math.max(0,Math.round(V('kkG')));
-  $('kkKName').textContent=$('kkName').value||'子役';
-  $('kkBigC').textContent=kk.big;$('kkRegC').textContent=kk.reg;$('kkKC').textContent=kk.koyaku;
+  $('kkLcdG').textContent=G.toLocaleString()+'G';
+  $('kkK1Name').textContent=$('kkName1').value||'白';
+  $('kkK2Name').textContent=$('kkName2').value||'赤';
+  $('kkK3Name').textContent=$('kkName3').value||'緑';
+  $('kkK4Name').textContent=$('kkName4').value||'黄';
+  $('kkBigC').textContent=kk.big;$('kkRegC').textContent=kk.reg;
+  $('kkK1C').textContent=kk.k1;$('kkK2C').textContent=kk.k2;$('kkK3C').textContent=kk.k3;$('kkK4C').textContent=kk.k4;
   const r=(c)=>c>0&&G>0?'1/'+num(G/c):'—';
-  $('kkBigR').textContent=r(kk.big);$('kkRegR').textContent=r(kk.reg);$('kkKR').textContent=r(kk.koyaku);
+  $('kkBigR').textContent=r(kk.big);$('kkRegR').textContent=r(kk.reg);
+  $('kkK1R').textContent=r(kk.k1);$('kkK2R').textContent=r(kk.k2);$('kkK3R').textContent=r(kk.k3);$('kkK4R').textContent=r(kk.k4);
   const gassan=kk.big+kk.reg;
   $('kkSummary').innerHTML=
     `<span class="rc gold">ボーナス合算: <b>${gassan>0&&G>0?'1/'+num(G/gassan):'—'}</b></span>`
@@ -1546,6 +1587,7 @@ function kkRender(){
     +`<span class="rc">REG率: <b>${r(kk.reg)}</b></span>`
     +(G>0?`<span class="rc">消化: <b>${G.toLocaleString()}</b>G</span>`:'<span class="rc" style="color:var(--neg);">総ゲーム数を入力してください</span>');
 }
+if(!document.documentElement.requestFullscreen&&$('kkFsBtn'))$('kkFsBtn').style.display='none';
 kkRender();
 
 /* ===================== オリパ ===================== */
@@ -2008,7 +2050,7 @@ function funPress(amount){
 
 /* ===================== 設定判別(設定1〜6比較) ===================== */
 (function(){
-  const cols=['BIG','REG','子役'];
+  const cols=['BIG','REG','白','赤','緑','黄'];
   let html='<div class="kj-grid"><span></span>'+cols.map(c=>'<span class="kj-h">'+c+' 1/x</span>').join('');
   for(let s=0;s<6;s++){
     html+='<span class="kj-h">設定'+(s+1)+'</span>'+cols.map((c,ci)=>'<span><input type="number" id="kj'+s+'_'+ci+'" placeholder="—" step="0.01" min="1"></span>').join('');
@@ -2018,12 +2060,12 @@ function funPress(amount){
 })();
 function kjCalc(){
   const G=Math.max(0,Math.round(V('kkG')));
-  const obs=[kk.big,kk.reg,kk.koyaku];
+  const obs=[kk.big,kk.reg,kk.k1,kk.k2,kk.k3,kk.k4];
   if(G<=0){$('kjOut').innerHTML='<div class="warn">総ゲーム数を入力してください。</div>';return;}
   const lls=[];
   for(let s=0;s<6;s++){
     let ll=0,used=0;
-    for(let c=0;c<3;c++){
+    for(let c=0;c<6;c++){
       const el=$('kj'+s+'_'+c);
       const d=el?parseFloat(el.value)||0:0;
       if(d<=1)continue;used++;

@@ -521,6 +521,13 @@
             <div class="chip on" id="pkJtRushChip" onclick="pkSetJtRush()">RUSH終了後<small>連チャン後の残保留・時短</small></div>
           </div>
         </div>
+        <div class="field full" id="pkJtD" style="display:none;">
+          <div class="flabel">時短中に当たった時の出玉振り分け</div>
+          <div class="fhelp">未入力なら「大当たり時」と同じ振り分けを使用します</div>
+          <div class="tier-head"><span>出玉(玉)</span><span>振り分け(%)</span><span></span><span></span></div>
+          <div id="pkJtDistRows"></div>
+          <button class="add-row" onclick="addPkJtDist()">+ 振り分けを追加</button>
+        </div>
         <div class="field full" id="pkLtDownWrap" style="display:none;">
           <div class="flabel">LT中の下位ラッシュ転落</div>
           <div class="fhelp">LTから下位RUSHへ降格する振り分けがある機種向け</div>
@@ -538,6 +545,11 @@
       <div class="tier-head"><span>出玉(玉)</span><span>振り分け(%)</span><span></span><span></span></div>
       <div id="pkDistRows"></div>
       <button class="add-row" onclick="addPkDist()">+ 振り分けを追加</button>
+      <div class="flabel" style="margin-top:14px;">RUSH中(継続当たり)の振り分け</div>
+      <div class="fhelp">未入力なら「大当たり時」と同じ振り分けを使用します</div>
+      <div class="tier-head"><span>出玉(玉)</span><span>振り分け(%)</span><span></span><span></span></div>
+      <div id="pkRushDistRows"></div>
+      <button class="add-row" onclick="addPkRushDist()">+ 振り分けを追加</button>
       <div style="display:flex;gap:14px;align-items:center;margin-top:12px;flex-wrap:wrap;">
         <canvas id="pkPie" style="width:150px;height:150px;flex:none;"></canvas>
         <div class="legend" id="pkPieLegend" style="flex-direction:column;gap:5px;align-items:flex-start;"></div>
@@ -1036,6 +1048,7 @@
       <button class="run" onclick="ccStart()">対戦スタート</button>
       <details style="margin-top:10px;"><summary style="font-size:12px;color:var(--ink-2);cursor:pointer;">役と倍率の一覧</summary>
         <div class="fhelp" style="margin-top:6px;line-height:1.9;">ピンゾロ(全部1)=5倍 / ゾロ目=3倍 / シゴロ(4-5-6)=2倍 / 通常の出目=1倍(大きいほど強い) / 目なし=負け(1倍) / ヒフミ(1-2-3)=2倍払い。3回振って役なしなら目なし。親が役・ヒフミ・目なしを出したら即決着、出目なら子と勝負。4個以上ではフォーカード(4つ揃い)=4倍を追加。チップは仮想なのでマイナス(借金)も継続可。</div>
+        <div class="fhelp" id="ccShigoroNote1" style="margin-top:4px;color:var(--neg);display:none;">※ シゴロ・ヒフミはサイコロ3個の役です。4〜6個選択時は成立しません。</div>
       </details>
     </div>
     <div class="card" id="ccPlay" style="display:none;">
@@ -1048,11 +1061,12 @@
       <div class="remain">
         <span class="rc gold">ピンゾロ(全1) <b>5倍</b></span>
         <span class="rc gold">ゾロ目 <b>3倍</b></span>
-        <span class="rc">シゴロ(4-5-6) <b>2倍</b></span>
+        <span class="rc" id="ccShigoroChip">シゴロ(4-5-6) <b>2倍</b></span>
         <span class="rc">出目 <b>1倍</b>(大きいほど強)</span>
         <span class="rc">目なし <b>負け1倍</b></span>
-        <span class="rc" style="color:var(--neg);border-color:var(--neg);">ヒフミ(1-2-3) <b>2倍払い</b></span>
+        <span class="rc" id="ccHifumiChip" style="color:var(--neg);border-color:var(--neg);">ヒフミ(1-2-3) <b>2倍払い</b></span>
         <span class="rc">4個以上: フォーカード <b>4倍</b></span>
+        <span class="rc" id="ccShigoroNote2" style="display:none;opacity:.75;">※シゴロ・ヒフミは3個限定</span>
       </div>
     </div>
   </div>
@@ -1296,7 +1310,7 @@ function pkSetLt(on){
 function pkSetJt(on){
   pkJt=on;
   $('pkJtOn').classList.toggle('on',on);$('pkJtOff').classList.toggle('on',!on);
-  ['pkJtA','pkJtB','pkJtC'].forEach(id=>{const el=$(id);if(el)el.style.display=on?'':'none';});
+  ['pkJtA','pkJtB','pkJtC','pkJtD'].forEach(id=>{const el=$(id);if(el)el.style.display=on?'':'none';});
   pkJtUpdate();
 }
 function pkJtUpdate(){
@@ -1431,8 +1445,8 @@ function pkDistPiesDraw(P){
   const panels=[];
   const dTot=P.d.reduce((s,x)=>s+x.share,0)||1;
   if(pkPieVisible.hit)panels.push(['大当たり時',mkSegs(P.d,dTot),'pkPie_hit']);
-  if(P.jtOn&&pkPieVisible.jt)panels.push(['時短中',mkSegs(P.d,dTot),'pkPie_jt']);
-  if(pkPieVisible.rush)panels.push(['RUSH中',mkSegs(P.d,dTot),'pkPie_rush']);
+  if(P.jtOn&&pkPieVisible.jt){const jd=P.jtD.length?P.jtD:P.d,jTot=P.jtD.length?P.jtTot:dTot;panels.push(['時短中',mkSegs(jd,jTot),'pkPie_jt']);}
+  if(pkPieVisible.rush){const rd=P.rushD.length?P.rushD:P.d,rTot=P.rushD.length?P.rushTot:dTot;panels.push(['RUSH中',mkSegs(rd,rTot),'pkPie_rush']);}
   if(P.ltOn&&pkPieVisible.lt){const lTot=P.ltD.reduce((s,x)=>s+x.share,0)||1;panels.push(['上位RUSH中',mkSegs(P.ltD,lTot),'pkPie_lt']);}
   box.innerHTML=panels.map(([title,segs,id])=>'<div style="text-align:center;"><div class="fhelp" style="margin:0 0 4px;font-weight:700;color:var(--ink);">'+title+'</div><canvas id="'+id+'" style="width:130px;height:130px;"></canvas></div>').join('');
   requestAnimationFrame(()=>panels.forEach(([title,segs,id])=>pieInto(id,segs,title,'')));
@@ -1572,11 +1586,67 @@ addLtRow('大当たり',1);addLtRow('ハズレ',9);
 /* ===================== 電卓 ===================== */
 function calcAdd(c){$('calcIn').value+=c;}
 function calcClear(){$('calcIn').value='';$('calcOut').textContent='電卓';}
+function evalArith(ex){
+  let i=0;
+  const err=()=>{throw new Error('parse error');};
+  const skipWs=()=>{while(ex[i]===' ')i++;};
+  function parseNumber(){
+    skipWs();
+    const start=i;
+    let dot=false;
+    while(i<ex.length&&(/[0-9]/.test(ex[i])||(ex[i]==='.'&&!dot))){
+      if(ex[i]==='.')dot=true;
+      i++;
+    }
+    if(i===start)err();
+    const n=parseFloat(ex.slice(start,i));
+    if(!isFinite(n))err();
+    return n;
+  }
+  function parseUnary(){
+    skipWs();
+    if(ex[i]==='+'){i++;return parseUnary();}
+    if(ex[i]==='-'){i++;return -parseUnary();}
+    if(ex[i]==='('){
+      i++;
+      const v=parseExpr();
+      skipWs();
+      if(ex[i]!==')')err();
+      i++;
+      return v;
+    }
+    return parseNumber();
+  }
+  function parseTerm(){
+    let v=parseUnary();
+    while(true){
+      skipWs();
+      if(ex[i]==='*'){i++;v*=parseUnary();}
+      else if(ex[i]==='/'){i++;v/=parseUnary();}
+      else break;
+    }
+    return v;
+  }
+  function parseExpr(){
+    let v=parseTerm();
+    while(true){
+      skipWs();
+      if(ex[i]==='+'){i++;v+=parseTerm();}
+      else if(ex[i]==='-'){i++;v-=parseTerm();}
+      else break;
+    }
+    return v;
+  }
+  const result=parseExpr();
+  skipWs();
+  if(i!==ex.length)err();
+  return result;
+}
 function calcEq(){
   const ex=$('calcIn').value;
   if(!/^[0-9+\-*/().\s]+$/.test(ex)||!ex.trim()){$('calcOut').textContent='数式を入力';return;}
   try{
-    const r=Function('"use strict";return('+ex+')')();
+    const r=evalArith(ex);
     if(typeof r==='number'&&isFinite(r)){
       $('calcOut').textContent=ex+' =';
       $('calcIn').value=String(Math.round(r*10000)/10000);
@@ -1653,11 +1723,19 @@ let ccN=3,ccD=3,cc=null;
   }
   for(let d=3;d<=6;d++){
     const c=document.createElement('div');c.className='chip'+(d===3?' on':'');c.textContent=d+'個';
-    c.onclick=()=>{ccD=d;[...$('ccDice').children].forEach(x=>x.classList.remove('on'));c.classList.add('on');};
+    c.onclick=()=>{ccD=d;[...$('ccDice').children].forEach(x=>x.classList.remove('on'));c.classList.add('on');ccRulesNote();};
     $('ccDice').appendChild(c);
   }
   ccNamesRender();
+  ccRulesNote();
 })();
+function ccRulesNote(){
+  const on=ccD>3;
+  const n1=$('ccShigoroNote1');if(n1)n1.style.display=on?'':'none';
+  const n2=$('ccShigoroNote2');if(n2)n2.style.display=on?'':'none';
+  const c1=$('ccShigoroChip');if(c1)c1.style.opacity=on?'.4':'';
+  const c2=$('ccHifumiChip');if(c2)c2.style.opacity=on?'.4':'';
+}
 function ccNamesRender(){
   const box=$('ccNames');box.innerHTML='<div class="flabel">プレイヤー名</div>';
   for(let i=0;i<ccN;i++){
@@ -2033,6 +2111,45 @@ function pkDrawLt(P){
   for(const x of P.ltD){acc+=x.share;if(r<acc)return x.balls;}
   return P.ltD[P.ltD.length-1].balls;
 }
+/* ---- パチンコ: 時短中/RUSH中の振り分け(未入力なら大当たり時と同じ) ---- */
+function addPkJtDist(balls,share){
+  const div=document.createElement('div');div.className='tier-row';
+  div.innerHTML=`<input type="number" value="${balls??1500}" min="0" step="100">
+    <input type="number" value="${share??''}" min="0" max="100" step="1">
+    <span></span><button class="rm" onclick="this.parentElement.remove()">×</button>`;
+  $('pkJtDistRows').appendChild(div);
+}
+function pkJtDist(){
+  return [...document.querySelectorAll('#pkJtDistRows .tier-row')].map(r=>{
+    const ins=r.querySelectorAll('input');
+    return{balls:parseFloat(ins[0].value)||0,share:parseFloat(ins[1].value)||0};
+  }).filter(d=>d.share>0);
+}
+function pkDrawJt(P){
+  if(P.jtD.length===0)return pkDraw(P);
+  let r=Math.random()*P.jtTot,acc=0;
+  for(const x of P.jtD){acc+=x.share;if(r<acc)return x.balls;}
+  return P.jtD[P.jtD.length-1].balls;
+}
+function addPkRushDist(balls,share){
+  const div=document.createElement('div');div.className='tier-row';
+  div.innerHTML=`<input type="number" value="${balls??1500}" min="0" step="100">
+    <input type="number" value="${share??''}" min="0" max="100" step="1">
+    <span></span><button class="rm" onclick="this.parentElement.remove()">×</button>`;
+  $('pkRushDistRows').appendChild(div);
+}
+function pkRushDist(){
+  return [...document.querySelectorAll('#pkRushDistRows .tier-row')].map(r=>{
+    const ins=r.querySelectorAll('input');
+    return{balls:parseFloat(ins[0].value)||0,share:parseFloat(ins[1].value)||0};
+  }).filter(d=>d.share>0);
+}
+function pkDrawRush(P){
+  if(P.rushD.length===0)return pkDraw(P);
+  let r=Math.random()*P.rushTot,acc=0;
+  for(const x of P.rushD){acc+=x.share;if(r<acc)return x.balls;}
+  return P.rushD[P.rushD.length-1].balls;
+}
 /* ---- スロット: スマスロAT + 再試行 + 統計 ---- */
 let slMochiMode='simple';
 function slSetMochiMode(m){
@@ -2354,7 +2471,7 @@ function ruSetWallet(){
 }
 /* ---- スペック保存: 確認ダイアログ + 王道テンプレ + 全対象 ---- */
 const PROWS={
-  pk:[{box:'pkDistRows',add:()=>addPkDist()},{box:'pkLtDistRows',add:()=>addPkLtDist()}],
+  pk:[{box:'pkDistRows',add:()=>addPkDist()},{box:'pkLtDistRows',add:()=>addPkLtDist()},{box:'pkJtDistRows',add:()=>addPkJtDist()},{box:'pkRushDistRows',add:()=>addPkRushDist()}],
   op:[{box:'opTiers',add:()=>addOpTier()}],
   gc:[{box:'gcTiers',add:()=>addGcTier()}],
   lt:[{box:'ltRows',add:()=>addLtRow()}]
@@ -2970,8 +3087,12 @@ function pkParams(){
   const tot=d.reduce((s,x)=>s+x.share,0)||1;
   const ltD=pkLtDist();
   const ltTot=ltD.reduce((s,x)=>s+x.share,0)||1;
+  const jtD=pkJtDist();
+  const jtTot=jtD.reduce((s,x)=>s+x.share,0)||1;
+  const rushD=pkRushDist();
+  const rushTot=rushD.reduce((s,x)=>s+x.share,0)||1;
   const jtN=Math.max(1,V('pkJtN')),jtSpins=Math.max(0,Math.round(V('pkJtSpins')));
-  return{N,spins1k,q,c,d,tot,ltD,ltTot,
+  return{N,spins1k,q,c,d,tot,ltD,ltTot,jtD,jtTot,rushD,rushTot,
     ltOn:pkLt,ltP:Math.min(1,Math.max(0,V('pkLtP')/100)),
     cLT:Math.min(.999,Math.max(0,V('pkLtCont')/100)),
     ltDown:pkLt&&pkLtDown?Math.min(1,Math.max(0,V('pkLtDownP')/100)):0,
@@ -2986,7 +3107,7 @@ function pkFirstHit(P){
       if(P.ltOn&&!lt&&Math.random()<P.ltP){lt=true;ltHit=true;}
       if(lt&&P.ltDown>0&&Math.random()<P.ltDown)lt=false;
       if(Math.random()>=(lt?P.cLT:P.c))break;
-      balls+=lt?pkDrawLt(P):pkDraw(P);chain++;
+      balls+=lt?pkDrawLt(P):pkDrawRush(P);chain++;
     }
   };
   balls+=pkDraw(P);chain++;
@@ -2994,7 +3115,7 @@ function pkFirstHit(P){
   if(entered)rush();
   let eligible=P.jtOn&&(entered?P.jtRush:P.jtMiss);
   while(eligible&&guard++<40&&Math.random()<P.jtPull){
-    balls+=pkDraw(P);chain++;
+    balls+=pkDrawJt(P);chain++;
     const e2=Math.random()<P.q;
     if(e2)rush();
     eligible=P.jtOn&&(e2?P.jtRush:P.jtMiss);

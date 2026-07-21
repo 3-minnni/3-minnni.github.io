@@ -1018,6 +1018,7 @@
         </div>
         <canvas id="ruChart"></canvas>
       </div>
+      <div class="pull-log" id="ruDetailLog"></div>
     </div>
 
     <div class="card ru-battle" id="rbSetup" style="display:none;">
@@ -1063,8 +1064,8 @@
 
     <div class="card">
       <div class="card-title"><span class="step">EXTRA</span><h3>ベット戦略シミュレーション</h3><span class="hint">賭け方を変えると結果はどう変わる?</span></div>
-      <div class="fhelp" style="margin-bottom:8px;">定額ベット・マーチンゲール(負けたら倍賭け)・パーレー(勝ったら倍賭け)の3戦略を仮想200スピンで同時に走らせて比較します。理論値の教育用機能です(実際の資金は動きません)。</div>
-      <button class="btn2 accent" onclick="stratCompare()">3戦略を比較する</button>
+      <div class="fhelp" style="margin-bottom:8px;">定額ベット・マーチンゲール(負けたら倍賭け)・パーレー(勝ったら倍賭け)・ダランベール法・ラボシェール法・31システムの6戦略を仮想200スピンで同時に走らせて比較します。理論値の教育用機能です(実際の資金は動きません)。</div>
+      <button class="btn2 accent" onclick="stratCompare()">6戦略を比較する</button>
       <div id="stratOut" style="margin-top:10px;"></div>
     </div>
   </div>
@@ -1642,6 +1643,7 @@ function ruSetAmerican(on){
   if($('ruStats'))ruUpdateStats();
 }
 let ruBetType='red',ruRot=0,ruSpinning=false,ruWallet=50000,ruStartW=50000,ruBal=0,ruSeries=[0],ruEvPer=0;
+let ruSpinLog=[],ruTotalInvest=0,ruTotalPayout=0;
 function ruRenderWallet(){
   $('ruWallet').textContent=cf(ruWallet);
   const d=ruWallet-ruStartW;const wd=$('ruWalletDiff');
@@ -2590,16 +2592,19 @@ function ruUpdateStats(){
   const total=rtTotal();
   const N=RU_ORDER().length;
   const ret=(1-1/N)*100*(36/36); // straight-up return baseline (payout 36x on 1/N chance = same ret for all bets)
+  const actualRet=ruTotalInvest>0?ruTotalPayout/ruTotalInvest*100:null;
   $('ruStats').innerHTML=
     '<div class="stat"><div class="s-l">ベット合計</div><div class="s-v">'+cf(total)+'</div><div class="s-sub">所持金 '+cf(ruWallet)+'</div></div>'
     +'<div class="stat"><div class="s-l">回収率(理論値)</div><div class="s-v">'+pct(ret,2)+'</div><div class="s-sub">'+(ruAmerican?'アメリカン式(0+00) — どの賭け方でも同じ':'ヨーロピアン式(0のみ) — どの賭け方でも同じ')+'</div></div>'
     +'<div class="stat"><div class="s-l">1回の期待損益</div><div class="s-v">'+yen(-total/N)+'</div><div class="s-sub">ベット合計 × (−1/'+N+')</div></div>'
-    +'<div class="stat"><div class="s-l">100回続けた期待損失</div><div class="s-v">'+yen(-total/N*100)+'</div><div class="s-sub">同額ベット継続時</div></div>';
+    +'<div class="stat"><div class="s-l">100回続けた期待損失</div><div class="s-v">'+yen(-total/N*100)+'</div><div class="s-sub">同額ベット継続時</div></div>'
+    +(actualRet!==null?'<div class="stat"><div class="s-l">回収率(実績)</div><div class="s-v">'+pct(actualRet,2)+'</div><div class="s-sub">投資'+cf(ruTotalInvest)+' / 払戻'+cf(ruTotalPayout)+'</div></div>':'');
 }
 function ruSetWallet(){
   ruWallet=parseFloat($('ruWalletSet').value)||0;ruStartW=ruWallet;
   ruBal=0;ruSeries=[0];ruEvSeries=[0];
   ruHist=[];ruHistRender();
+  ruSpinLog=[];ruTotalInvest=0;ruTotalPayout=0;ruDetailLogRender();
   ruRenderWallet();ruUpdateStats();
   drawChart($('ruChart'),ruSeries,ruEvSeries,{xLabel:'スピン回数',yLabel:'収支(円)'});
 }
@@ -3391,6 +3396,15 @@ function ccShowDice(dice,hand,who,cb){
 }
 /* ---- ルーレット: 自由チップ額・回転時間・履歴・音 ---- */
 let ruHist=[];
+function ruDetailLogRender(){
+  const box=$('ruDetailLog');if(!box)return;
+  if(!ruSpinLog.length){box.innerHTML='';return;}
+  const rows=ruSpinLog.map(s=>{
+    const colName=(s.n===0||s.n==='00')?'緑':(RU_RED.has(s.n)?'赤':'黒');
+    return '<div class="cclog-line" style="color:'+(s.delta>=0?'var(--pos)':'var(--neg)')+';">'+s.no+'回目: 出目'+s.n+'('+colName+') ベット'+cf(s.total)+' 払戻'+cf(s.payout)+' → '+(s.delta>=0?'+':'−')+cf(Math.abs(s.delta))+'</div>';
+  }).join('');
+  box.innerHTML=foldBlock('試行別履歴('+ruSpinLog.length+'件・賭け金/払戻/収支)',rows,false);
+}
 function rtChip(el){
   if(el.dataset.v==='custom'){
     const v=Math.max(1,Math.round(V('rtCustomAmt')));
@@ -3455,6 +3469,8 @@ function ruSettle(n){
   ruSeries.push(ruBal);
   ruEvSeries.push(ruEvSeries[ruEvSeries.length-1]-total/RU_ORDER().length);
   ruHist.unshift(n);ruHistRender();
+  ruTotalInvest+=total;ruTotalPayout+=payout;
+  ruSpinLog.unshift({no:ruHist.length,n,total,payout,delta});ruDetailLogRender();
   ruRenderWallet();ruUpdateStats();
   const colName=(n===0||n==='00')?'緑':(RU_RED.has(n)?'赤':'黒');
   const rb=$('ruResult');
@@ -3755,9 +3771,10 @@ function histInto(canvasId,samples,unit){
   ctx.fillText('プラス収支の割合: '+plusRate.toFixed(1)+'%',w/2,14);
 }
 /* ---- G: ベット戦略シミュレーション(ルーレット) ---- */
+const STRAT_START=50000;
 function stratRun(kind){
-  const spins=200,startBal=50000,unit=500;
-  let bal=startBal,bet=unit,series=[bal];
+  const spins=200,startBal=STRAT_START,unit=500;
+  let bal=startBal,bet=unit,series=[bal],wins=0,attempts=0;
   // ラボシェール法: 目標達成までの数列を用意し、両端の和を賭ける
   let lab=[1,2,3,4];
   // 31システム: 1,1,1,2,2,4,4 の7段階サイクル(2連勝で1段+)
@@ -3770,9 +3787,10 @@ function stratRun(kind){
       bet=unit*sys31Steps[sys31Idx];
     }
     if(bal<bet){series.push(bal);continue;}
-    bal-=bet;
+    bal-=bet;attempts++;
     const win=Math.random()<18/37;
     if(win){
+      wins++;
       bal+=bet*2;
       if(kind==='martingale')bet=unit;
       else if(kind==='paroli')bet=Math.min(bet*2,unit*8);
@@ -3788,7 +3806,7 @@ function stratRun(kind){
     }
     series.push(bal);
   }
-  return series;
+  return{series,wins,attempts};
 }
 function stratCompare(){
   const defs=[
@@ -3799,23 +3817,35 @@ function stratCompare(){
     ['labouchere','ラボシェール法(数列の両端を賭ける)','#A020F0'],
     ['system31','31システム(1-1-1-2-2-4-4の連勝ボーナス)','#4FE0C4'],
   ];
-  const results=defs.map(([kind,,col])=>[stratRun(kind),col]);
+  const results=defs.map(([kind,,col])=>({...stratRun(kind),col}));
+  const summaryRows=defs.map(([kind,label],i)=>{
+    const r=results[i];
+    const finalBal=r.series[r.series.length-1];
+    let peak=r.series[0],maxDD=0;
+    r.series.forEach(v=>{peak=Math.max(peak,v);maxDD=Math.max(maxDD,peak-v);});
+    const winRate=r.attempts>0?r.wins/r.attempts*100:0;
+    const netD=finalBal-STRAT_START;
+    return '<tr><td>'+label+'</td>'
+      +'<td style="color:'+(netD>=0?'var(--pos)':'var(--neg)')+';">'+(netD>=0?'+':'−')+cf(Math.abs(netD))+'</td>'
+      +'<td>'+cf(maxDD)+'</td><td>'+pct(winRate)+'</td></tr>';
+  }).join('');
   $('stratOut').innerHTML='<div class="chart-card"><div class="chart-head"><div class="c-title">6戦略の資金推移(200スピン・赤黒2倍賭け)</div>'
     +'<div class="legend">'+defs.map(([,label,col])=>'<span class="li"><span class="sw" style="border-color:'+col+';"></span>'+label+'</span>').join('')+'</div></div>'
     +'<canvas id="stratChart"></canvas></div>'
-    +'<div class="fhelp" style="margin-top:8px;">どの戦略でも、賭け方を変えても<b>期待値そのものは変わりません</b>(ルーレットの控除率は一定のため)。マーチンゲールは「勝率は高いが、稀に大負けする」、パーレーとダランベールは「大負けしにくいが上振れも小さい」、ラボシェールと31システムは「連勝を利益に変えやすいが機械的な運用が要る」という、リスクの<b>形</b>が変わるだけです。資金と賭け上限が有限である以上、長期的にはどれも理論値どおりに収束します。</div>';
+    +'<div style="overflow-x:auto;"><table class="rs-table"><thead><tr><th>戦略</th><th>最終収支</th><th>最大ドローダウン</th><th>勝率</th></tr></thead><tbody>'+summaryRows+'</tbody></table></div>'
+    +'<div class="fhelp" style="margin-top:8px;">どの戦略でも、賭け方を変えても<b>期待値そのものは変わりません</b>(ルーレットの控除率は一定のため)。マーチンゲールは「勝率は高いが、稀に大負けする」、パーレーとダランベールは「大負けしにくいが上振れも小さい」、ラボシェールと31システムは「連勝を利益に変えやすいが機械的な運用が要る」という、リスクの<b>形</b>が変わるだけです。資金と賭け上限が有限である以上、長期的にはどれも理論値どおりに収束します。最大ドローダウンは200スピン中の資金の山から谷への最大の落ち込み幅です。</div>';
   requestAnimationFrame(()=>{
     const cv=$('stratChart');const ctx=cv.getContext('2d');const dpr=window.devicePixelRatio||1;
     const w=cv.clientWidth||600,h=240;cv.width=w*dpr;cv.height=h*dpr;cv.style.height=h+'px';ctx.scale(dpr,dpr);
     ctx.clearRect(0,0,w,h);
-    const all=results.flatMap(([s])=>s);const mn=Math.min(...all),mx=Math.max(...all);
+    const all=results.flatMap(r=>r.series);const mn=Math.min(...all),mx=Math.max(...all);
     const Y=v=>h-20-((v-mn)/((mx-mn)||1))*(h-40);
-    const X=i=>10+(i/(results[0][0].length-1))*(w-20);
-    results.forEach(([s,col])=>{
-      ctx.strokeStyle=col;ctx.lineWidth=1.6;ctx.beginPath();
-      s.forEach((v,i)=>i===0?ctx.moveTo(X(i),Y(v)):ctx.lineTo(X(i),Y(v)));ctx.stroke();
+    const X=i=>10+(i/(results[0].series.length-1))*(w-20);
+    results.forEach(r=>{
+      ctx.strokeStyle=r.col;ctx.lineWidth=1.6;ctx.beginPath();
+      r.series.forEach((v,i)=>i===0?ctx.moveTo(X(i),Y(v)):ctx.lineTo(X(i),Y(v)));ctx.stroke();
     });
-    ctx.strokeStyle=CH.zero;ctx.beginPath();ctx.moveTo(10,Y(results[0][0][0]));ctx.lineTo(w-10,Y(results[0][0][0]));ctx.stroke();
+    ctx.strokeStyle=CH.zero;ctx.beginPath();ctx.moveTo(10,Y(results[0].series[0]));ctx.lineTo(w-10,Y(results[0].series[0]));ctx.stroke();
   });
 }
 /* ---- F: システムのダーク/ライト設定に自動追従(未設定時のみ) ---- */

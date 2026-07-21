@@ -1725,48 +1725,6 @@ ruDraw(0);ruRenderWallet();
 /* ===================== カスタム抽選 ===================== */
 const LT_COLORS=['#E8B33C','#8E6BFF','#3DDC97','#FF3D68','#4FA3E0','#C4A788','#D97CC0','#7FBF6B'];
 let ltItems=[],ltRot=0,ltSpinning=false;
-function ltPct(){
-  const rows=[...document.querySelectorAll('#ltRows .tier-row')];
-  const total=rows.reduce((s,r)=>s+(parseFloat(r.querySelectorAll('input')[1].value)||0),0)||1;
-  rows.forEach(r=>{
-    const w=parseFloat(r.querySelectorAll('input')[1].value)||0;
-    r.querySelector('span').textContent=w>0?pct(w/total*100):'—';
-  });
-}
-function ltBuild(){
-  ltItems=[...document.querySelectorAll('#ltRows .tier-row')].map(r=>{
-    const ins=r.querySelectorAll('input');
-    return{name:ins[0].value||'?',w:parseFloat(ins[1].value)||0};
-  }).filter(x=>x.w>0);
-  if(ltItems.length<2){return;}
-  $('ltPlay').style.display='';
-  $('ltHistory').innerHTML='';
-  ltRot=0;ltDraw(0);
-  $('ltResult').className='result-banner';
-  $('ltResult').innerHTML='<div class="r-tier">↓ 回して決める</div><div class="r-coin">—</div>';
-}
-function ltDraw(rot){
-  const cv=$('lotWheel');const ctx=cv.getContext('2d');
-  const S=640,C=S/2,R=300;
-  ctx.clearRect(0,0,S,S);
-  const total=ltItems.reduce((s,x)=>s+x.w,0);
-  let a=rot-Math.PI/2;
-  ltItems.forEach((x,i)=>{
-    const sw=(x.w/total)*Math.PI*2;
-    ctx.beginPath();ctx.moveTo(C,C);ctx.arc(C,C,R,a,a+sw);ctx.closePath();
-    ctx.fillStyle=LT_COLORS[i%LT_COLORS.length];ctx.fill();
-    ctx.strokeStyle='#0A0C11';ctx.lineWidth=3;ctx.stroke();
-    const mid=a+sw/2;
-    ctx.save();ctx.translate(C+Math.cos(mid)*R*0.62,C+Math.sin(mid)*R*0.62);
-    ctx.rotate(mid+(Math.cos(mid)<0?Math.PI:0));
-    ctx.fillStyle='#0E1015';ctx.font='700 24px "Zen Kaku Gothic New"';ctx.textAlign='center';
-    const label=x.name.length>7?x.name.slice(0,7)+'…':x.name;
-    ctx.fillText(label,0,8);ctx.restore();
-    a+=sw;
-  });
-  ctx.beginPath();ctx.arc(C,C,30,0,Math.PI*2);ctx.fillStyle='#E8B33C';ctx.fill();
-  ctx.strokeStyle='#0A0C11';ctx.lineWidth=3;ctx.stroke();
-}
 addLtRow('大当たり',1);addLtRow('ハズレ',9);
 
 /* ===================== 電卓 ===================== */

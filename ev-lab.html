@@ -2849,7 +2849,8 @@ const SFX={
 };
 
 /* ---- 円グラフ共通ヘルパー ---- */
-function pieInto(canvasId,segments,centerLabel,centerVal){
+const PIE_RB_LOOPS={};
+function pieDrawFrame(canvasId,segments,centerLabel,centerVal,phase){
   const cv=$(canvasId);if(!cv)return;
   const ctx=cv.getContext('2d');const dpr=window.devicePixelRatio||1;
   const SZ=160;cv.width=SZ*dpr;cv.height=SZ*dpr;ctx.scale(dpr,dpr);
@@ -2860,8 +2861,11 @@ function pieInto(canvasId,segments,centerLabel,centerVal){
     const sw=(seg.v/total)*Math.PI*2;
     ctx.beginPath();ctx.moveTo(SZ/2,SZ/2);ctx.arc(SZ/2,SZ/2,72,a,a+sw);ctx.closePath();
     if(seg.rainbow){
-      const g=ctx.createLinearGradient(0,0,SZ,SZ);
-      ['#E63946','#E8C879','#39FF88','#4FA3E0','#A020F0'].forEach((c,i,arr)=>g.addColorStop(i/(arr.length-1),c));
+      const cx=SZ/2,cy=SZ/2,r=SZ*0.7;
+      const x0=cx+Math.cos(phase)*r,y0=cy+Math.sin(phase)*r;
+      const x1=cx+Math.cos(phase+Math.PI)*r,y1=cy+Math.sin(phase+Math.PI)*r;
+      const g=ctx.createLinearGradient(x0,y0,x1,y1);
+      ['#E63946','#E8C879','#39FF88','#4FA3E0','#A020F0','#E63946'].forEach((c,i,arr)=>g.addColorStop(i/(arr.length-1),c));
       ctx.fillStyle=g;
     }else ctx.fillStyle=seg.color;
     ctx.fill();ctx.strokeStyle=LIGHT?'#fff':'#141821';ctx.lineWidth=2;ctx.stroke();
@@ -2872,6 +2876,20 @@ function pieInto(canvasId,segments,centerLabel,centerVal){
   ctx.fillText(centerLabel||'',SZ/2,SZ/2-4);
   ctx.fillStyle=LIGHT?'#1B1C19':'#FFD966';ctx.font='700 14px "IBM Plex Mono"';
   ctx.fillText(centerVal||'',SZ/2,SZ/2+13);
+}
+function pieInto(canvasId,segments,centerLabel,centerVal){
+  if(PIE_RB_LOOPS[canvasId]){cancelAnimationFrame(PIE_RB_LOOPS[canvasId]);delete PIE_RB_LOOPS[canvasId];}
+  const hasRainbow=segments.some(s=>s.rainbow);
+  if(!hasRainbow||!fxOn()){pieDrawFrame(canvasId,segments,centerLabel,centerVal,Math.PI/4);return;}
+  let phase=0;
+  const loop=()=>{
+    const cv=$(canvasId);
+    if(!cv||cv.offsetParent===null){delete PIE_RB_LOOPS[canvasId];return;}
+    phase+=0.025;
+    pieDrawFrame(canvasId,segments,centerLabel,centerVal,phase);
+    PIE_RB_LOOPS[canvasId]=requestAnimationFrame(loop);
+  };
+  loop();
 }
 function pieLegend(segments){
   const total=segments.reduce((s,x)=>s+x.v,0)||1;

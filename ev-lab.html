@@ -345,6 +345,11 @@
   .gc-budget-card{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;}
   .gc-budget-bar{height:10px;border-radius:6px;background:var(--line);overflow:hidden;margin:6px 0;}
   .gc-budget-fill{height:100%;border-radius:6px;transition:width .3s;}
+  .gc-pie-compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+  .gc-pie-col{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center;}
+  .gc-pie-col .gc-pie-h{font-size:10.5px;color:var(--ink-2);margin-bottom:6px;font-weight:600;}
+  .gc-pie-col canvas{width:100px;height:100px;margin:0 auto;}
+  .gc-pie-col .legend{flex-direction:column;align-items:flex-start;gap:3px;font-size:10px;margin-top:8px;}
 
   /* データカウンター風 */
   .dcounter{background:#070708;border:2px solid #2A2A30;border-radius:12px;padding:14px;margin-bottom:12px;}
@@ -835,7 +840,7 @@
           <div class="igroup"><input type="number" id="gcCost" value="300" min="0" step="10"><span class="unit">石</span></div>
         </div>
         <div class="field">
-          <div class="flabel">石の実額換算</div><div class="fhelp">課金相場。例: 150石=120円なら「0.8」</div>
+          <div class="flabel">石の実額換算</div><div class="fhelp">課金相場。例: 150石=120円なら「0.8」。円換算が不要なら0を入力してください</div>
           <div class="igroup"><input type="number" id="gcYenPerStone" value="0.83" min="0" step="0.01" oninput="gcBudgetRender()"><span class="unit">円/石</span></div>
         </div>
         <div class="field">
@@ -869,14 +874,29 @@
           <button class="btn2" onclick="gcSetWallet()">設定</button>
         </div>
       </div>
-      <div class="remain" id="gcPityView"></div>
-      <div class="gc-budget-card" id="gcBudgetCard">
+      <div class="gc-big"><span class="l">累計消費</span><span class="v" id="gcSpentBig">0</span><span class="l">石</span><span class="l" style="margin-left:auto;">通算 <b id="gcCountBig" class="mono" style="font-size:16px;color:var(--ink);">0</b> 連</span></div>
+      <div class="remain" id="gcCounts"></div>
+      <div class="field full" style="margin-top:6px;">
+        <div class="flabel">今月の課金予算トラッカー</div>
+        <div class="fhelp">OFFのときは予算の表示のみ行いません(消費の記録自体は裏で継続します)</div>
+        <div class="chips">
+          <div class="chip on" id="gcBudgetOff" onclick="gcBudgetSetEnabled(false)">OFF</div>
+          <div class="chip" id="gcBudgetOn" onclick="gcBudgetSetEnabled(true)">ON</div>
+        </div>
+      </div>
+      <div class="gc-budget-card" id="gcBudgetCard" style="display:none;">
         <div class="flabel" style="margin-bottom:6px;">今月の課金予算</div>
         <div class="igroup" style="max-width:220px;margin-bottom:8px;"><input type="number" id="gcBudgetSet" value="10000" min="0" step="1000"><span class="unit">円/月</span><button class="btn2" onclick="gcBudgetSave()" style="margin-left:6px;">設定</button></div>
         <div id="gcBudgetView"></div>
+        <button class="btn2" onclick="gcBudgetReset()" style="margin-top:8px;">今月の予算をリセット</button>
       </div>
+      <div class="remain" id="gcPityView"></div>
       <div class="result-banner" id="gcResult"><div class="r-tier">↓ ボタンを押して引く</div><div class="r-coin">—</div></div>
-      <div id="gcActualPie"></div>
+      <div id="gcTheoryHead"></div>
+      <div class="gc-pie-compare">
+        <div id="gcTheoryPie"></div>
+        <div id="gcActualPie"></div>
+      </div>
       <div class="pull-area">
         <button class="btn2 accent" onclick="gcPull(1)">単発</button>
         <button class="btn2 accent" onclick="gcPull(10)">10連</button>
@@ -884,8 +904,6 @@
         <button class="btn2 accent" onclick="gcPull(1000)">1000連</button>
         <button class="btn2 danger" onclick="gcBuild()">リセット</button>
       </div>
-      <div class="gc-big"><span class="l">累計消費</span><span class="v" id="gcSpentBig">0</span><span class="l">石</span><span class="l" style="margin-left:auto;">通算 <b id="gcCountBig" class="mono" style="font-size:16px;color:var(--ink);">0</b> 連</span></div>
-      <div class="remain" id="gcCounts"></div>
       <div class="pull-log" id="gcLog"></div>
       <div id="gc-theory"></div>
     </div>
@@ -2787,11 +2805,15 @@ function gcBuild(){
   const segs=gcTiersDef.map((t,i)=>({name:t.name,v:t.rate,color:['#E8B33C','#8E6BFF','#3DDC97','#FF3D68','#4FA3E0','#C4A788'][i%6],rainbow:gcRank[i]===1}));
   const other=1-gcTiersDef.reduce((s,t)=>s+t.rate,0);
   if(other>0)segs.push({name:'通常枠',v:other,color:'#3A3A50'});
-  $('gc-theory').innerHTML=
+  $('gcTheoryHead').innerHTML=
     '<div class="pct-strip"><span class="l" style="font-size:11px;color:var(--gold);">目玉('+gcTiersDef[0].name+')排出率</span> <span class="pct-big">'+pct(p*100,2)+'</span>'
-    +(gcTiersDef[1]?'<span class="l" style="font-size:11px;color:var(--ink-2);margin-left:8px;">第2目玉('+gcTiersDef[1].name+')</span> <span class="mono" style="font-size:15px;color:var(--ink);">'+pct(gcTiersDef[1].rate*100,2)+'</span>':'')+'</div>'
-    +'<div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:10px;"><canvas id="gcPie" style="width:160px;height:160px;flex:none;"></canvas><div class="legend" style="flex-direction:column;gap:5px;align-items:flex-start;">'+pieLegend(segs)+'</div></div>'
-    +'<div class="stats">'
+    +(gcTiersDef[1]?'<span class="l" style="font-size:11px;color:var(--ink-2);margin-left:8px;">第2目玉('+gcTiersDef[1].name+')</span> <span class="mono" style="font-size:15px;color:var(--ink);">'+pct(gcTiersDef[1].rate*100,2)+'</span>':'')+'</div>';
+  $('gcTheoryPie').innerHTML=
+    '<div class="gc-pie-col"><div class="gc-pie-h">確率上の排出割合</div><canvas id="gcPie"></canvas><div class="legend">'+pieLegend(segs)+'</div></div>';
+  $('gcActualPie').innerHTML=
+    '<div class="gc-pie-col"><div class="gc-pie-h">実際の排出割合</div><div class="fhelp" style="margin-top:24px;">まだ引いていません</div></div>';
+  $('gc-theory').innerHTML=
+    '<div class="stats">'
     +'<div class="stat"><div class="s-l">'+gcTiersDef[0].name+'の期待初当たり</div><div class="s-v">'+num(expPulls)+'回</div><div class="s-sub">期待消費 '+cf(expPulls*cost)+'石 / 独立試行</div></div>'
     +'<div class="stat"><div class="s-l">所持石で目玉を1枚以上</div><div class="s-v">'+pct(pEye*100)+'</div><div class="s-sub">所持'+cf(gcWallet)+'石=最大'+affordable+'連</div></div>'
     +'</div>';
@@ -2830,7 +2852,7 @@ function gcPull(n){
   const draw=log.slice(0,200);
   $('gcLog').innerHTML=foldBlock('引いた履歴('+pulled+'連 / 先頭200件)',
     '<div style="display:flex;flex-wrap:wrap;gap:4px;padding-top:6px;">'+draw.map(tier=>'<span class="pl '+(tier===0?'t0':tier===1?'t1':tier>=2?'t2':'tx')+'">'+(tier>=0?gcTiersDef[tier].name.slice(0,2):'—')+'</span>').join('')+'</div>',
-    pulled<=50);
+    true);
   const hit=best<99;
   const rank=hit?gcRank[best]:6;
   const show=()=>{
@@ -2858,6 +2880,16 @@ function gcBudgetAll(){
   catch(e){return{limit:10000,spentStone:0};}
 }
 function gcBudgetSaveState(o){try{localStorage.setItem(gcBudgetKey(),JSON.stringify(o));}catch(e){}}
+function gcBudgetEnabled(){try{return localStorage.getItem('evlab_gcbudget_enabled')==='1';}catch(e){return !!window.__gcBudgetEnabled;}}
+function gcBudgetSetEnabled(on){
+  try{localStorage.setItem('evlab_gcbudget_enabled',on?'1':'0');}catch(e){window.__gcBudgetEnabled=on;}
+  gcBudgetRender();
+}
+function gcBudgetReset(){
+  confirmBox('今月の課金予算(累計消費)をリセットしますか?<br>この操作は元に戻せません。',true,()=>{
+    const o=gcBudgetAll();o.spentStone=0;gcBudgetSaveState(o);gcBudgetRender();
+  });
+}
 function gcBudgetSave(){
   const o=gcBudgetAll();
   o.limit=Math.max(0,Math.round(V('gcBudgetSet')));
@@ -2872,6 +2904,9 @@ function gcBudgetAddSpend(stoneAmount){
 }
 function gcBudgetRender(){
   const box=$('gcBudgetView');if(!box)return;
+  const enabled=gcBudgetEnabled();
+  if($('gcBudgetOn')){$('gcBudgetOn').classList.toggle('on',enabled);$('gcBudgetOff').classList.toggle('on',!enabled);}
+  if($('gcBudgetCard'))$('gcBudgetCard').style.display=enabled?'':'none';
   const o=gcBudgetAll();
   const yenPerStone=Math.max(0,V('gcYenPerStone'));
   const cost=Math.max(0,V('gcCost'));
@@ -2880,6 +2915,8 @@ function gcBudgetRender(){
   const usedPct=o.limit>0?Math.min(100,spentYen/o.limit*100):0;
   const yenPerPull=cost*yenPerStone;
   const pullsLeft=yenPerPull>0?Math.max(0,Math.floor(remain/yenPerPull)):0;
+  const p=gcTiersDef[0]?gcTiersDef[0].rate:0;
+  const pEyeBudget=1-Math.pow(1-p,pullsLeft);
   if($('gcBudgetSet')&&document.activeElement!==$('gcBudgetSet'))$('gcBudgetSet').value=o.limit;
   box.innerHTML=
     '<div class="gc-budget-bar"><div class="gc-budget-fill" style="width:'+usedPct+'%;background:'+(usedPct>=100?'var(--neg)':(usedPct>=80?'#E8C879':'var(--pos)'))+';"></div></div>'
@@ -2888,21 +2925,20 @@ function gcBudgetRender(){
     +'<span class="rc">今月の消費: <b>'+yen(Math.round(spentYen))+'</b> ('+cf(o.spentStone)+'石)</span>'
     +'<span class="rc">1連あたり: <b>'+yen(Math.round(yenPerPull))+'</b></span>'
     +(yenPerPull>0?'<span class="rc">予算内であと<b>'+pullsLeft+'</b>連引ける</span>':'')
+    +(yenPerPull>0&&p>0?'<span class="rc gold">予算内で目玉を1枚以上: <b>'+pct(pEyeBudget*100)+'</b></span>':'')
     +'</div>';
 }
 function gcActualPieRender(){
   const totalHit=gcHits.reduce((a,b)=>a+b,0);
   const other=gcCount-totalHit;
-  if(gcCount===0){$('gcActualPie').innerHTML='';return;}
+  if(gcCount===0)return;
   const COLS=['#E8B33C','#8E6BFF','#3DDC97','#FF3D68','#4FA3E0','#C4A788'];
   const segs=gcTiersDef.map((t,i)=>({name:t.name,v:gcHits[i],color:COLS[i%6],rainbow:gcRank[i]===1})).filter(s=>s.v>0);
   if(other>0)segs.push({name:'通常枠',v:other,color:'#3A3A50'});
   $('gcActualPie').innerHTML=
-    '<div class="card-title" style="margin-top:12px;"><span class="step">実績</span><h3>実際の排出割合(通算'+cf(gcCount)+'連)</h3></div>'
-    +'<div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:6px;"><canvas id="gcActPieC" style="width:150px;height:150px;flex:none;"></canvas><div class="legend" style="flex-direction:column;gap:5px;align-items:flex-start;">'
-    +segs.map((s,i)=>'<span class="li"><span class="sw" style="background:'+s.color+';border-color:'+s.color+';"></span>'+s.name+': <b>'+s.v+'</b>枚 ('+pct(s.v/gcCount*100,2)+')'+(gcTiersDef[i]?' / 理論'+pct(gcTiersDef[i].rate*100,2):'')+'</span>').join('')
-    +'</div></div>'
-    +'<div class="fhelp">試行回数が少ないと理論値から大きくブレます。数千連で理論値に近づくのを確認できます。</div>';
+    '<div class="gc-pie-col"><div class="gc-pie-h">実際の排出割合(通算'+cf(gcCount)+'連)</div><canvas id="gcActPieC"></canvas><div class="legend">'
+    +segs.map((s,i)=>'<span class="li"><span class="sw" style="background:'+s.color+';border-color:'+s.color+';"></span>'+s.name+' '+pct(s.v/gcCount*100,1)+(gcTiersDef[i]?'(理論'+pct(gcTiersDef[i].rate*100,1)+')':'')+'</span>').join('')
+    +'</div><div class="fhelp" style="margin-top:6px;">試行が少ないとブレます</div></div>';
   requestAnimationFrame(()=>pieInto('gcActPieC',segs,'実排出',cf(gcCount)+'連'));
 }
 

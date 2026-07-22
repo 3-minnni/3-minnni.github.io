@@ -1999,16 +1999,16 @@ function ccRoll(){
 function ccStart(){
   const chips=Math.max(1,Math.round(V('ccChips')));
   const baseBet=Math.max(1,Math.round(V('ccBet')));
-  cc={players:[],parent:0,turn:-1,round:1,pHand:null,phase:'parent',baseBet};
+  cc={players:[],parent:0,startParent:0,turn:-1,round:1,pHand:null,phase:'bet',baseBet,roundLog:[]};
   for(let i=0;i<ccN;i++)cc.players.push({name:($('ccName'+i)&&$('ccName'+i).value)||('P'+(i+1)),chips,bet:baseBet});
   cc.roundStart=cc.players.map(p=>p.chips);
   cc.history=cc.players.map(p=>({name:p.name,series:[p.chips]}));
+  cc.turn=(cc.parent+1)%cc.players.length;
   $('ccPlay').style.display='';
   $('ccLogBox').innerHTML='';
   $('ccFaces').textContent='🎲';$('ccHand').textContent='';
-  $('ccBetChips').style.display='none';$('ccBetCur').style.display='none';
   $('ccRoundSummary').innerHTML='';
-  ccRender('R1 スタート。親からどうぞ。');
+  ccRender('R1 スタート。まず子の賭け額を決めます。');
   ccHistoryChartRender();
 }
 function ccAddLog(t,gold){
@@ -2024,18 +2024,31 @@ function ccRender(phaseText){
     '<span class="rc '+(i===cc.parent?'gold':'')+'">'+(i===cc.parent?'👑':'')+p.name+': <b>'+cf(p.chips)+'</b></span>'
   ).join('')+'<span class="rc">R'+cc.round+' / 基本ベット'+cf(cc.baseBet)+' / 首位: '+sorted[0].p.name+'</span>';
   if(phaseText)$('ccPhase').textContent=phaseText;
-  if(cc.phase==='parent'){
+  if(cc.phase==='bet'){
+    $('ccBtn').textContent=cc.players[cc.turn].name+' の賭け額を確定 → 次へ';
+    $('ccBetChips').style.display='';
+    ccSyncBetChips();
+  }else if(cc.phase==='parent'){
     $('ccBtn').textContent='👑 '+cc.players[cc.parent].name+' が振る';
     $('ccBetChips').style.display='none';$('ccBetCur').style.display='none';
   }else if(cc.phase==='child'){
     $('ccBtn').textContent=cc.players[cc.turn].name+' が振る';
-    $('ccBetChips').style.display='';
-    ccSyncBetChips();
+    $('ccBetChips').style.display='none';$('ccBetCur').style.display='none';
+  }else if(cc.phase==='gameover'){
+    $('ccBtn').textContent='🔄 もう一度プレイ';
+    $('ccBetChips').style.display='none';$('ccBetCur').style.display='none';
+    ccGameOverRender();
   }else{
     $('ccBtn').textContent='次のラウンドへ(親交代)';
     $('ccBetChips').style.display='none';$('ccBetCur').style.display='none';
     ccRoundSummaryRender();
   }
+}
+function ccGameOverRender(){
+  const box=$('ccRoundSummary');if(!box)return;
+  const ranked=[...cc.players].map((p,i)=>({p,i})).sort((a,b)=>b.p.chips-a.p.chips);
+  box.innerHTML='<div class="flabel" style="margin-top:4px;">🏁 ゲーム終了(全員が親を一巡しました)— 最終結果</div>'
+    +ranked.map((r,pos)=>'<div class="remain" style="margin-bottom:4px;"><span class="rc'+(pos===0?' gold':'')+'">'+(pos+1)+'位: '+escHtml(r.p.name)+' — <b>'+cf(r.p.chips)+'</b>チップ</span></div>').join('');
 }
 function ccSyncBetChips(){
   const bet=cc.players[cc.turn].bet;
@@ -2064,11 +2077,17 @@ function ccRenderBetDisplay(){
 }
 function ccRoundSummaryRender(){
   const box=$('ccRoundSummary');if(!box||!cc.roundStart)return;
+  const logRows=(cc.roundLog||[]).map(r=>
+    '<tr><td>'+escHtml(r.name)+'</td><td>'+(r.bet>0?cf(r.bet):'—')+'</td><td>'+r.result+'</td>'
+    +'<td style="color:'+(r.delta>0?'var(--pos)':(r.delta<0?'var(--neg)':'var(--ink-2)'))+';">'+(r.delta>0?'+':(r.delta<0?'−':'±'))+cf(Math.abs(r.delta))+'</td></tr>'
+  ).join('');
+  const table=logRows?'<div style="overflow-x:auto;"><table class="rs-table"><thead><tr><th>子</th><th>賭け額</th><th>結果</th><th>収支</th></tr></thead><tbody>'+logRows+'</tbody></table></div>':'';
   const rows=cc.players.map((p,i)=>{
     const d=p.chips-cc.roundStart[i];
     return '<span class="rc" style="color:'+(d>0?'var(--pos)':(d<0?'var(--neg)':'var(--ink-2)'))+';">'+p.name+': '+(d>0?'+':(d<0?'−':'±'))+cf(Math.abs(d))+'</span>';
   }).join('');
-  box.innerHTML='<div class="flabel" style="margin-top:4px;">R'+cc.round+'の収支</div><div class="remain">'+rows+'</div>';
+  box.innerHTML='<div class="flabel" style="margin-top:4px;">R'+cc.round+'の収支 — 親: 👑'+escHtml(cc.players[cc.parent].name)+'</div>'
+    +table+'<div class="remain" style="margin-top:6px;">'+rows+'</div>';
 }
 function ccHistoryChartRender(){
   const cv=$('ccChart');if(!cv||!cc)return;
@@ -2097,18 +2116,29 @@ function ccChildAdvance(){
   if(next===cc.parent){cc.phase='end';ccEndRound('ラウンド終了。');}
   else{cc.turn=next;ccRender('次: '+cc.players[next].name);}
 }
+function ccBetAdvance(){
+  let next=(cc.turn+1)%cc.players.length;
+  if(next===cc.parent){
+    cc.turn=-1;cc.phase='parent';
+    ccRender('全員の賭け額が決まりました。親の番です。');
+  }else{
+    cc.turn=next;ccRender('次: '+cc.players[next].name+'の賭け額');
+  }
+}
 function ccAction(){
   if(!cc)return;
-  if(cc.phase==='parent'){
+  if(cc.phase==='bet'){
+    ccBetAdvance();
+  }else if(cc.phase==='parent'){
     const r=ccRoll();cc.pHand=r.hand;
     ccShowDice(r.dice,r.hand,'親 '+cc.players[cc.parent].name,()=>{
       const h=r.hand;
       if(h.s>=800||h.s===-100||h.s===0){
         cc.players.forEach((p,i)=>{
           if(i===cc.parent)return;
-          if(p.bet<=0){ccAddLog(p.name+' は様子見(降り)');return;}
-          if(h.s>=800){const pay=p.bet*h.m;p.chips-=pay;cc.players[cc.parent].chips+=pay;ccAddLog(p.name+' → 親に'+cf(pay)+'支払い('+h.name+')');}
-          else{const pay=p.bet*(h.s===-100?2:1);p.chips+=pay;cc.players[cc.parent].chips-=pay;ccAddLog('親 → '+p.name+'に'+cf(pay)+'支払い('+h.name+')',true);}
+          if(p.bet<=0){ccAddLog(p.name+' は様子見(降り)');cc.roundLog.push({name:p.name,bet:0,result:'降り',delta:0});return;}
+          if(h.s>=800){const pay=p.bet*h.m;p.chips-=pay;cc.players[cc.parent].chips+=pay;ccAddLog(p.name+' → 親に'+cf(pay)+'支払い('+h.name+')');cc.roundLog.push({name:p.name,bet:p.bet,result:'負け('+h.name+')',delta:-pay});}
+          else{const pay=p.bet*(h.s===-100?2:1);p.chips+=pay;cc.players[cc.parent].chips-=pay;ccAddLog('親 → '+p.name+'に'+cf(pay)+'支払い('+h.name+')',true);cc.roundLog.push({name:p.name,bet:p.bet,result:'勝ち('+h.name+')',delta:pay});}
         });
         cc.phase='end';ccEndRound('親の'+h.name+'で即決着!');
       }else{
@@ -2120,6 +2150,7 @@ function ccAction(){
     const idx=cc.turn;
     if(cc.players[idx].bet<=0){
       ccAddLog(cc.players[idx].name+' は様子見(降り)');
+      cc.roundLog.push({name:cc.players[idx].name,bet:0,result:'降り',delta:0});
       ccChildAdvance();
       return;
     }
@@ -2128,21 +2159,30 @@ function ccAction(){
       const ch=r.hand,ph=cc.pHand;
       const P=cc.players[cc.parent],C=cc.players[idx];
       const bet=C.bet;
-      if(ch.s>ph.s){const pay=bet*ch.m;P.chips-=pay;C.chips+=pay;ccAddLog(C.name+' 勝ち +'+cf(pay)+'('+ch.name+')',true);}
-      else if(ch.s<ph.s){const pay=bet*(ch.s===-100?2:ph.m);C.chips-=pay;P.chips+=pay;ccAddLog(C.name+' 負け −'+cf(pay)+'('+ch.name+')');}
-      else ccAddLog(C.name+' 引き分け('+ch.name+')');
+      if(ch.s>ph.s){const pay=bet*ch.m;P.chips-=pay;C.chips+=pay;ccAddLog(C.name+' 勝ち +'+cf(pay)+'('+ch.name+')',true);cc.roundLog.push({name:C.name,bet,result:'勝ち('+ch.name+')',delta:pay});}
+      else if(ch.s<ph.s){const pay=bet*(ch.s===-100?2:ph.m);C.chips-=pay;P.chips+=pay;ccAddLog(C.name+' 負け −'+cf(pay)+'('+ch.name+')');cc.roundLog.push({name:C.name,bet,result:'負け('+ch.name+')',delta:-pay});}
+      else{ccAddLog(C.name+' 引き分け('+ch.name+')');cc.roundLog.push({name:C.name,bet,result:'引き分け('+ch.name+')',delta:0});}
       ccChildAdvance();
     });
+  }else if(cc.phase==='gameover'){
+    ccStart();
   }else{
+    // phase==='end': ラウンド終了→次ラウンドへ。親が一巡(startParentに戻る)したらゲーム終了
+    if((cc.parent+1)%cc.players.length===cc.startParent){
+      cc.phase='gameover';
+      ccRender('全員が親を一巡しました。ゲーム終了!');
+      return;
+    }
     cc.parent=(cc.parent+1)%cc.players.length;
-    cc.round++;cc.phase='parent';cc.pHand=null;
+    cc.round++;cc.phase='bet';cc.pHand=null;cc.roundLog=[];
     cc.baseBet=Math.max(1,Math.round(V('ccBet')));
     cc.players.forEach(p=>p.bet=cc.baseBet);
+    cc.turn=(cc.parent+1)%cc.players.length;
     cc.roundStart=cc.players.map(p=>p.chips);
     $('ccFaces').textContent='🎲';$('ccHand').textContent='';
     $('ccDiceView').className='result-banner';
     $('ccRoundSummary').innerHTML='';
-    ccRender('R'+cc.round+' 親: '+cc.players[cc.parent].name);
+    ccRender('R'+cc.round+' 親: '+cc.players[cc.parent].name+'。子の賭け額を決めます。');
   }
 }
 

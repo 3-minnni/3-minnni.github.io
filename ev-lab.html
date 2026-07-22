@@ -825,8 +825,9 @@
         <button class="btn2 danger" onclick="kkReset()">リセット</button>
       </div>
       <div class="flabel" style="margin-top:14px;">設定1〜6の理論値を入力して期待度を比較</div>
-      <div class="fhelp">解析サイト・雑誌の設定別確率「1/x」のxを入力(空欄の役は無視)。機種名は保存名で管理してください。</div>
+      <div class="fhelp">解析サイト・雑誌の設定別確率「1/x」のxを入力(空欄の役は無視)。下の保存欄に機種名を付けて保存すると、次回から入力し直さずに呼び出せます。</div>
       <div id="kjTable" class="kj-grid-wrap"></div>
+      <div class="preset-bar" data-p="hk"></div>
       <button class="btn2" onclick="kjCalc()" style="margin-top:8px;">設定期待度を計算</button>
       <div id="kjOut" style="margin-top:10px;"></div>
       <div class="fhelp" style="margin-top:8px;">タップでカウント。表示される1/xを機種の設定別確率表(雑誌・解析サイト)と見比べて設定を推測してください。設定別確率はメーカー非公開の機種も多く、アプリ内蔵は正確性を保証できないため見比べ方式にしています。</div>
@@ -3022,7 +3023,7 @@ function presetBarRender(p){
 /* ---- v6 init ---- */
 addPkLtDist(3000,70);addPkLtDist(7500,30);
 rtBuild();
-['pk','sl','op','gc','lt'].forEach(presetBarRender);
+['pk','sl','op','gc','lt','hk'].forEach(presetBarRender);
 setTimeout(()=>tutMaybe('pk'),1900);
 
 /* ============================================================
@@ -4125,7 +4126,7 @@ function dataImport(file){
         if(d.simStats)stSave(d.simStats);
         if(d.presets)localStorage.setItem('evlab_presets',JSON.stringify(d.presets));
         if(d.budgets)try{Object.keys(d.budgets).forEach(k=>localStorage.setItem(k,d.budgets[k]));}catch(e){}
-        rsRender();stRender();['pk','sl','op','gc','lt'].forEach(presetBarRender);
+        rsRender();stRender();['pk','sl','op','gc','lt','hk'].forEach(presetBarRender);
         if(typeof gcBudgetRender==='function')gcBudgetRender();
         if(typeof opBudgetRender==='function')opBudgetRender();
         $('dataIOMsg').innerHTML='<div class="remain"><span class="rc gold">✓ 復元しました</span></div>';

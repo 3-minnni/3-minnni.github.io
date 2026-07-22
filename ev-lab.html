@@ -3545,7 +3545,12 @@ function opBuild(){
     const w10=probHyper(useT,t.count,Math.min(10,useT));
     const w100=probHyper(useT,t.count,Math.min(100,useT));
     const wWallet=probHyper(useT,t.count,affordable);
-    return '<span class="rc'+(opRank[i]===1?' gold':'')+'">'+t.name+'<span class="rankb r'+opRank[i]+'" style="margin:0 4px;">'+opRank[i]+'位</span>: 10連で<b>'+pct(w10*100)+'</b> / 100連で<b>'+pct(w100*100)+'</b> / 全ツッパ('+affordable+'口)で<b>'+pct(wWallet*100)+'</b></span>';
+    return '<div class="remain" style="margin-bottom:4px;">'
+      +'<span class="rc'+(opRank[i]===1?' gold':'')+'">'+t.name+'<span class="rankb r'+opRank[i]+'" style="margin:0 4px;">'+opRank[i]+'位</span></span>'
+      +'<span class="rc">10連で1口以上: <b>'+pct(w10*100)+'</b></span>'
+      +'<span class="rc">100連で1口以上: <b>'+pct(w100*100)+'</b></span>'
+      +'<span class="rc gold">全ツッパ('+affordable+'口/所持コイン全額)で1口以上: <b>'+pct(wWallet*100)+'</b></span>'
+      +'</div>';
   }).join('');
   const COLS=['#E8B33C','#8E6BFF','#3DDC97','#FF3D68','#4FA3E0','#C4A788'];
   const segs=tiersUse.map((t,i)=>({name:t.name,v:t.count,color:COLS[i%6],rainbow:opRank[i]===1}));
@@ -3563,7 +3568,7 @@ function opBuild(){
     +'</div>'
     +tiersUse.map((t,i)=>'<div class="remain" style="margin-bottom:4px;"><span class="rc gold">'+t.name+' <span class="rankb r'+opRank[i]+'">'+opRank[i]+'位</span>: <b>1/'+num(useT/Math.max(1,t.count),0)+'</b> で <b>'+cf(t.coin)+'</b>コイン ('+t.count+'枚封入)</span></div>').join('')
     +'<div class="remain"><span class="rc">総還元率: <b>'+pct(kangen,2)+'</b></span><span class="rc">1口の期待損益: <b>'+(opEvPer>=0?'+':'−')+cf(Math.abs(opEvPer))+'</b>コイン</span></div>'
-    +'<div class="flabel" style="margin-top:8px;">上位賞の当選確率</div><div class="remain">'+winRateRows+'</div>';
+    +'<div class="flabel" style="margin-top:8px;">上位賞の当選確率(1口以上当たる確率)</div>'+winRateRows;
   $('opTheoryPie').innerHTML=
     '<div class="gc-pie-col"><div class="gc-pie-h">確率上の当たり割合</div><canvas id="opPie"></canvas><div class="legend">'+pieLegend(segs)+'</div></div>';
   $('opActualPie').innerHTML=

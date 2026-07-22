@@ -953,8 +953,11 @@
           <div class="igroup"><input type="number" id="gcCost" value="300" min="0" step="10"><span class="unit">石</span></div>
         </div>
         <div class="field">
-          <div class="flabel">石の実額換算</div><div class="fhelp">課金相場。例: 150石=120円なら「0.8」。円換算が不要なら0を入力してください</div>
+          <div class="flabel">石の実額換算</div><div class="fhelp">課金相場(円/石)</div>
           <div class="igroup"><input type="number" id="gcYenPerStone" value="0.83" min="0" step="0.01" oninput="gcBudgetRender()"><span class="unit">円/石</span></div>
+        </div>
+        <div class="field full">
+          <div class="fhelp" style="margin-top:-4px;">例: 150石=120円なら「0.8」。円換算が不要なら0を入力してください</div>
         </div>
         <div class="field">
           <div class="flabel">天井(保証)</div><div class="fhelp">最上位が必ず出る回数。0=なし</div>

@@ -896,7 +896,7 @@
         <div><div class="w-l">所持コイン</div><div class="w-v" id="opWallet">50,000</div></div>
         <div class="w-diff" id="opWalletDiff"></div>
         <div class="w-edit">
-          <input type="number" id="opWalletSet" value="50000" step="1000">
+          <input type="number" id="opWalletSet" value="50000" step="1000" oninput="opSetWallet()">
           <button class="btn2" onclick="opSetWallet()">設定</button>
         </div>
       </div>
@@ -986,7 +986,7 @@
         <div><div class="w-l">所持石</div><div class="w-v" id="gcWallet">30,000</div></div>
         <div class="w-diff" id="gcWalletDiff"></div>
         <div class="w-edit">
-          <input type="number" id="gcWalletSet" value="30000" step="1000">
+          <input type="number" id="gcWalletSet" value="30000" step="1000" oninput="gcSetWallet()">
           <button class="btn2" onclick="gcSetWallet()">設定</button>
         </div>
       </div>

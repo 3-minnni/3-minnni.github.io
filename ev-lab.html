@@ -119,6 +119,7 @@
   .add-row{margin-top:4px;background:none;border:1.5px dashed var(--line2);border-radius:9px;color:var(--ink-2);padding:8px;font-size:12px;cursor:pointer;width:100%;font-family:inherit;}
   .add-row:hover{border-color:var(--gold);color:var(--gold);}
   .tier-row-pk{grid-template-columns:1fr 1fr auto auto 30px;}
+  .tier-row-pk3{grid-template-columns:1fr 1fr auto auto auto 30px;}
   .lt-item-block{margin-bottom:7px;}
   .lt-item-block .tier-row{margin-bottom:0;}
   .lt-children{margin:6px 0 4px 14px;padding-left:10px;border-left:2px solid var(--line2);}
@@ -483,13 +484,13 @@
         </div>
       </div>
       <div class="flabel" style="margin-top:14px;">通常時(初当たり)の出玉振り分け</div>
-      <div class="fhelp" style="margin-bottom:4px;">【当たり後の移行先】各行右側のボタン: <b>↑LT</b>=この枠が出たら直接LT(上位RUSH)へ昇格 / <b>★次回</b>=次回転の継続が確定(次回濃厚)。何もONにしなければ、下の「RUSH突入率」に従って通常のRUSH抽選が行われます。タップでON/OFF</div>
+      <div class="fhelp" style="margin-bottom:4px;">【当たり後の移行先】各行右側のボタン: <b>→RUSH</b>=この枠が出たらRUSHへ突入 / <b>↑LT</b>=この枠が出たら直接LT(上位RUSH)へ昇格 / <b>★次回</b>=次回転の継続が確定(次回濃厚)。振り分け内で<b>→RUSH</b>を1つでも使うと、そちらが優先され下の「RUSH突入率」は使われなくなります。何も使わなければ従来通り「RUSH突入率」に従います。タップでON/OFF</div>
       <div class="tier-head"><span>出玉(玉)</span><span>振り分け(%)</span><span></span><span></span></div>
       <div id="pkDistRows"></div>
       <button class="add-row" onclick="addPkDist()">+ 振り分けを追加</button>
       <div class="field" style="margin-top:14px;">
         <div class="flabel">RUSH突入率</div>
-        <div class="fhelp">初当たり後にRUSHへ入る確率</div>
+        <div class="fhelp">初当たり後にRUSHへ入る確率。上の振り分けで<b>→RUSH</b>を1つでも使った場合はこの値は使われません</div>
         <div class="igroup"><input type="number" id="pkEnter" value="50" min="0" max="100"><span class="unit">%</span></div>
       </div>
     </div>
@@ -606,7 +607,7 @@
         </div>
         <div class="flabel" style="margin-top:14px;">時短中に当たった時の出玉振り分け</div>
         <div class="fhelp">未入力なら「通常時(初当たり)」と同じ振り分けを使用します</div>
-        <div class="fhelp" style="margin-bottom:4px;">【当たり後の移行先】各行右側のボタン: <b>↑LT</b>=この枠が出たら直接LT(上位RUSH)へ昇格 / <b>★次回</b>=次回転の継続が確定(次回濃厚)。何もONにしなければ時短終了後は通常時の抽選に戻ります。タップでON/OFF</div>
+        <div class="fhelp" style="margin-bottom:4px;">【当たり後の移行先】各行右側のボタン: <b>→RUSH</b>=この枠が出たらRUSHへ突入 / <b>↑LT</b>=この枠が出たら直接LT(上位RUSH)へ昇格 / <b>★次回</b>=次回転の継続が確定(次回濃厚)。振り分け内で<b>→RUSH</b>を1つでも使うと、そちらが優先され「RUSH突入率」は使われなくなります。何も使わなければ「RUSH突入率」に従います。タップでON/OFF</div>
         <div class="tier-head"><span>出玉(玉)</span><span>振り分け(%)</span><span></span><span></span></div>
         <div id="pkJtDistRows"></div>
         <button class="add-row" onclick="addPkJtDist()">+ 振り分けを追加</button>
@@ -1395,13 +1396,15 @@ function pkReadFlags(r){
   return{
     promote:!!r.querySelector('.rowflag[data-flag="promote"]')?.classList.contains('on'),
     demote:!!r.querySelector('.rowflag[data-flag="demote"]')?.classList.contains('on'),
-    guaranteed:!!r.querySelector('.rowflag[data-flag="guaranteed"]')?.classList.contains('on')
+    guaranteed:!!r.querySelector('.rowflag[data-flag="guaranteed"]')?.classList.contains('on'),
+    rush:!!r.querySelector('.rowflag[data-flag="rush"]')?.classList.contains('on')
   };
 }
 function addPkDist(balls,share){
-  const div=document.createElement('div');div.className='tier-row tier-row-pk';
+  const div=document.createElement('div');div.className='tier-row tier-row-pk tier-row-pk3';
   div.innerHTML=`<input type="number" value="${balls??1500}" min="0" step="100">
     <input type="number" value="${share??''}" min="0" max="100" step="1">
+    ${pkFlagBtn('rush','→RUSH','この枠が出たらRUSH(右打ち)へ突入')}
     ${pkFlagBtn('promote','↑LT','この枠が出たら直接LT(上位RUSH)へ')}
     ${pkFlagBtn('guaranteed','★次回','この枠が出たら次回転は継続確定(次回濃厚)')}
     <button class="rm" onclick="this.parentElement.remove();pkPie();">×</button>`;
@@ -2204,9 +2207,10 @@ function pkDrawLt(P){
 }
 /* ---- パチンコ: 時短中/RUSH中の振り分け(未入力なら大当たり時と同じ) ---- */
 function addPkJtDist(balls,share){
-  const div=document.createElement('div');div.className='tier-row tier-row-pk';
+  const div=document.createElement('div');div.className='tier-row tier-row-pk tier-row-pk3';
   div.innerHTML=`<input type="number" value="${balls??1500}" min="0" step="100">
     <input type="number" value="${share??''}" min="0" max="100" step="1">
+    ${pkFlagBtn('rush','→RUSH','この枠が出たらRUSH(右打ち)へ突入')}
     ${pkFlagBtn('promote','↑LT','この枠が出たら直接LT(上位RUSH)へ')}
     ${pkFlagBtn('guaranteed','★次回','この枠が出たら次回転は継続確定(次回濃厚)')}
     <button class="rm" onclick="this.parentElement.remove()">×</button>`;
@@ -3435,7 +3439,9 @@ function pkParams(){
   const jtN=Math.max(1,V('pkJtN')),jtSpins=Math.max(0,Math.round(V('pkJtSpins')));
   const rushHasPromote=rushD.some(x=>x.promote);
   const ltHasDemote=ltD.some(x=>x.demote);
-  return{N,spins1k,q,c,d,tot,ltD,ltTot,jtD,jtTot,rushD,rushTot,rushHasPromote,ltHasDemote,
+  const baseHasRush=d.some(x=>x.rush);
+  const jtHasRush=jtD.some(x=>x.rush);
+  return{N,spins1k,q,c,d,tot,ltD,ltTot,jtD,jtTot,rushD,rushTot,rushHasPromote,ltHasDemote,baseHasRush,jtHasRush,
     ltOn:pkLt,ltP:Math.min(1,Math.max(0,V('pkLtP')/100)),
     cLT:Math.min(.999,Math.max(0,V('pkLtCont')/100)),
     ltDown:pkLt&&pkLtDown?Math.min(1,Math.max(0,V('pkLtDownP')/100)):0,
@@ -3462,13 +3468,13 @@ function pkFirstHit(P){
   };
   const first=pkDraw(P);
   balls+=first.balls;chain++;
-  let entered=Math.random()<P.q||first.promote||first.guaranteed;
+  let entered=(P.baseHasRush?first.rush:Math.random()<P.q)||first.promote||first.guaranteed;
   if(entered)rush(P.ltOn&&!!first.promote,!!first.guaranteed);
   let eligible=P.jtOn&&(entered?P.jtRush:P.jtMiss);
   while(eligible&&guard++<40&&Math.random()<P.jtPull){
     const row=pkDrawJt(P);
     balls+=row.balls;chain++;
-    const e2=Math.random()<P.q||row.promote||row.guaranteed;
+    const e2=(P.jtHasRush?row.rush:Math.random()<P.q)||row.promote||row.guaranteed;
     if(e2)rush(P.ltOn&&!!row.promote,!!row.guaranteed);
     eligible=P.jtOn&&(e2?P.jtRush:P.jtMiss);
   }

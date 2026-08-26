@@ -324,6 +324,8 @@
   #opLog,#gcLog{max-height:none;}
 
   .fold-head{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;font-size:12px;font-weight:700;color:var(--ink-2);padding:8px 12px;background:var(--card2);border:1px solid var(--line);border-radius:10px;margin-bottom:8px;}
+  .fold-head .step{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--gold);font-weight:600;letter-spacing:.1em;}
+  .fold-head h3{font-size:14.5px;color:var(--ink);}
   .fold-head .fold-ar{transition:transform .2s;}
   .fold-head.closed .fold-ar{transform:rotate(-90deg);}
   .fold-body{overflow:hidden;transition:max-height .25s;}
@@ -457,7 +459,7 @@
       <div class="chips" id="pkRates"></div>
     </div>
     <div class="card">
-      <div class="card-title"><span class="step">STEP 2</span><h3>通常時の条件</h3></div>
+      <div class="card-title"><span class="step">STEP 2</span><h3>通常時</h3></div>
       <div class="fgrid">
         <div class="field">
           <div class="flabel">大当たり確率(通常時)</div>
@@ -480,9 +482,22 @@
           <div class="igroup"><input type="number" id="pkHeso" value="3" min="0" step="1"><span class="unit">玉/回転</span></div>
         </div>
       </div>
+      <div class="flabel" style="margin-top:14px;">通常時(初当たり)の出玉振り分け</div>
+      <div class="fhelp" style="margin-bottom:4px;">【当たり後の移行先】各行右側のボタン: <b>↑LT</b>=この枠が出たら直接LT(上位RUSH)へ昇格 / <b>★次回</b>=次回転の継続が確定(次回濃厚)。何もONにしなければ、下の「RUSH突入率」に従って通常のRUSH抽選が行われます。タップでON/OFF</div>
+      <div class="tier-head"><span>出玉(玉)</span><span>振り分け(%)</span><span></span><span></span></div>
+      <div id="pkDistRows"></div>
+      <button class="add-row" onclick="addPkDist()">+ 振り分けを追加</button>
+      <div class="field" style="margin-top:14px;">
+        <div class="flabel">RUSH突入率</div>
+        <div class="fhelp">初当たり後にRUSHへ入る確率</div>
+        <div class="igroup"><input type="number" id="pkEnter" value="50" min="0" max="100"><span class="unit">%</span></div>
+      </div>
     </div>
     <div class="card">
-      <div class="card-title"><span class="step">STEP 3</span><h3>ラッシュ(RUSH)の条件</h3></div>
+      <div class="fold-head" onclick="this.classList.toggle('closed');$('foldRushBody').classList.toggle('closed');">
+        <span class="fold-ar">▼</span><span class="step">STEP 3</span><h3 style="margin:0;">右打ち中(RUSH中)</h3>
+      </div>
+      <div class="fold-body" id="foldRushBody" style="max-height:3000px;">
       <div class="fgrid">
         <div class="field full">
           <div class="flabel">ラッシュのタイプ</div>
@@ -491,11 +506,6 @@
             <div class="chip on" id="pkTypeAT" onclick="pkSetType('at')">確変型<small>継続率で管理</small></div>
             <div class="chip" id="pkTypeFall" onclick="pkSetType('fall')">転落式<small>当選vs転落</small></div>
           </div>
-        </div>
-        <div class="field">
-          <div class="flabel">RUSH突入率</div>
-          <div class="fhelp">初当たり後にRUSHへ入る確率</div>
-          <div class="igroup"><input type="number" id="pkEnter" value="50" min="0" max="100"><span class="unit">%</span></div>
         </div>
         <div class="field" id="pkContWrap">
           <div class="flabel">RUSH継続率</div>
@@ -512,6 +522,21 @@
           <div class="fhelp">実質継続率: <b id="pkFallCalc" class="mono">—</b></div>
           <div class="igroup"><span class="pre">1 /</span><input type="number" id="pkFallDrop" value="380" min="1"></div>
         </div>
+      </div>
+      <div class="flabel" style="margin-top:14px;">RUSH中(継続当たり)の出玉振り分け</div>
+      <div class="fhelp" style="margin-bottom:4px;">【当たり後の移行先】未入力なら「通常時(初当たり)」と同じ振り分けを使用します。何もONにしなければそのまま通常RUSHの継続として扱われます(↑LT=LTへ昇格 / ★次回=次回濃厚)</div>
+      <div class="tier-head"><span>出玉(玉)</span><span>振り分け(%)</span><span></span><span></span></div>
+      <div id="pkRushDistRows"></div>
+      <button class="add-row" onclick="addPkRushDist()">+ 振り分けを追加</button>
+      <div class="field" id="pkLtPWrap" style="display:none;margin-top:14px;">
+        <div class="flabel">LTへの昇格率</div><div class="fhelp">RUSH中の当たりごとに昇格判定</div>
+        <div class="igroup"><input type="number" id="pkLtP" value="10" min="0" max="100"><span class="unit">%</span></div>
+      </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="step">STEP 4</span><h3>LT中(上位ラッシュ)</h3></div>
+      <div class="fgrid">
         <div class="field full">
           <div class="flabel">ラッキートリガー(LT)</div>
           <div class="fhelp">RUSH中の振り分けで上位ラッシュへ昇格する仕組み</div>
@@ -520,56 +545,21 @@
             <div class="chip" id="pkLtOn" onclick="pkSetLt(true)">搭載</div>
           </div>
         </div>
-        <div class="field" id="pkLtA" style="display:none;">
-          <div class="flabel">LT突入率</div><div class="fhelp">RUSH中の当たりごとに昇格判定</div>
-          <div class="igroup"><input type="number" id="pkLtP" value="10" min="0" max="100"><span class="unit">%</span></div>
-        </div>
-        <div class="field" id="pkLtB" style="display:none;">
-          <div class="flabel">LT中の継続率</div><div class="fhelp"></div>
-          <div class="igroup"><input type="number" id="pkLtCont" value="93" min="0" max="99.9" step="0.5"><span class="unit">%</span></div>
-        </div>
-        <div class="field full" id="pkLtC" style="display:none;">
-          <div class="flabel">LT(上位ラッシュ)中の出玉振り分け</div>
-          <div class="fhelp">階層: 通常時 → (時短) → 下位RUSH → LT。下位RUSH振り分け内の昇格率は上の「LT突入率」</div>
-          <div class="fhelp" style="margin-bottom:4px;">各行右側のボタン: <b>↓LT</b>=この枠が出たら通常RUSHへ降格 / <b>★次回</b>=次回転の継続が確定(次回濃厚)。タップでON/OFF</div>
-          <div class="tier-head"><span>出玉(玉)</span><span>振り分け(%)</span><span></span><span></span></div>
-          <div id="pkLtDistRows"></div>
-          <button class="add-row" onclick="addPkLtDist()">+ LT振り分けを追加</button>
-        </div>
-        <div class="field full">
-          <div class="flabel">時短(引き戻し)</div>
-          <div class="fhelp">大当たり後・RUSH終了後の時短で引き戻し→再びRUSH抽選</div>
-          <div class="chips">
-            <div class="chip on" id="pkJtOff" onclick="pkSetJt(false)">なし</div>
-            <div class="chip" id="pkJtOn" onclick="pkSetJt(true)">あり</div>
+      </div>
+      <div id="pkLtBody" style="display:none;">
+        <div class="fgrid">
+          <div class="field">
+            <div class="flabel">LT中の継続率</div><div class="fhelp"></div>
+            <div class="igroup"><input type="number" id="pkLtCont" value="93" min="0" max="99.9" step="0.5"><span class="unit">%</span></div>
           </div>
         </div>
-        <div class="field" id="pkJtA" style="display:none;">
-          <div class="flabel">時短回数</div><div class="fhelp"></div>
-          <div class="igroup"><input type="number" id="pkJtSpins" value="100" min="0" step="10"><span class="unit">回転</span></div>
-        </div>
-        <div class="field" id="pkJtB" style="display:none;">
-          <div class="flabel">時短中の当たり確率</div>
-          <div class="fhelp">引き戻し率: <b id="pkJtCalc" class="mono">—</b></div>
-          <div class="igroup"><span class="pre">1 /</span><input type="number" id="pkJtN" value="99" min="1"></div>
-        </div>
-        <div class="field full" id="pkJtC" style="display:none;">
-          <div class="flabel">時短が発動するタイミング</div>
-          <div class="fhelp">タップでON/OFF。両方ONが一般的な最新スペック</div>
-          <div class="chips">
-            <div class="chip on" id="pkJtMissChip" onclick="pkSetJtMiss()">RUSH非突入時<small>初当たり後に電サポ</small></div>
-            <div class="chip on" id="pkJtRushChip" onclick="pkSetJtRush()">RUSH終了後<small>連チャン後の残保留・時短</small></div>
-          </div>
-        </div>
-        <div class="field full" id="pkJtD" style="display:none;">
-          <div class="flabel">時短中に当たった時の出玉振り分け</div>
-          <div class="fhelp">未入力なら「大当たり時」と同じ振り分けを使用します</div>
-          <div class="fhelp" style="margin-bottom:4px;">各行右側のボタン: <b>↑LT</b>=この枠が出たら直接LT(上位RUSH)へ昇格 / <b>★次回</b>=次回転の継続が確定(次回濃厚)。タップでON/OFF</div>
-          <div class="tier-head"><span>出玉(玉)</span><span>振り分け(%)</span><span></span><span></span></div>
-          <div id="pkJtDistRows"></div>
-          <button class="add-row" onclick="addPkJtDist()">+ 振り分けを追加</button>
-        </div>
-        <div class="field full" id="pkLtDownWrap" style="display:none;">
+        <div class="flabel" style="margin-top:14px;">LT(上位ラッシュ)中の出玉振り分け</div>
+        <div class="fhelp">階層: 通常時 → (時短) → 下位RUSH → LT。下位RUSH振り分け内の昇格率は上の「LTへの昇格率」</div>
+        <div class="fhelp" style="margin-bottom:4px;">【当たり後の移行先】各行右側のボタン: <b>↓LT</b>=この枠が出たら通常RUSHへ降格 / <b>★次回</b>=次回転の継続が確定(次回濃厚)。何もONにしなければそのままLTの継続として扱われます。タップでON/OFF</div>
+        <div class="tier-head"><span>出玉(玉)</span><span>振り分け(%)</span><span></span><span></span></div>
+        <div id="pkLtDistRows"></div>
+        <button class="add-row" onclick="addPkLtDist()">+ LT振り分けを追加</button>
+        <div class="field full" id="pkLtDownWrap" style="margin-top:14px;">
           <div class="flabel">LT中の下位ラッシュ転落</div>
           <div class="fhelp">LTから下位RUSHへ降格する振り分けがある機種向け</div>
           <div class="chips">
@@ -579,19 +569,51 @@
             <div class="igroup" style="max-width:220px;"><input type="number" id="pkLtDownP" value="15" min="0" max="100"><span class="unit">%/継続当たりごと</span></div>
           </div>
         </div>
+        <div class="fhelp" style="margin-top:10px;">※ LTからさらに上位のLTへ昇格する多段階構成には現状対応していません(2階層目のLTが必要な機種は今後の対応候補です)。</div>
       </div>
     </div>
     <div class="card">
-      <div class="card-title"><span class="step">STEP 4</span><h3>出玉の振り分け</h3><span class="hint">合計100%になるように</span></div>
-      <div class="fhelp" style="margin-bottom:4px;">各行右側のボタン: <b>↑LT</b>=この枠が出たら直接LT(上位RUSH)へ昇格 / <b>★次回</b>=次回転の継続が確定(次回濃厚)。タップでON/OFF</div>
-      <div class="tier-head"><span>出玉(玉)</span><span>振り分け(%)</span><span></span><span></span></div>
-      <div id="pkDistRows"></div>
-      <button class="add-row" onclick="addPkDist()">+ 振り分けを追加</button>
-      <div class="flabel" style="margin-top:14px;">RUSH中(継続当たり)の振り分け</div>
-      <div class="fhelp">未入力なら「大当たり時」と同じ振り分けを使用します。行右側のボタンの意味は上記と同じ(↑LT=LTへ昇格 / ★次回=次回濃厚)</div>
-      <div class="tier-head"><span>出玉(玉)</span><span>振り分け(%)</span><span></span><span></span></div>
-      <div id="pkRushDistRows"></div>
-      <button class="add-row" onclick="addPkRushDist()">+ 振り分けを追加</button>
+      <div class="card-title"><span class="step">STEP 5</span><h3>時短・引き戻し</h3></div>
+      <div class="fgrid">
+        <div class="field full">
+          <div class="flabel">時短(引き戻し)</div>
+          <div class="fhelp">大当たり後・RUSH終了後の時短で引き戻し→再びRUSH抽選</div>
+          <div class="chips">
+            <div class="chip on" id="pkJtOff" onclick="pkSetJt(false)">なし</div>
+            <div class="chip" id="pkJtOn" onclick="pkSetJt(true)">あり</div>
+          </div>
+        </div>
+      </div>
+      <div id="pkJtBody" style="display:none;">
+        <div class="fgrid">
+          <div class="field">
+            <div class="flabel">時短回数</div><div class="fhelp"></div>
+            <div class="igroup"><input type="number" id="pkJtSpins" value="100" min="0" step="10"><span class="unit">回転</span></div>
+          </div>
+          <div class="field">
+            <div class="flabel">時短中の当たり確率</div>
+            <div class="fhelp">引き戻し率: <b id="pkJtCalc" class="mono">—</b></div>
+            <div class="igroup"><span class="pre">1 /</span><input type="number" id="pkJtN" value="99" min="1"></div>
+          </div>
+          <div class="field full">
+            <div class="flabel">時短が発動するタイミング</div>
+            <div class="fhelp">タップでON/OFF。両方ONが一般的な最新スペック</div>
+            <div class="chips">
+              <div class="chip on" id="pkJtMissChip" onclick="pkSetJtMiss()">RUSH非突入時<small>初当たり後に電サポ</small></div>
+              <div class="chip on" id="pkJtRushChip" onclick="pkSetJtRush()">RUSH終了後<small>連チャン後の残保留・時短</small></div>
+            </div>
+          </div>
+        </div>
+        <div class="flabel" style="margin-top:14px;">時短中に当たった時の出玉振り分け</div>
+        <div class="fhelp">未入力なら「通常時(初当たり)」と同じ振り分けを使用します</div>
+        <div class="fhelp" style="margin-bottom:4px;">【当たり後の移行先】各行右側のボタン: <b>↑LT</b>=この枠が出たら直接LT(上位RUSH)へ昇格 / <b>★次回</b>=次回転の継続が確定(次回濃厚)。何もONにしなければ時短終了後は通常時の抽選に戻ります。タップでON/OFF</div>
+        <div class="tier-head"><span>出玉(玉)</span><span>振り分け(%)</span><span></span><span></span></div>
+        <div id="pkJtDistRows"></div>
+        <button class="add-row" onclick="addPkJtDist()">+ 振り分けを追加</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="step">RUN</span><h3>計算を実行</h3><span class="hint">合計100%になるように</span></div>
       <div style="display:flex;gap:14px;align-items:center;margin-top:12px;flex-wrap:wrap;">
         <canvas id="pkPie" style="width:150px;height:150px;flex:none;"></canvas>
         <div class="legend" id="pkPieLegend" style="flex-direction:column;gap:5px;align-items:flex-start;"></div>
@@ -1425,12 +1447,12 @@ function pkSetMode(m){
 function pkSetLt(on){
   pkLt=on;
   $('pkLtOn').classList.toggle('on',on);$('pkLtOff').classList.toggle('on',!on);
-  ['pkLtA','pkLtB','pkLtC','pkLtDownWrap'].forEach(id=>{const el=$(id);if(el)el.style.display=on?'':'none';});
+  ['pkLtPWrap','pkLtBody'].forEach(id=>{const el=$(id);if(el)el.style.display=on?'':'none';});
 }
 function pkSetJt(on){
   pkJt=on;
   $('pkJtOn').classList.toggle('on',on);$('pkJtOff').classList.toggle('on',!on);
-  ['pkJtA','pkJtB','pkJtC','pkJtD'].forEach(id=>{const el=$(id);if(el)el.style.display=on?'':'none';});
+  const el=$('pkJtBody');if(el)el.style.display=on?'':'none';
   pkJtUpdate();
 }
 function pkJtUpdate(){
@@ -3633,6 +3655,8 @@ function slJunzoCalc(){
 }
 /* ---- テンプレ追加 & チュートリアル追記 ---- */
 TEMPLATES.pk['ST機・時短100回引き戻し型']={ids:{pkProb:'319',pkSpins1k:'18',pkTrials:'2000',pkEnter:'55',pkCont:'81',pkJtSpins:'100',pkJtN:'99'},rows:{pkDistRows:[['1500','55'],['4500','30'],['7500','15']],pkLtDistRows:[['3000','70'],['7500','30']]},extra:{pkType:'at',lt:false,jt:true}};
+TEMPLATES.pk['転落式(ループ型RUSH)+時短引き戻し型']={ids:{pkProb:'229',pkSpins1k:'17',pkTrials:'2000',pkEnter:'55',pkFallHit:'99',pkFallDrop:'380',pkLtP:'8',pkLtCont:'92',pkJtSpins:'100',pkJtN:'99'},rows:{pkDistRows:[['1500','55'],['3000','30'],['6000','15']],pkLtDistRows:[['3000','65'],['7500','35']]},extra:{pkType:'fall',lt:true,jt:true}};
+presetBarRender('pk');
 TUT.hk=['実戦のBIG/REG/子役をタップでカウント','設定1〜6の理論分母を入力して「設定期待度を計算」','ゲーム数が少ないうちは大きくブレるので3000G以上での判断を推奨'];
 /* ---- データカウンター風表示(パチンコ) ---- */
 function segBox(label,val,digits,ylw){

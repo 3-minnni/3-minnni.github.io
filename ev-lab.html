@@ -236,7 +236,6 @@
   .preset-bar select{background:var(--bg2);border:1px solid var(--line2);border-radius:9px;color:var(--ink);padding:8px;font-size:12px;font-family:inherit;max-width:150px;}
   .preset-bar .btn2{padding:8px 12px;font-size:12px;}
 
-  .dice-face{letter-spacing:6px;font-size:42px!important;line-height:1.2;}
   .cclog-line{font-size:11.5px;padding:2px 0;width:100%;}
 
   .ball-stage{position:relative;height:112px;overflow:hidden;margin-bottom:10px;background:linear-gradient(180deg,#14141D,#1B1B28);border:1px solid var(--gold-deep);border-radius:14px;}
@@ -266,7 +265,6 @@
   .fx-r2{background:linear-gradient(135deg,rgba(232,200,121,.35),rgba(200,162,91,.12));border-color:var(--gold)!important;box-shadow:0 0 30px rgba(232,200,121,.45);}
   .fx-r3{background:rgba(230,57,70,.18);border-color:var(--neg)!important;box-shadow:0 0 24px rgba(230,57,70,.4);}
   .fx-r4{background:rgba(57,255,136,.14);border-color:var(--pos)!important;}
-  .cc-lose{background:rgba(230,57,70,.09);border-color:var(--neg)!important;}
   .fx-r5{background:rgba(79,163,224,.14);border-color:#4FA3E0!important;}
   .fx-r6{background:rgba(255,255,255,.08);border-color:var(--line2)!important;}
   .confetti{position:absolute;top:-10px;width:8px;height:8px;border-radius:2px;animation:cfall linear forwards;pointer-events:none;}
@@ -301,11 +299,6 @@
   .rt-dots i{width:5px;height:5px;border-radius:50%;display:block;border:1px solid rgba(0,0,0,.45);}
   .rt-out2{display:grid;grid-template-columns:34px repeat(3,176px) 46px;gap:2px;margin-top:2px;width:max-content;}
   .rt-out3{display:grid;grid-template-columns:34px repeat(6,88px) 46px;gap:2px;margin-top:2px;width:max-content;}
-
-  .cc-bowl{background:radial-gradient(circle at 50% 42%,#6B4A2E 0%,#4A3220 55%,#2E1F14 100%);border-radius:50%;width:min(230px,68vw);height:min(230px,68vw);margin:6px auto;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 8px 26px rgba(0,0,0,.6),0 4px 14px rgba(0,0,0,.4);}
-  .dice-rolling{animation:diceShake .12s linear infinite;}
-  @keyframes diceShake{0%{transform:translate(0,0) rotate(-4deg);}50%{transform:translate(3px,-4px) rotate(4deg);}100%{transform:translate(-3px,2px) rotate(-2deg);}}
-  .cc-react{font-size:22px;margin-top:4px;letter-spacing:5px;min-height:26px;}
 
   .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;}
   .modal{background:var(--card);border:1px solid var(--line2);border-radius:16px;padding:20px;max-width:430px;width:100%;max-height:80vh;overflow-y:auto;}
@@ -448,7 +441,6 @@
     <div class="tab" data-tab="gc"><div class="t-name">ガチャ</div><div class="t-sub">石消費・天井</div></div>
     <div class="tab" data-tab="ru"><div class="t-name">ルーレット</div><div class="t-sub">実際に回せる</div></div>
     <div class="tab" data-tab="lt"><div class="t-name">カスタム抽選</div><div class="t-sub">自由設定くじ</div></div>
-    <div class="tab" data-tab="cc"><div class="t-name">チンチロ</div><div class="t-sub">友達対戦</div></div>
     <div class="tab" data-tab="st"><div class="t-name">統計</div><div class="t-sub">生涯収支</div></div>
   </div>
 
@@ -1205,64 +1197,6 @@
     </div>
   </div>
 
-  <!-- ================= チンチロ ================= -->
-  <div class="panel" id="panel-cc">
-    <div class="card">
-      <div class="card-title"><span class="step">STEP 1</span><h3>対戦設定</h3><span class="hint">同じ端末を回して遊ぶ</span></div>
-      <div class="flabel">人数</div>
-      <div class="chips" id="ccNum" style="margin:4px 0 12px;"></div>
-      <div class="flabel">サイコロの数</div>
-      <div class="fhelp">3個=標準チンチロ / 4個以上はお祭りルール(フォーカード追加)</div>
-      <div class="chips" id="ccDice" style="margin:4px 0 12px;"></div>
-      <div class="fgrid">
-        <div class="field"><div class="flabel">初期チップ</div><div class="fhelp"></div>
-          <div class="igroup"><input type="number" id="ccChips" value="1000" min="1" step="100"><span class="unit">チップ</span></div></div>
-        <div class="field"><div class="flabel">基本ベット額</div><div class="fhelp">ラウンド開始時の初期値。子は自分の番に個別に調整できます</div>
-          <div class="igroup"><input type="number" id="ccBet" value="100" min="1" step="10"><span class="unit">チップ</span></div></div>
-      </div>
-      <div id="ccNames" style="margin-top:10px;"></div>
-      <div style="height:10px"></div>
-      <button class="run" onclick="ccStart()">対戦スタート</button>
-      <details style="margin-top:10px;"><summary style="font-size:12px;color:var(--ink-2);cursor:pointer;">役と倍率の一覧</summary>
-        <div class="fhelp" style="margin-top:6px;line-height:1.9;">ピンゾロ(全部1)=5倍 / ゾロ目=3倍 / シゴロ(4-5-6)=2倍 / 通常の出目=1倍(大きいほど強い) / 目なし=負け(1倍) / ヒフミ(1-2-3)=2倍払い。3回振って役なしなら目なし。親が役・ヒフミ・目なしを出したら即決着、出目なら子と勝負。4個以上ではフォーカード(4つ揃い)=4倍を追加。チップは仮想なのでマイナス(借金)も継続可。</div>
-        <div class="fhelp" id="ccShigoroNote1" style="margin-top:4px;color:var(--neg);display:none;">※ シゴロ・ヒフミはサイコロ3個の役です。4〜6個選択時は成立しません。</div>
-      </details>
-    </div>
-    <div class="card" id="ccPlay" style="display:none;">
-      <div class="remain" id="ccStand"></div>
-      <div class="result-banner" id="ccDiceView"><div class="r-tier" id="ccPhase">—</div><div class="cc-bowl"><div class="r-coin dice-face" id="ccFaces">🎲</div></div><div class="r-tier" id="ccHand"></div><div class="cc-react" id="ccReact"></div></div>
-      <div class="rt-chips" id="ccBetChips" style="display:none;">
-        <span class="fhelp" style="margin:0;">賭け額:</span>
-        <div class="rt-chip c100 on" data-v="100" onclick="ccBetChip(this)">100</div>
-        <div class="rt-chip c500" data-v="500" onclick="ccBetChip(this)">500</div>
-        <div class="rt-chip c1000" data-v="1000" onclick="ccBetChip(this)">1k</div>
-        <div class="rt-chip" data-v="custom" onclick="ccBetChip(this)" style="background:#5A6C86;font-size:10px;">自由</div>
-        <input type="number" id="ccCustomBet" value="100" min="0" step="10" oninput="ccCustomBetInput()" style="width:70px;background:var(--bg2);border:1px solid var(--line2);border-radius:8px;color:var(--ink);padding:7px 9px;font-family:'IBM Plex Mono',monospace;font-size:12px;">
-        <div class="rt-chip" data-v="0" onclick="ccBetChip(this)" style="background:#7A4444;font-size:10px;">降りる</div>
-      </div>
-      <div class="fhelp" id="ccBetCur" style="display:none;margin-bottom:6px;"></div>
-      <div id="ccRoundSummary"></div>
-      <button class="run" id="ccBtn" onclick="ccAction()">親が振る</button>
-      <div style="height:10px"></div>
-      <div class="pull-log" id="ccLogBox" style="max-height:190px;"></div>
-      <div class="chart-card">
-        <div class="chart-head"><div class="c-title">所持チップの推移(横軸: ラウンド)</div><div class="legend" id="ccChartLegend"></div></div>
-        <canvas id="ccChart"></canvas>
-      </div>
-      <div class="card-title" style="margin-top:12px;"><span class="step">RULE</span><h3>役と倍率</h3></div>
-      <div class="remain">
-        <span class="rc gold">ピンゾロ(全1) <b>5倍</b></span>
-        <span class="rc gold">ゾロ目 <b>3倍</b></span>
-        <span class="rc" id="ccShigoroChip">シゴロ(4-5-6) <b>2倍</b></span>
-        <span class="rc">出目 <b>1倍</b>(大きいほど強)</span>
-        <span class="rc">目なし <b>負け1倍</b></span>
-        <span class="rc" id="ccHifumiChip" style="color:var(--neg);border-color:var(--neg);">ヒフミ(1-2-3) <b>2倍払い</b></span>
-        <span class="rc">4個以上: フォーカード <b>4倍</b></span>
-        <span class="rc" id="ccShigoroNote2" style="display:none;opacity:.75;">※シゴロ・ヒフミは3個限定</span>
-      </div>
-    </div>
-  </div>
-
   <div class="panel" id="panel-st">
     <div class="card">
       <div class="card-title"><span class="step">DATA</span><h3>データのバックアップ</h3><span class="hint">ブラウザデータ削除・機種変更に備える</span></div>
@@ -1318,7 +1252,7 @@
       <div id="stBody"></div>
       <div style="height:12px"></div>
       <button class="btn2 danger" onclick="stReset()">シミュ統計をリセット</button>
-      <div class="fhelp" style="margin-top:8px;">シミュレーション・実引きの確定結果を自動で積算します(チンチロ・友達対戦は対人ゼロサムのため除外)。</div>
+      <div class="fhelp" style="margin-top:8px;">シミュレーション・実引きの確定結果を自動で積算します(友達対戦は対人ゼロサムのため除外)。</div>
     </div>
   </div>
 
@@ -1941,251 +1875,6 @@ function presetLoad(p){
 }
 /* preset bars are initialized in the v6 block below (after TEMPLATES is defined) */
 
-/* ===================== チンチロ ===================== */
-const DFACE=['','⚀','⚁','⚂','⚃','⚄','⚅'];
-let ccN=3,ccD=3,cc=null;
-(function(){
-  for(let n=2;n<=6;n++){
-    const c=document.createElement('div');c.className='chip'+(n===3?' on':'');c.textContent=n+'人';
-    c.onclick=()=>{ccN=n;[...$('ccNum').children].forEach(x=>x.classList.remove('on'));c.classList.add('on');ccNamesRender();};
-    $('ccNum').appendChild(c);
-  }
-  for(let d=3;d<=6;d++){
-    const c=document.createElement('div');c.className='chip'+(d===3?' on':'');c.textContent=d+'個';
-    c.onclick=()=>{ccD=d;[...$('ccDice').children].forEach(x=>x.classList.remove('on'));c.classList.add('on');ccRulesNote();};
-    $('ccDice').appendChild(c);
-  }
-  ccNamesRender();
-  ccRulesNote();
-})();
-function ccRulesNote(){
-  const on=ccD>3;
-  const n1=$('ccShigoroNote1');if(n1)n1.style.display=on?'':'none';
-  const n2=$('ccShigoroNote2');if(n2)n2.style.display=on?'':'none';
-  const c1=$('ccShigoroChip');if(c1)c1.style.opacity=on?'.4':'';
-  const c2=$('ccHifumiChip');if(c2)c2.style.opacity=on?'.4':'';
-}
-function ccNamesRender(){
-  const box=$('ccNames');box.innerHTML='<div class="flabel">プレイヤー名</div>';
-  for(let i=0;i<ccN;i++){
-    const d=document.createElement('div');d.className='igroup';d.style.marginTop='6px';
-    d.innerHTML='<span class="pre">P'+(i+1)+'</span><input type="text" id="ccName'+i+'" value="プレイヤー'+(i+1)+'">';
-    box.appendChild(d);
-  }
-}
-function ccJudge(dice){
-  const n=dice.length;const cnt={};dice.forEach(d=>cnt[d]=(cnt[d]||0)+1);
-  const faces=Object.keys(cnt).map(Number);
-  if(faces.length===1){const f=faces[0];return f===1?{name:'ピンゾロ',m:5,s:1000}:{name:f+'のゾロ目',m:3,s:900+f};}
-  if(n===3){
-    const st=[...dice].sort((a,b)=>a-b).join('');
-    if(st==='456')return{name:'シゴロ',m:2,s:800};
-    if(st==='123')return{name:'ヒフミ',m:2,s:-100};
-  }
-  if(n>=5){const four=faces.find(f=>cnt[f]>=4&&cnt[f]<n);if(four!==undefined)return{name:four+'のフォーカード',m:4,s:850+four};}
-  const solo=faces.filter(f=>cnt[f]===1);
-  if(faces.length===2&&solo.length===1)return{name:'出目 '+solo[0],m:1,s:100+solo[0]};
-  return{name:'目なし',m:1,s:0};
-}
-function ccRoll(){
-  let hand,dice;
-  for(let t=0;t<3;t++){
-    dice=Array.from({length:ccD},()=>1+Math.floor(Math.random()*6));
-    hand=ccJudge(dice);
-    if(hand.s!==0)break;
-  }
-  return{dice,hand};
-}
-function ccStart(){
-  const chips=Math.max(1,Math.round(V('ccChips')));
-  const baseBet=Math.max(1,Math.round(V('ccBet')));
-  cc={players:[],parent:0,startParent:0,turn:-1,round:1,pHand:null,phase:'bet',baseBet,roundLog:[]};
-  for(let i=0;i<ccN;i++)cc.players.push({name:($('ccName'+i)&&$('ccName'+i).value)||('P'+(i+1)),chips,bet:baseBet});
-  cc.roundStart=cc.players.map(p=>p.chips);
-  cc.history=cc.players.map(p=>({name:p.name,series:[p.chips]}));
-  cc.turn=(cc.parent+1)%cc.players.length;
-  $('ccPlay').style.display='';
-  $('ccLogBox').innerHTML='';
-  $('ccFaces').textContent='🎲';$('ccHand').textContent='';
-  $('ccRoundSummary').innerHTML='';
-  ccRender('R1 スタート。まず子の賭け額を決めます。');
-  ccHistoryChartRender();
-}
-function ccAddLog(t,gold){
-  const d=document.createElement('div');
-  d.className='cclog-line';
-  d.style.color=gold?'var(--gold-hi)':'var(--ink-2)';
-  d.textContent=t;
-  $('ccLogBox').prepend(d);
-}
-function ccRender(phaseText){
-  const sorted=[...cc.players].map((p,i)=>({p,i})).sort((a,b)=>b.p.chips-a.p.chips);
-  $('ccStand').innerHTML=cc.players.map((p,i)=>
-    '<span class="rc '+(i===cc.parent?'gold':'')+'">'+(i===cc.parent?'👑':'')+p.name+': <b>'+cf(p.chips)+'</b></span>'
-  ).join('')+'<span class="rc">R'+cc.round+' / 基本ベット'+cf(cc.baseBet)+' / 首位: '+sorted[0].p.name+'</span>';
-  if(phaseText)$('ccPhase').textContent=phaseText;
-  if(cc.phase==='bet'){
-    $('ccBtn').textContent=cc.players[cc.turn].name+' の賭け額を確定 → 次へ';
-    $('ccBetChips').style.display='';
-    ccSyncBetChips();
-  }else if(cc.phase==='parent'){
-    $('ccBtn').textContent='👑 '+cc.players[cc.parent].name+' が振る';
-    $('ccBetChips').style.display='none';$('ccBetCur').style.display='none';
-  }else if(cc.phase==='child'){
-    $('ccBtn').textContent=cc.players[cc.turn].name+' が振る';
-    $('ccBetChips').style.display='none';$('ccBetCur').style.display='none';
-  }else if(cc.phase==='gameover'){
-    $('ccBtn').textContent='🔄 もう一度プレイ';
-    $('ccBetChips').style.display='none';$('ccBetCur').style.display='none';
-    ccGameOverRender();
-  }else{
-    $('ccBtn').textContent='次のラウンドへ(親交代)';
-    $('ccBetChips').style.display='none';$('ccBetCur').style.display='none';
-    ccRoundSummaryRender();
-  }
-}
-function ccGameOverRender(){
-  const box=$('ccRoundSummary');if(!box)return;
-  const ranked=[...cc.players].map((p,i)=>({p,i})).sort((a,b)=>b.p.chips-a.p.chips);
-  box.innerHTML='<div class="flabel" style="margin-top:4px;">🏁 ゲーム終了(全員が親を一巡しました)— 最終結果</div>'
-    +ranked.map((r,pos)=>'<div class="remain" style="margin-bottom:4px;"><span class="rc'+(pos===0?' gold':'')+'">'+(pos+1)+'位: '+escHtml(r.p.name)+' — <b>'+cf(r.p.chips)+'</b>チップ</span></div>').join('');
-}
-function ccSyncBetChips(){
-  const bet=cc.players[cc.turn].bet;
-  document.querySelectorAll('#ccBetChips .rt-chip').forEach(x=>x.classList.toggle('on',x.dataset.v!=='custom'&&+x.dataset.v===bet));
-  ccRenderBetDisplay();
-}
-function ccBetChip(el){
-  if(el.dataset.v==='custom')cc.players[cc.turn].bet=Math.max(0,Math.round(V('ccCustomBet'))||0);
-  else cc.players[cc.turn].bet=+el.dataset.v;
-  document.querySelectorAll('#ccBetChips .rt-chip').forEach(x=>x.classList.remove('on'));
-  el.classList.add('on');
-  ccRenderBetDisplay();
-}
-function ccCustomBetInput(){
-  cc.players[cc.turn].bet=Math.max(0,Math.round(V('ccCustomBet'))||0);
-  document.querySelectorAll('#ccBetChips .rt-chip').forEach(x=>x.classList.remove('on'));
-  const customChip=document.querySelector('#ccBetChips .rt-chip[data-v="custom"]');
-  if(customChip)customChip.classList.add('on');
-  ccRenderBetDisplay();
-}
-function ccRenderBetDisplay(){
-  const box=$('ccBetCur');if(!box)return;
-  box.style.display='';
-  const bet=cc.players[cc.turn].bet;
-  box.textContent=cc.players[cc.turn].name+'の賭け額: '+cf(bet)+'チップ'+(bet===0?'(降ります)':'');
-}
-function ccRoundSummaryRender(){
-  const box=$('ccRoundSummary');if(!box||!cc.roundStart)return;
-  const logRows=(cc.roundLog||[]).map(r=>
-    '<tr><td>'+escHtml(r.name)+'</td><td>'+(r.bet>0?cf(r.bet):'—')+'</td><td>'+r.result+'</td>'
-    +'<td style="color:'+(r.delta>0?'var(--pos)':(r.delta<0?'var(--neg)':'var(--ink-2)'))+';">'+(r.delta>0?'+':(r.delta<0?'−':'±'))+cf(Math.abs(r.delta))+'</td></tr>'
-  ).join('');
-  const table=logRows?'<div style="overflow-x:auto;"><table class="rs-table"><thead><tr><th>子</th><th>賭け額</th><th>結果</th><th>収支</th></tr></thead><tbody>'+logRows+'</tbody></table></div>':'';
-  const rows=cc.players.map((p,i)=>{
-    const d=p.chips-cc.roundStart[i];
-    return '<span class="rc" style="color:'+(d>0?'var(--pos)':(d<0?'var(--neg)':'var(--ink-2)'))+';">'+p.name+': '+(d>0?'+':(d<0?'−':'±'))+cf(Math.abs(d))+'</span>';
-  }).join('');
-  box.innerHTML='<div class="flabel" style="margin-top:4px;">R'+cc.round+'の収支 — 親: 👑'+escHtml(cc.players[cc.parent].name)+'</div>'
-    +table+'<div class="remain" style="margin-top:6px;">'+rows+'</div>';
-}
-function ccHistoryChartRender(){
-  const cv=$('ccChart');if(!cv||!cc)return;
-  const ctx=cv.getContext('2d');const dpr=window.devicePixelRatio||1;
-  const w=cv.clientWidth||600,h=200;cv.width=w*dpr;cv.height=h*dpr;cv.style.height=h+'px';ctx.scale(dpr,dpr);
-  ctx.clearRect(0,0,w,h);
-  const COLS=['#E8B33C','#8E6BFF','#3DDC97','#FF3D68','#4FA3E0','#C4A788'];
-  const all=cc.history.flatMap(hh=>hh.series);
-  const mn=Math.min(0,...all),mx=Math.max(...all);
-  const n=Math.max(2,cc.history[0].series.length);
-  const Y=v=>h-24-((v-mn)/((mx-mn)||1))*(h-40);
-  const X=i=>10+(i/(n-1))*(w-20);
-  cc.history.forEach((hh,i)=>{
-    ctx.strokeStyle=COLS[i%COLS.length];ctx.lineWidth=1.8;ctx.beginPath();
-    hh.series.forEach((v,k)=>k===0?ctx.moveTo(X(k),Y(v)):ctx.lineTo(X(k),Y(v)));ctx.stroke();
-  });
-  $('ccChartLegend').innerHTML=cc.history.map((hh,i)=>'<span class="li"><span class="sw" style="border-color:'+COLS[i%COLS.length]+';"></span>'+escHtml(hh.name)+'</span>').join('');
-}
-function ccEndRound(msg){
-  cc.history.forEach((h,i)=>h.series.push(cc.players[i].chips));
-  ccRender(msg);
-  ccHistoryChartRender();
-}
-function ccChildAdvance(){
-  let next=(cc.turn+1)%cc.players.length;
-  if(next===cc.parent){cc.phase='end';ccEndRound('ラウンド終了。');}
-  else{cc.turn=next;ccRender('次: '+cc.players[next].name);}
-}
-function ccBetAdvance(){
-  let next=(cc.turn+1)%cc.players.length;
-  if(next===cc.parent){
-    cc.turn=-1;cc.phase='parent';
-    ccRender('全員の賭け額が決まりました。親の番です。');
-  }else{
-    cc.turn=next;ccRender('次: '+cc.players[next].name+'の賭け額');
-  }
-}
-function ccAction(){
-  if(!cc)return;
-  if(cc.phase==='bet'){
-    ccBetAdvance();
-  }else if(cc.phase==='parent'){
-    const r=ccRoll();cc.pHand=r.hand;
-    ccShowDice(r.dice,r.hand,'親 '+cc.players[cc.parent].name,()=>{
-      const h=r.hand;
-      if(h.s>=800||h.s===-100||h.s===0){
-        cc.players.forEach((p,i)=>{
-          if(i===cc.parent)return;
-          if(p.bet<=0){ccAddLog(p.name+' は様子見(降り)');cc.roundLog.push({name:p.name,bet:0,result:'降り',delta:0});return;}
-          if(h.s>=800){const pay=p.bet*h.m;p.chips-=pay;cc.players[cc.parent].chips+=pay;ccAddLog(p.name+' → 親に'+cf(pay)+'支払い('+h.name+')');cc.roundLog.push({name:p.name,bet:p.bet,result:'負け('+h.name+')',delta:-pay});}
-          else{const pay=p.bet*(h.s===-100?2:1);p.chips+=pay;cc.players[cc.parent].chips-=pay;ccAddLog('親 → '+p.name+'に'+cf(pay)+'支払い('+h.name+')',true);cc.roundLog.push({name:p.name,bet:p.bet,result:'勝ち('+h.name+')',delta:pay});}
-        });
-        cc.phase='end';ccEndRound('親の'+h.name+'で即決着!');
-      }else{
-        cc.turn=(cc.parent+1)%cc.players.length;
-        cc.phase='child';ccRender('親の役: '+h.name+'。子の番です。');
-      }
-    });
-  }else if(cc.phase==='child'){
-    const idx=cc.turn;
-    if(cc.players[idx].bet<=0){
-      ccAddLog(cc.players[idx].name+' は様子見(降り)');
-      cc.roundLog.push({name:cc.players[idx].name,bet:0,result:'降り',delta:0});
-      ccChildAdvance();
-      return;
-    }
-    const r=ccRoll();
-    ccShowDice(r.dice,r.hand,cc.players[idx].name,()=>{
-      const ch=r.hand,ph=cc.pHand;
-      const P=cc.players[cc.parent],C=cc.players[idx];
-      const bet=C.bet;
-      if(ch.s>ph.s){const pay=bet*ch.m;P.chips-=pay;C.chips+=pay;ccAddLog(C.name+' 勝ち +'+cf(pay)+'('+ch.name+')',true);cc.roundLog.push({name:C.name,bet,result:'勝ち('+ch.name+')',delta:pay});}
-      else if(ch.s<ph.s){const pay=bet*(ch.s===-100?2:ph.m);C.chips-=pay;P.chips+=pay;ccAddLog(C.name+' 負け −'+cf(pay)+'('+ch.name+')');cc.roundLog.push({name:C.name,bet,result:'負け('+ch.name+')',delta:-pay});}
-      else{ccAddLog(C.name+' 引き分け('+ch.name+')');cc.roundLog.push({name:C.name,bet,result:'引き分け('+ch.name+')',delta:0});}
-      ccChildAdvance();
-    });
-  }else if(cc.phase==='gameover'){
-    ccStart();
-  }else{
-    // phase==='end': ラウンド終了→次ラウンドへ。親が一巡(startParentに戻る)したらゲーム終了
-    if((cc.parent+1)%cc.players.length===cc.startParent){
-      cc.phase='gameover';
-      ccRender('全員が親を一巡しました。ゲーム終了!');
-      return;
-    }
-    cc.parent=(cc.parent+1)%cc.players.length;
-    cc.round++;cc.phase='bet';cc.pHand=null;cc.roundLog=[];
-    cc.baseBet=Math.max(1,Math.round(V('ccBet')));
-    cc.players.forEach(p=>p.bet=cc.baseBet);
-    cc.turn=(cc.parent+1)%cc.players.length;
-    cc.roundStart=cc.players.map(p=>p.chips);
-    $('ccFaces').textContent='🎲';$('ccHand').textContent='';
-    $('ccDiceView').className='result-banner';
-    $('ccRoundSummary').innerHTML='';
-    ccRender('R'+cc.round+' 親: '+cc.players[cc.parent].name+'。子の賭け額を決めます。');
-  }
-}
-
 /* ===================== パチンコ投資金額設定モード & 球演出 ===================== */
 function ballHTML(color){return '<div class="ball-stage"><div class="ball-rail"></div><div class="ball '+color+' roll"></div></div>';}
 function pkReelHTML(){return '<div class="reel-stage"><div class="reel spin" id="pkReel0">7</div><div class="reel spin" id="pkReel1">7</div><div class="reel spin" id="pkReel2">7</div></div>';}
@@ -2452,7 +2141,6 @@ const TUT={
  gc:['排出率と天井を設定して「ガチャを作る」','単発〜1000連まで一気に引けます。確率は常に一定(独立試行)','最高レアが出ると虹演出。累計消費石は上部に常時表示'],
  ru:['チップ額を選び、盤面のマスをタップしてベット(複数同時OK)','数字1点36倍・ダース/列3倍・赤黒等2倍。SPINで球が転がり自動精算','友達対戦モードでは理論値なしのガチ勝負ができます'],
  lt:['項目と重み(比率)を入れてホイールを作る。色も自由に変更可','確率が低い順に順位がつき、1位の当選は虹+紙吹雪','メシ決め・罰ゲーム・席順決めなどに'],
- cc:['人数とサイコロ数(3〜6個)を決めて対戦スタート','端末を回して順番に振る。役と倍率はカード内の一覧を参照','ピンゾロは虹演出。チップは仮想なのでマイナス継続もOK'],
  st:['全タブの確定結果を自動で積算する生涯収支ページです','理論値マイナスの遊びを続けるとどうなるか、ここで体感できます']
 };
 function tutShow(tab){
@@ -2876,7 +2564,6 @@ function ltDraw(rot){
   ctx.beginPath();ctx.arc(C,C,30,0,Math.PI*2);ctx.fillStyle='#E8C879';ctx.fill();
   ctx.strokeStyle='#0A0C11';ctx.lineWidth=3;ctx.stroke();
 }
-/* ---- チンチロ: 演出強化 ---- */
 /* ---- ルーレット: 本格カジノ盤 ---- */
 function rtBuild(){
   const T=$('rtTable');
@@ -3835,36 +3522,6 @@ function pkFirstHit(P){
     eligible=P.jtOn&&(e2?P.jtRush:P.jtMiss);
   }
   return{balls,chain,ltHit};
-}
-/* ---- チンチロ: サイコロ音 ---- */
-function ccShowDice(dice,hand,who,cb){
-  const el=$('ccFaces');
-  const reveal=()=>{
-    $('ccHand').textContent=who+': '+hand.name;
-    const dv=$('ccDiceView');
-    let cls='',react='🙂';
-    if(hand.s>=1000){cls='fx-r1';react='🎉🔥😱';SFX.jackpot();}
-    else if(hand.s>=900){cls='fx-r2';react='✨😎✨';SFX.win();}
-    else if(hand.s>=800){cls='fx-r3';react='🔥🔥';SFX.win();}
-    else if(hand.s===-100){cls='cc-lose';react='😱💸😭';SFX.lose();}
-    else if(hand.s===0){cls='';react='💀…';SFX.lose();}
-    else{react='🤔';}
-    dv.className='result-banner '+cls+' pop';
-    $('ccReact').textContent=react;
-    if(hand.s>=1000)confettiBurst(dv);
-    cb&&cb();
-  };
-  const settle=()=>{
-    el.classList.remove('dice-rolling');
-    el.textContent=dice.map(d=>DFACE[d]).join(' ');
-    setTimeout(reveal,fxDur(400,0));
-  };
-  if(fxOn()){
-    el.classList.add('dice-rolling');
-    SFX.dice();
-    const iv=setInterval(()=>{el.textContent=Array.from({length:ccD},()=>DFACE[1+Math.floor(Math.random()*6)]).join(' ');},60);
-    setTimeout(()=>{clearInterval(iv);settle();},fxDur(850,300));
-  }else settle();
 }
 /* ---- ルーレット: 自由チップ額・回転時間・履歴・音 ---- */
 let ruHist=[];

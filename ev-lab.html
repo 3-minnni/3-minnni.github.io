@@ -2967,7 +2967,7 @@ function rsRender(){
 }
 
 /* ---- ガチャ1000連バグ修正 + 円グラフ + 折りたたみ + 目玉回転数 + 音 ---- */
-let gcEyeHits=[],gcEye2Hits=[],gcCeilReset=true;
+let gcEyeHits=[],gcEye2Hits=[],gcCeilReset=true,gcHitLog=[];
 function gcSetCeil(on){gcCeilReset=on;$('gcCeilOn').classList.toggle('on',on);$('gcCeilOff').classList.toggle('on',!on);}
 function gcBuild(){
   gcTiersDef=[...document.querySelectorAll('#gcTiers .tier-row')].map(r=>{
@@ -2982,7 +2982,7 @@ function gcBuild(){
   if(errs){$('gc-theory').innerHTML=errs;$('gcPlay').style.display='none';return;}
   const order=gcTiersDef.map((t,i)=>({i,r:t.rate})).sort((a,b)=>a.r-b.r);
   gcRank=[];order.forEach((o,pos)=>gcRank[o.i]=Math.min(6,pos+1));
-  gcCount=0;gcSince=0;gcSpent=0;gcHits=gcTiersDef.map(()=>0);gcEyeHits=[];gcEye2Hits=[];
+  gcCount=0;gcSince=0;gcSpent=0;gcHits=gcTiersDef.map(()=>0);gcEyeHits=[];gcEye2Hits=[];gcHitLog=[];
   gcWallet=parseFloat($('gcWalletSet').value)||30000;gcStart=gcWallet;
   $('gcPlay').style.display='';
   gcRender(null);$('gcLog').innerHTML='';
@@ -3056,7 +3056,7 @@ function gcPull(n){
     if(pity>0&&(gcCeilReset?gcSince>=pity:gcCount%pity===0))tier=0;
     if(tier===0){if(gcCeilReset)gcSince=0;gcEyeHits.push(gcCount);}
     if(tier===1)gcEye2Hits.push(gcCount);
-    if(tier>=0){gcHits[tier]++;if(tier<best)best=tier;}
+    if(tier>=0){gcHits[tier]++;if(tier<best)best=tier;gcHitLog.unshift({n:gcCount,name:gcTiersDef[tier].name,rank:gcRank[tier]});}
     log.push(tier);
   }
   const rb=$('gcResult');
@@ -3064,7 +3064,9 @@ function gcPull(n){
   const draw=log.slice(0,200);
   $('gcLog').innerHTML=foldBlock('引いた履歴('+pulled+'連 / 先頭200件)',
     '<div style="display:flex;flex-wrap:wrap;gap:4px;padding-top:6px;">'+draw.map(tier=>'<span class="pl '+(tier===0?'t0':tier===1?'t1':tier>=2?'t2':'tx')+'">'+(tier>=0?gcTiersDef[tier].name.slice(0,2):'—')+'</span>').join('')+'</div>',
-    true);
+    true)
+    +(gcHitLog.length?foldBlock('当選履歴(通算'+gcCount+'連中'+gcHitLog.length+'件 / 先頭200件)',
+      '<div class="remain" style="padding-top:6px;">'+gcHitLog.slice(0,200).map(h=>'<span class="rc'+(h.rank===1?' gold':'')+'"><span class="rankb r'+h.rank+'" style="margin-right:4px;">'+h.rank+'位</span>'+h.n+'連目 / '+escHtml(h.name)+'</span>').join('')+'</div>',false):'');
   const hit=best<99;
   const rank=hit?gcRank[best]:6;
   const show=()=>{
@@ -3161,7 +3163,7 @@ function slYuriCalc(){
     +'<div class="remain"><span class="rc gold">残り: <b>'+cf(remain)+'</b>G</span><span class="rc">進捗: <b>'+num(p,0)+'%</b></span></div>';
 }
 /* ---- オリパ: 分離入力・円グラフ・履歴・折りたたみ ---- */
-let opHistArr=[],opWinList=[],opBatchNo=0;
+let opHistArr=[],opWinList=[],opBatchNo=0,opHitLog=[];
 function addOpTier(name,coin,count,frac){
   const div=document.createElement('div');div.className='tier-row';
   div.style.gridTemplateColumns='1fr 1fr .7fr .7fr 30px';
@@ -3244,7 +3246,7 @@ function opBuild(){
   opTierDefs=tiersUse;
   const order=tiersUse.map((t,i)=>({i,c:t.count})).sort((a,b)=>a.c-b.c);
   opRank=[];order.forEach((o,pos)=>opRank[o.i]=Math.min(6,pos+1));
-  opHits=tiersUse.map(()=>0);opHistArr=[];opWinList=[];opBatchNo=0;
+  opHits=tiersUse.map(()=>0);opHistArr=[];opWinList=[];opBatchNo=0;opHitLog=[];
   opDeck=[];
   tiersUse.forEach((t,ti)=>{for(let i=0;i<t.count;i++)opDeck.push(ti);});
   for(let i=0;i<useT-winSum;i++)opDeck.push(-1);
@@ -3330,6 +3332,7 @@ function opPull(n){
     if(t>=0){
       opHits[t]++;if(t<bestTier)bestTier=t;
       if(opRank[t]<=2)opWinList.push({kuchi:opDrawn,name:opTierDefs[t].name,rank:opRank[t]});
+      opHitLog.unshift({kuchi:opDrawn,name:opTierDefs[t].name,rank:opRank[t]});
     }
     opSeries.push(opBal);log.push(t);
   }
@@ -3348,6 +3351,7 @@ function opPull(n){
     foldBlock('開封履歴('+pulled+'口 / 先頭200件)',
       '<div style="display:flex;flex-wrap:wrap;gap:4px;padding-top:6px;">'+draw.map(t=>'<span class="pl '+(t===0?'t0':t===1?'t1':t>=2?'t2':'tx')+'">'+(t>=0?['1','2','3','4','5','6'][t]||'★':'—')+'</span>').join('')+'</div>',false)
     +(opWinList.length?foldBlock('上位賞の当選口('+opWinList.length+'件)','<div class="remain" style="padding-top:6px;">'+opWinList.map(w=>{const ci=opTierDefs.findIndex(td=>td.name===w.name);const col=ci>=0?RCOL[ci%6]:'#E8B33C';const rk=ci>=0?opRank[ci]:1;return '<span class="rc" style="border-color:'+col+';color:'+col+';font-weight:700;"><span class="rankb r'+rk+'" style="margin-right:4px;">'+rk+'位</span>'+w.kuchi+'口目 / '+w.name+'</span>';}).join('')+'</div>',false):'')
+    +(opHitLog.length?foldBlock('当選履歴(通算'+opDrawn+'口中'+opHitLog.length+'件 / 先頭200件)','<div class="remain" style="padding-top:6px;">'+opHitLog.slice(0,200).map(w=>'<span class="rc'+(w.rank===1?' gold':'')+'"><span class="rankb r'+w.rank+'" style="margin-right:4px;">'+w.rank+'位</span>'+w.kuchi+'口目 / '+escHtml(w.name)+'</span>').join('')+'</div>',false):'')
     +foldBlock('収支履歴','<div style="padding-top:6px;">'+opHistArr.map(h=>'<div class="cclog-line" style="color:'+(h.net>=0?'var(--pos)':'var(--neg)')+'">'+h.pulls+'連('+h.from+'口〜'+h.to+'口) '+(h.net>=0?'+ ':'− ')+cf(Math.abs(h.net))+'coin</div>').join('')+'</div>',false);
   const hit=bestTier<99;
   const rank=hit?opRank[bestTier]:6;

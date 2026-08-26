@@ -992,6 +992,7 @@
         <button class="btn2 accent" onclick="gcPull(10)">10連</button>
         <button class="btn2 accent" onclick="gcPull(100)">100連</button>
         <button class="btn2 accent" onclick="gcPull(1000)">1000連</button>
+        <button class="btn2 accent" id="gcMaxPullBtn" onclick="gcPullMax()">回せるMAX回数を引く(0連)</button>
         <button class="btn2 danger" onclick="gcBuild()">リセット</button>
       </div>
       <div class="pull-log" id="gcLog"></div>
@@ -3011,9 +3012,25 @@ function gcWalletYenRender(){
   const yenEl=$('gcWalletYen');
   if(yenEl)yenEl.textContent=yps>0?'実額換算: 約'+yen(Math.round(gcWallet*yps)):'';
 }
+function gcMaxPulls(){
+  const cost=V('gcCost');
+  return cost>0?Math.max(0,Math.floor(gcWallet/cost)):0;
+}
+function gcPullMax(){
+  const n=gcMaxPulls();
+  if(n<=0){
+    const rb=$('gcResult');
+    rb.className='result-banner';
+    rb.innerHTML='<div class="r-tier">回せる回数がありません(石が不足しています)</div><div class="r-coin">—</div>';
+    return;
+  }
+  gcPull(n);
+}
 function gcRender(last){
   $('gcWallet').textContent=cf(gcWallet);
   gcWalletYenRender();
+  const maxBtn=$('gcMaxPullBtn');
+  if(maxBtn)maxBtn.textContent='回せるMAX回数を引く('+cf(gcMaxPulls())+'連)';
   const diff=gcWallet-gcStart;const wd=$('gcWalletDiff');
   wd.textContent=(diff>=0?'+':'−')+cf(Math.abs(diff));wd.className='w-diff '+(diff>=0?'up':'down');
   $('gcSpentBig').textContent=cf(gcSpent);

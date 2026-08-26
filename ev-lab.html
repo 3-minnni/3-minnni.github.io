@@ -848,7 +848,7 @@
         </div>
         <div class="field">
           <div class="flabel">コインの実額換算</div><div class="fhelp">課金相場。円換算が不要なら0を入力してください</div>
-          <div class="igroup"><input type="number" id="opYenPerCoin" value="0.1" min="0" step="0.01"><span class="unit">円/コイン</span></div>
+          <div class="igroup"><input type="number" id="opYenPerCoin" value="0.1" min="0" step="0.01" oninput="opWalletYenRender()"><span class="unit">円/コイン</span></div>
         </div>
         <div class="field full">
           <div class="flabel">最低保証(ハズレ時の獲得コイン)</div>
@@ -899,6 +899,7 @@
           <button class="btn2" onclick="opSetWallet()">設定</button>
         </div>
       </div>
+      <div class="fhelp" id="opWalletYen" style="margin-top:-6px;"></div>
       <div class="remain" id="opRemain"></div>
       <div class="result-banner" id="opResult"><div class="r-tier">↓ ボタンを押して引く</div><div class="r-coin">—</div></div>
       <div class="gc-pie-compare">
@@ -940,7 +941,7 @@
         </div>
         <div class="field">
           <div class="flabel">石の実額換算</div><div class="fhelp">課金相場(円/石)</div>
-          <div class="igroup"><input type="number" id="gcYenPerStone" value="0.83" min="0" step="0.01"><span class="unit">円/石</span></div>
+          <div class="igroup"><input type="number" id="gcYenPerStone" value="0.83" min="0" step="0.01" oninput="gcWalletYenRender()"><span class="unit">円/石</span></div>
         </div>
         <div class="field full">
           <div class="fhelp" style="margin-top:-4px;">例: 150石=120円なら「0.8」。円換算が不要なら0を入力してください</div>
@@ -976,6 +977,7 @@
           <button class="btn2" onclick="gcSetWallet()">設定</button>
         </div>
       </div>
+      <div class="fhelp" id="gcWalletYen" style="margin-top:-6px;"></div>
       <div class="gc-big"><span class="l">累計消費</span><span class="v" id="gcSpentBig">0</span><span class="l">石</span><span class="l" style="margin-left:auto;">通算 <b id="gcCountBig" class="mono" style="font-size:16px;color:var(--ink);">0</b> 連</span></div>
       <div class="remain" id="gcCounts"></div>
       <div class="remain" id="gcPityView"></div>
@@ -1631,8 +1633,14 @@ function parseCount(str,total){
   return isFinite(n)?Math.max(0,Math.round(n)):0;
 }
 function opSetWallet(){opWallet=parseFloat($('opWalletSet').value)||0;opStart=opWallet;opRender(null);}
+function opWalletYenRender(){
+  const ypc=Math.max(0,V('opYenPerCoin'));
+  const yenEl=$('opWalletYen');
+  if(yenEl)yenEl.textContent=ypc>0?'実額換算: 約'+yen(Math.round(opWallet*ypc)):'';
+}
 function opRender(lastResult){
   $('opWallet').textContent=cf(opWallet);
+  opWalletYenRender();
   const diff=opWallet-opStart;
   const wd=$('opWalletDiff');
   wd.textContent=(diff>=0?'+':'−')+cf(Math.abs(diff));
@@ -2998,8 +3006,14 @@ function gcBuild(){
     +'</div>';
   requestAnimationFrame(()=>pieInto('gcPie',segs,'排出率','目玉'+pct(p*100,1)));
 }
+function gcWalletYenRender(){
+  const yps=Math.max(0,V('gcYenPerStone'));
+  const yenEl=$('gcWalletYen');
+  if(yenEl)yenEl.textContent=yps>0?'実額換算: 約'+yen(Math.round(gcWallet*yps)):'';
+}
 function gcRender(last){
   $('gcWallet').textContent=cf(gcWallet);
+  gcWalletYenRender();
   const diff=gcWallet-gcStart;const wd=$('gcWalletDiff');
   wd.textContent=(diff>=0?'+':'−')+cf(Math.abs(diff));wd.className='w-diff '+(diff>=0?'up':'down');
   $('gcSpentBig').textContent=cf(gcSpent);

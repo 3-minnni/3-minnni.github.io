@@ -2550,9 +2550,23 @@ function ltDraw(rot){
   let a=rot-Math.PI/2;
   ltItems.forEach((x,i)=>{
     const sw=(x.w/total)*Math.PI*2;
-    ctx.beginPath();ctx.moveTo(C,C);ctx.arc(C,C,R,a,a+sw);ctx.closePath();
-    ctx.fillStyle=x.color||LT_COLORS[i%LT_COLORS.length];ctx.fill();
-    ctx.strokeStyle='#0A0C11';ctx.lineWidth=3;ctx.stroke();
+    if(x.children&&x.children.length){
+      const ctotal=x.children.reduce((s,c)=>s+c.w,0)||1;
+      let ca=a;
+      x.children.forEach(c=>{
+        const csw=(c.w/ctotal)*sw;
+        ctx.beginPath();ctx.moveTo(C,C);ctx.arc(C,C,R,ca,ca+csw);ctx.closePath();
+        ctx.fillStyle=c.color||x.color||LT_COLORS[i%LT_COLORS.length];ctx.fill();
+        ctx.strokeStyle='#0A0C11';ctx.lineWidth=1.5;ctx.stroke();
+        ca+=csw;
+      });
+      ctx.beginPath();ctx.moveTo(C,C);ctx.arc(C,C,R,a,a+sw);ctx.closePath();
+      ctx.strokeStyle='#0A0C11';ctx.lineWidth=3;ctx.stroke();
+    }else{
+      ctx.beginPath();ctx.moveTo(C,C);ctx.arc(C,C,R,a,a+sw);ctx.closePath();
+      ctx.fillStyle=x.color||LT_COLORS[i%LT_COLORS.length];ctx.fill();
+      ctx.strokeStyle='#0A0C11';ctx.lineWidth=3;ctx.stroke();
+    }
     const mid=a+sw/2;
     ctx.save();ctx.translate(C+Math.cos(mid)*R*0.62,C+Math.sin(mid)*R*0.62);
     ctx.rotate(mid+(Math.cos(mid)<0?Math.PI:0));

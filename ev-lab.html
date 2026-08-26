@@ -3440,7 +3440,7 @@ function opPull(n){
     foldBlock('開封履歴('+pulled+'口 / 先頭200件)',
       '<div style="display:flex;flex-wrap:wrap;gap:4px;padding-top:6px;">'+draw.map(t=>'<span class="pl '+(t===0?'t0':t===1?'t1':t>=2?'t2':'tx')+'">'+(t>=0?['1','2','3','4','5','6'][t]||'★':'—')+'</span>').join('')+'</div>',false)
     +(opWinList.length?foldBlock('上位賞の当選口('+opWinList.length+'件)','<div class="remain" style="padding-top:6px;">'+opWinList.map(w=>{const ci=opTierDefs.findIndex(td=>td.name===w.name);const col=ci>=0?RCOL[ci%6]:'#E8B33C';const rk=ci>=0?opRank[ci]:1;return '<span class="rc" style="border-color:'+col+';color:'+col+';font-weight:700;"><span class="rankb r'+rk+'" style="margin-right:4px;">'+rk+'位</span>'+w.kuchi+'口目 / '+w.name+'</span>';}).join('')+'</div>',false):'')
-    +foldBlock('収支履歴','<div style="padding-top:6px;">'+opHistArr.map(h=>'<div class="cclog-line" style="color:'+(h.net>=0?'var(--pos)':'var(--neg)')+'">'+h.pulls+'連('+h.from+'口〜'+h.to+'口) '+(h.net>=0?'+ ':'− ')+cf(Math.abs(h.net))+'coin</div>').join('')+'</div>',true);
+    +foldBlock('収支履歴','<div style="padding-top:6px;">'+opHistArr.map(h=>'<div class="cclog-line" style="color:'+(h.net>=0?'var(--pos)':'var(--neg)')+'">'+h.pulls+'連('+h.from+'口〜'+h.to+'口) '+(h.net>=0?'+ ':'− ')+cf(Math.abs(h.net))+'coin</div>').join('')+'</div>',false);
   const hit=bestTier<99;
   const rank=hit?opRank[bestTier]:6;
   const show=()=>{

@@ -4071,7 +4071,7 @@ function rbNamesRender(){
 }
 function rbStart(){
   const common=Math.max(100,Math.round(V('rbMoney')));
-  rb={players:[],round:1,rounds:Math.max(1,Math.round(V('rbRounds'))),cur:0};
+  rb={players:[],round:1,rounds:Math.max(1,Math.round(V('rbRounds'))),cur:0,roundSpun:false};
   for(let i=0;i<rbN;i++){
     const mEl=$('rbMoney'+i);
     const m=mEl&&parseFloat(mEl.value)>0?Math.round(parseFloat(mEl.value)):common;
@@ -4155,6 +4155,7 @@ function rbRenderTable(){
 }
 function rbTurn(){
   rbBetsCur={};
+  rb.roundSpun=false;
   const pl=rb.players[rb.cur];
   $('rbChips').style.display='';$('rbTableWrap').style.display='';$('rbBets').style.display='';$('rbTurnBtns').style.display='';
   $('rbTable').style.pointerEvents='';
@@ -4229,6 +4230,7 @@ function rbSettle(n){
     $('rbStage').style.display='none';$('rbSpinBtn').style.display='none';$('rbTurnBtns').style.display='none';
     SFX.jackpot();
   }else{
+    $('rbSpinBtn').style.display='none';
     $('rbTurnBtns').style.display='';
     $('rbTurnBtns').innerHTML='<button class="run" onclick="rbNextRound()">次のラウンドへ(R'+(rb.round+1)+'/'+rb.rounds+')</button>';
   }
@@ -4239,8 +4241,8 @@ function rbNextRound(){
   rb.round++;rb.cur=0;rbTurn();
 }
 function rbSpin(){
-  if(rbSpinning||!rb)return;
-  rbSpinning=true;$('rbSpinBtn').textContent='回転中…';
+  if(rbSpinning||!rb||rb.roundSpun)return;
+  rbSpinning=true;rb.roundSpun=true;$('rbSpinBtn').textContent='回転中…';
   SFX.spin();
   const N=RU_ORDER().length;const idx=Math.floor(Math.random()*N);const seg=Math.PI*2/N;
   const dur=FX==='off'?250:(FX==='light'?1500:3600);

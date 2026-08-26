@@ -3060,7 +3060,7 @@ function gcPull(n){
     log.push(tier);
   }
   const rb=$('gcResult');
-  if(pulled===0){rb.className='result-banner';rb.innerHTML='<div class="r-tier">石が足りません(所持石を増やすか消費を下げてください)</div><div class="r-coin">—</div>';return;}
+  if(pulled===0){rb.className='result-banner';rb.innerHTML='<div class="r-tier" style="color:var(--neg);">⚠ 石が不足しています(所持石を増やすか消費を下げてください)</div><div class="r-coin">—</div>';return;}
   const draw=log.slice(0,200);
   $('gcLog').innerHTML=foldBlock('引いた履歴('+pulled+'連 / 先頭200件)',
     '<div style="display:flex;flex-wrap:wrap;gap:4px;padding-top:6px;">'+draw.map(tier=>'<span class="pl '+(tier===0?'t0':tier===1?'t1':tier>=2?'t2':'tx')+'">'+(tier>=0?gcTiersDef[tier].name.slice(0,2):'—')+'</span>').join('')+'</div>',
@@ -3070,7 +3070,8 @@ function gcPull(n){
   const show=()=>{
     rb.className='result-banner '+(hit?'fx-r'+rank:'')+' pop';
     rb.innerHTML='<div class="r-tier">'+pulled+'連の結果 '+(hit?'— 最高: '+gcTiersDef[best].name+(rank===1?' 🌈':''):'— 全部通常枠')+'</div>'
-      +'<div class="r-coin">−'+cf(cost*pulled)+' 石消費</div>';
+      +'<div class="r-coin">−'+cf(cost*pulled)+' 石消費</div>'
+      +(pulled<n?'<div class="r-tier" style="color:var(--neg);font-size:12.5px;margin-top:4px;">⚠ '+n+'連を希望しましたが、石不足のため'+pulled+'連で打ち切りました</div>':'');
     if(hit&&rank===1){confettiBurst(rb);SFX.jackpot();}
     else if(hit&&rank<=2)SFX.win();
     gcRender(true);
@@ -3335,7 +3336,7 @@ function opPull(n){
   const rb=$('opResult');
   if(pulled===0){
     rb.className='result-banner';
-    rb.innerHTML=opDrawn>=opDeck.length?'<div class="r-tier">完売しました(リセットで再構築)</div><div class="r-coin">—</div>':'<div class="r-tier">コインが不足しています</div><div class="r-coin">—</div>';
+    rb.innerHTML=opDrawn>=opDeck.length?'<div class="r-tier" style="color:var(--neg);">⚠ 完売しました(リセットで再構築)</div><div class="r-coin">—</div>':'<div class="r-tier" style="color:var(--neg);">⚠ コインが不足しています</div><div class="r-coin">—</div>';
     return;
   }
   const net=gained-cost*pulled;
@@ -3350,10 +3351,12 @@ function opPull(n){
     +foldBlock('収支履歴','<div style="padding-top:6px;">'+opHistArr.map(h=>'<div class="cclog-line" style="color:'+(h.net>=0?'var(--pos)':'var(--neg)')+'">'+h.pulls+'連('+h.from+'口〜'+h.to+'口) '+(h.net>=0?'+ ':'− ')+cf(Math.abs(h.net))+'coin</div>').join('')+'</div>',false);
   const hit=bestTier<99;
   const rank=hit?opRank[bestTier]:6;
+  const shortReason=opDrawn>=opDeck.length?'完売':'コイン不足';
   const show=()=>{
     rb.className='result-banner '+(hit?'fx-r'+rank:'')+' pop';
     rb.innerHTML='<div class="r-tier">'+pulled+'口引いた結果 '+(hit?'— '+opTierDefs[bestTier].name+'当選!!'+(rank===1?' 🌈':''):'— ハズレ')+'</div>'
-      +'<div class="r-coin">+'+cf(gained)+' 獲得 / 差枚 '+(net>=0?'+':'−')+cf(Math.abs(net))+'</div>';
+      +'<div class="r-coin">+'+cf(gained)+' 獲得 / 差枚 '+(net>=0?'+':'−')+cf(Math.abs(net))+'</div>'
+      +(pulled<n?'<div class="r-tier" style="color:var(--neg);font-size:12.5px;margin-top:4px;">⚠ '+n+'口を希望しましたが、'+shortReason+'のため'+pulled+'口で打ち切りました</div>':'');
     if(hit&&rank===1){confettiBurst(rb);SFX.jackpot();}else if(hit&&rank<=2)SFX.win();else if(!hit&&pulled>=10)SFX.lose();
     opRender(true);
     opActualPieRender();

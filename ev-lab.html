@@ -925,6 +925,7 @@
         <button class="btn2 accent" onclick="opPull(10)">10連で引く</button>
         <button class="btn2 accent" onclick="opPull(100)">100連</button>
         <button class="btn2 accent" onclick="opPull(1000)">1000連</button>
+        <button class="btn2 accent" id="opMaxPullBtn" onclick="opPullMax()">回せるMAX回数を引く(0口)</button>
         <button class="btn2 danger" onclick="opBuild()">リセット(再シャッフル)</button>
       </div>
       <div class="pull-log" id="opLog"></div>
@@ -1669,8 +1670,25 @@ function opRender(lastResult){
   const totalLeft=opDeck.length-opDrawn;
   $('opRemain').innerHTML=`<span class="rc">残り口数: <b>${cf(totalLeft)}</b></span>`
     +remainByTier.map(r=>`<span class="rc ${r.left>0?'gold':''}">${r.name} 残り<b>${r.left}</b>/${r.total}${r.left>0&&totalLeft>0?' (1/'+num(totalLeft/r.left,0)+')':''}</span>`).join('');
+  const maxBtn=$('opMaxPullBtn');
+  if(maxBtn)maxBtn.textContent='回せるMAX回数を引く('+cf(opMaxPulls())+'口)';
   const rb=$('opResult');
   if(lastResult===null){rb.className='result-banner';rb.innerHTML='<div class="r-tier">↓ ボタンを押して引く</div><div class="r-coin">—</div>';}
+}
+function opMaxPulls(){
+  const cost=V('opCost');
+  const remain=Math.max(0,opDeck.length-opDrawn);
+  return cost>0?Math.max(0,Math.min(remain,Math.floor(opWallet/cost))):0;
+}
+function opPullMax(){
+  const n=opMaxPulls();
+  if(n<=0){
+    const rb=$('opResult');
+    rb.className='result-banner';
+    rb.innerHTML='<div class="r-tier">回せる回数がありません(コイン不足 or 完売)</div><div class="r-coin">—</div>';
+    return;
+  }
+  opPull(n);
 }
 addOpTier('1等',50000,'10');addOpTier('2等',10000,'50');addOpTier('3等',4000,'1/31');
 

@@ -295,8 +295,9 @@
   .rt-cell.out{background:#123A2A;font-size:10px;}
   .rt-cell:hover{filter:brightness(1.25);}
   .rt-bet{position:absolute;right:1px;bottom:1px;background:#E8C879;color:#241A02;border-radius:999px;font-size:9px;padding:1px 5px;font-weight:700;}
-  .rt-dots{position:absolute;left:2px;top:2px;display:flex;gap:2px;flex-wrap:wrap;max-width:22px;}
-  .rt-dots i{width:5px;height:5px;border-radius:50%;display:block;border:1px solid rgba(0,0,0,.45);}
+  .rt-dots{position:absolute;left:2px;top:2px;display:flex;gap:2px;flex-wrap:wrap;max-width:28px;}
+  .rt-dots i{width:8px;height:8px;border-radius:50%;display:block;border:1.5px solid rgba(255,255,255,.85);box-shadow:0 0 0 1px rgba(0,0,0,.5);}
+  .player-dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:4px;border:1.5px solid rgba(255,255,255,.65);vertical-align:middle;box-shadow:0 0 0 1px rgba(0,0,0,.35);}
   .rt-out2{display:grid;grid-template-columns:34px repeat(3,176px) 46px;gap:2px;margin-top:2px;width:max-content;}
   .rt-out3{display:grid;grid-template-columns:34px repeat(6,88px) 46px;gap:2px;margin-top:2px;width:max-content;}
 
@@ -2087,7 +2088,7 @@ function ruSetMode(m){
   rbNamesRender();
 })();
 function rbRender(){
-  $('rbStand').innerHTML=rb.players.map((p,i)=>'<span class="rc'+(p.bets?' gold':'')+(rb.cur===i&&rb.round<=rb.rounds?' cur':'')+'"><i style="display:inline-block;width:7px;height:7px;border-radius:50%;background:'+RB_COLS[i%RB_COLS.length]+';margin-right:3px;"></i>'+escHtml(p.name)+': <b>'+cf(p.money)+'</b>'+(p.bets?' ✓':'')+'</span>').join('')
+  $('rbStand').innerHTML=rb.players.map((p,i)=>'<span class="rc'+(p.bets?' gold':'')+(rb.cur===i&&rb.round<=rb.rounds?' cur':'')+'"><i class="player-dot" style="background:'+RB_COLS[i%RB_COLS.length]+';"></i>'+escHtml(p.name)+': <b>'+cf(p.money)+'</b>'+(p.bets?' ✓':'')+'</span>').join('')
     +'<span class="rc">R'+rb.round+'/'+rb.rounds+'</span>';
 }
 /* ============================================================
@@ -4058,7 +4059,7 @@ function rbRenderTable(){
   });
   const total=Object.values(rbBetsCur).reduce((a,b)=>a+b,0);
   const pl=rb.players[rb.cur];
-  const prevList=rb.cur>0?rb.players.slice(0,rb.cur).map((p,i)=>'<span class="rc"><i style="display:inline-block;width:7px;height:7px;border-radius:50%;background:'+RB_COLS[i%RB_COLS.length]+';margin-right:3px;"></i>'+escHtml(p.name)+'</span>').join(''):'';
+  const prevList=rb.cur>0?rb.players.slice(0,rb.cur).map((p,i)=>'<span class="rc"><i class="player-dot" style="background:'+RB_COLS[i%RB_COLS.length]+';"></i>'+escHtml(p.name)+'</span>').join(''):'';
   $('rbBets').innerHTML=prevList
     +(Object.keys(rbBetsCur).length
       ?Object.entries(rbBetsCur).map(([k,a])=>'<span class="rc gold" style="cursor:pointer;" onclick="delete rbBetsCur[\''+k+'\'];rbRenderTable();">'+rtLabel(k)+': <b>'+cf(a)+'</b> ×</span>').join('')+'<span class="rc">ベット合計: <b>'+cf(total)+'</b> / 残り'+cf(pl.money-total)+'</span>'
@@ -4084,7 +4085,7 @@ function rbRenderAllBets(){
   });
   $('rbBets').innerHTML=rb.players.map((p,i)=>{
     const entries=Object.entries(p.bets||{});
-    return '<span class="rc'+(entries.length?' gold':'')+'"><i style="display:inline-block;width:7px;height:7px;border-radius:50%;background:'+RB_COLS[i%RB_COLS.length]+';margin-right:3px;"></i>'+escHtml(p.name)+': '+(entries.length?entries.map(([k,a])=>rtLabel(k)+' '+cf(a)).join(', '):'パス')+'</span>';
+    return '<span class="rc'+(entries.length?' gold':'')+'"><i class="player-dot" style="background:'+RB_COLS[i%RB_COLS.length]+';"></i>'+escHtml(p.name)+': '+(entries.length?entries.map(([k,a])=>rtLabel(k)+' '+cf(a)).join(', '):'パス')+'</span>';
   }).join('');
 }
 function rbConfirmTurn(){

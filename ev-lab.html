@@ -1129,6 +1129,7 @@
         <div class="chart-head"><div class="c-title">所持金の推移(横軸: ラウンド)</div><div class="legend" id="rbChartLegend"></div></div>
         <canvas id="rbChart"></canvas>
       </div>
+      <div id="rbHistoryTable" style="overflow-x:auto;"></div>
     </div>
 
     <div class="card">
@@ -4011,6 +4012,20 @@ function rbHistoryChartRender(){
     hh.series.forEach((v,k)=>k===0?ctx.moveTo(X(k),Y(v)):ctx.lineTo(X(k),Y(v)));ctx.stroke();
   });
   $('rbChartLegend').innerHTML=rb.history.map((hh,i)=>'<span class="li"><span class="sw" style="border-color:'+RB_COLS[i%RB_COLS.length]+';"></span>'+escHtml(hh.name)+'</span>').join('');
+  const tbox=$('rbHistoryTable');
+  if(tbox){
+    const rounds=n-1;
+    const head='<th>プレイヤー</th><th>開始</th>'+Array.from({length:rounds},(_,r)=>'<th>R'+(r+1)+'</th>').join('');
+    const rows=rb.history.map((hh,i)=>{
+      const cells=hh.series.map((v,k)=>{
+        if(k===0)return '<td>'+cf(v)+'</td>';
+        const prev=hh.series[k-1],d=v-prev;
+        return '<td style="color:'+(d>0?'var(--pos)':(d<0?'var(--neg)':'var(--ink-2)'))+';">'+cf(v)+(d!==0?'('+(d>0?'+':'−')+cf(Math.abs(d))+')':'')+'</td>';
+      }).join('');
+      return '<tr><td><i class="player-dot" style="background:'+RB_COLS[i%RB_COLS.length]+';"></i>'+escHtml(hh.name)+'</td>'+cells+'</tr>';
+    }).join('');
+    tbox.innerHTML='<table class="rs-table"><thead><tr>'+head+'</tr></thead><tbody>'+rows+'</tbody></table>';
+  }
 }
 function rbBuildTable(){
   const T=$('rbTable');if(!T)return;

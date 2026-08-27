@@ -625,7 +625,7 @@
       <div style="display:flex;gap:8px;margin-top:8px;"><button class="btn2" onclick="shareURL('pk')">🔗 この設定を共有URLにする</button></div>
       <div id="share-pk"></div>
     </div>
-    <div id="pk-out"></div>
+    <div id="pk-out"><div class="fhelp" style="text-align:center;padding:18px 12px;">↑ 入力後に「この条件で計算する」を押すと、ここに期待値・ボーダー・シミュレーション結果が表示されます</div></div>
     <div id="cmp-pk"></div>
     <div id="rsQuickHost-pk"></div>
     <div class="card" id="pkFun" style="display:none;">
@@ -1512,18 +1512,21 @@ function runPK(){
       ${P.ltOn?`<div class="stat"><div class="s-l">初当たりからのLT到達率</div><div class="s-v">${pct(ltRate*100)}</div><div class="s-sub">突入率×LT振り分けの実効値</div></div>`:''}
       ${P.jtOn?`<div class="stat"><div class="s-l">時短の引き戻し率</div><div class="s-v">${pct(P.jtPull*100)}</div><div class="s-sub">1回の時短あたり</div></div>`:''}
     </div>`
-    +pkCounterHTML(hitsRec,trials)
-    +pkPracticalHTML()
-    +pkDistPiesHTML(P)
-    +`<div class="chart-card"><div class="chart-head"><div class="c-title">収支の分布(${histCampaigns}回シミュレーションを繰り返した結果 / ${histTrials.toLocaleString()}回転ごと)</div></div><canvas id="pkHistC"></canvas><div class="fhelp" style="margin-top:6px;">この分布は「同じ条件で何度も打ったとき、最終収支がどんな範囲にどれくらいの確率でばらつくか」を表します。山が右(プラス側)に寄るほど勝ちやすく、左に長い裾を引くほど大負けのリスクがあります。緑=プラス収支・赤=マイナス収支の回数です。</div></div>`
-    +`<div style="margin:4px 0 10px;"><button class="btn2" onclick="cmpAdd('pk',{label:'${(new Date()).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})}',evPositive:${totalEV>=0},vals:['${(evSpin>=0?'+':'−')+cf(Math.abs(Math.round(evSpin)))}','${num(border)}回転','${pct(ret)}']})">📊 このスペックを比較に追加</button></div>`
     +`<div class="chart-card"><div class="chart-head"><div class="c-title">収支の推移(横軸: 回転数)</div>
       <div class="legend"><span class="li"><span class="sw" style="border-color:#39FF88;"></span>シミュレーション</span><span class="li"><span class="sw" style="border-color:#C8A25B;border-top-style:dashed;"></span>理論値</span><span class="li">● 大当たり(数字=連チャン数、紫=LT)</span><button class="btn2" style="padding:4px 10px;font-size:11px;" onclick="runPK()">🔁 再試行</button></div></div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px;"><span class="fhelp" style="margin:0;">当たり表示区間:</span>
         <select id="pkMarkRegion" onchange="pkRedrawChart()" style="background:var(--bg2);border:1px solid var(--line2);border-radius:8px;color:var(--ink);padding:6px;font-size:12px;">
           <option value="all">全区間</option><option value="first">序盤(前半1/3)</option><option value="mid">中盤</option><option value="last">終盤(後半1/3)</option><option value="none">当たり非表示</option>
         </select></div>
-      <canvas id="pkChart"></canvas></div>`;
+      <canvas id="pkChart"></canvas></div>`
+    +`<div class="chart-card"><div class="chart-head"><div class="c-title">収支の分布(${histCampaigns}回シミュレーションを繰り返した結果 / ${histTrials.toLocaleString()}回転ごと)</div></div><canvas id="pkHistC"></canvas><div class="fhelp" style="margin-top:6px;">この分布は「同じ条件で何度も打ったとき、最終収支がどんな範囲にどれくらいの確率でばらつくか」を表します。山が右(プラス側)に寄るほど勝ちやすく、左に長い裾を引くほど大負けのリスクがあります。緑=プラス収支・赤=マイナス収支の回数です。</div></div>`
+    +`<div class="fold-head closed" onclick="this.classList.toggle('closed');$('pkAdvancedBody').classList.toggle('closed');"><span class="fold-ar">▼</span>詳細データ・分析ツール</div>`
+    +`<div class="fold-body closed" id="pkAdvancedBody" style="max-height:4000px;">`
+    +pkCounterHTML(hitsRec,trials)
+    +pkPracticalHTML()
+    +pkDistPiesHTML(P)
+    +`<div style="margin:4px 0 10px;"><button class="btn2" onclick="cmpAdd('pk',{label:'${(new Date()).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})}',evPositive:${totalEV>=0},vals:['${(evSpin>=0?'+':'−')+cf(Math.abs(Math.round(evSpin)))}','${num(border)}回転','${pct(ret)}']})">📊 このスペックを比較に追加</button></div>`
+    +`</div>`;
   pkChartData={series,evLine,markers,trials};
   pkLastCalc={p,TY,hesoYen,border,rate:pkRate.rate};
   requestAnimationFrame(()=>{pkRedrawChart();pkCounterDraw(hitsRec);histInto('pkHistC',histSamples,'円');pkDistPiesDraw(P);});

@@ -870,14 +870,22 @@
           <div class="flabel">1口の価格</div><div class="fhelp"></div>
           <div class="igroup"><input type="number" id="opCost" value="500" min="0" step="50"><span class="unit">コイン</span></div>
         </div>
-        <div class="field">
-          <div class="flabel">コインの実額換算</div><div class="fhelp">課金相場。円換算が不要なら0を入力してください</div>
-          <div class="igroup"><input type="number" id="opYenPerCoin" value="0.1" min="0" step="0.01" oninput="opWalletYenRender()"><span class="unit">円/コイン</span></div>
-        </div>
         <div class="field full">
           <div class="flabel">最低保証(ハズレ時の獲得コイン)</div>
           <div class="fhelp">下位賞・ポイント還元など。0でも可</div>
           <div class="igroup"><input type="number" id="opFloor" value="100" min="0" step="10"><span class="unit">コイン</span></div>
+        </div>
+      </div>
+      <div class="tier-head" style="grid-template-columns:1fr 1fr .7fr .7fr 30px;"><span>等級名</span><span>獲得コイン</span><span>封入枚数</span><span>確率(1/n)</span><span></span></div>
+      <div id="opTiers"></div>
+      <button class="add-row" onclick="addOpTier()">+ 等級を追加</button>
+      <div class="fhelp" style="margin-top:6px;">封入枚数か1/nのどちらか一方を入力すれば、もう一方は自動計算されます。</div>
+      <div class="fold-head closed" onclick="this.classList.toggle('closed');$('opDetailBody').classList.toggle('closed');" style="margin-top:10px;"><span class="fold-ar">▼</span>詳細設定(実額換算・途中参加・保証枠)</div>
+      <div class="fold-body closed" id="opDetailBody" style="max-height:2000px;">
+      <div class="fgrid">
+        <div class="field">
+          <div class="flabel">コインの実額換算</div><div class="fhelp">課金相場。円換算が不要なら0を入力してください</div>
+          <div class="igroup"><input type="number" id="opYenPerCoin" value="0.1" min="0" step="0.01" oninput="opWalletYenRender()"><span class="unit">円/コイン</span></div>
         </div>
         <div class="field full">
           <div class="flabel">残り口数(途中参加シミュ)</div>
@@ -885,11 +893,7 @@
           <div class="igroup"><input type="number" id="opRemainIn" value="0" min="0" step="100"><span class="unit">口</span></div>
         </div>
       </div>
-      <div class="tier-head" style="grid-template-columns:1fr 1fr .7fr .7fr 30px;"><span>等級名</span><span>獲得コイン</span><span>封入枚数</span><span>確率(1/n)</span><span></span></div>
-      <div id="opTiers"></div>
-      <button class="add-row" onclick="addOpTier()">+ 等級を追加</button>
-      <div class="fhelp" style="margin-top:6px;">封入枚数か1/nのどちらか一方を入力すれば、もう一方は自動計算されます。</div>
-      <div class="field full" style="margin-top:10px;">
+      <div class="field full">
         <div class="flabel">保証枠(SR以上確定など)</div>
         <div class="fhelp">「◯口目までに指定等級以上が必ず封入」を組み込みます。等級の並びは上の行の順番</div>
         <div class="chips" style="margin-bottom:8px;">
@@ -904,6 +908,7 @@
               <div class="igroup"><select id="opGuarTier"></select></div></div>
           </div>
         </div>
+      </div>
       </div>
       <div id="opOdds" style="margin-top:10px;"></div>
       <div style="height:10px"></div>
@@ -938,7 +943,6 @@
         <button class="btn2 accent" id="opMaxPullBtn" onclick="opPullMax()">回せるMAX回数を引く(0口)</button>
         <button class="btn2 danger" onclick="opBuild()">リセット(再シャッフル)</button>
       </div>
-      <div class="pull-log" id="opLog"></div>
       <div class="chart-card">
         <div class="chart-head"><div class="c-title">コイン収支の推移(横軸: 引いた口数)</div>
           <div class="legend"><span class="li"><span class="sw" style="border-color:#3DDC97;"></span>あなたの収支</span><span class="li"><span class="sw" style="border-color:#E8B33C;border-top-style:dashed;"></span>理論値</span></div>
@@ -946,6 +950,7 @@
         <canvas id="opChart"></canvas>
       </div>
       <div id="op-theory"></div>
+      <div class="pull-log" id="opLog"></div>
     </div>
     <div id="rsQuickHost-op"></div>
 
@@ -964,15 +969,22 @@
           <div class="igroup"><input type="number" id="gcCost" value="300" min="0" step="10"><span class="unit">石</span></div>
         </div>
         <div class="field">
+          <div class="flabel">天井(保証)</div><div class="fhelp">最上位が必ず出る回数。0=なし</div>
+          <div class="igroup"><input type="number" id="gcPity" value="200" min="0" step="10"><span class="unit">回</span></div>
+        </div>
+      </div>
+      <div class="tier-head"><span>レア度名</span><span>排出率(%)</span><span></span><span></span></div>
+      <div id="gcTiers"></div>
+      <button class="add-row" onclick="addGcTier()">+ レア度を追加</button>
+      <div class="fold-head closed" onclick="this.classList.toggle('closed');$('gcDetailBody').classList.toggle('closed');" style="margin-top:10px;"><span class="fold-ar">▼</span>詳細設定(実額換算・天井リセット方式)</div>
+      <div class="fold-body closed" id="gcDetailBody" style="max-height:2000px;">
+      <div class="fgrid">
+        <div class="field">
           <div class="flabel">石の実額換算</div><div class="fhelp">課金相場(円/石)</div>
           <div class="igroup"><input type="number" id="gcYenPerStone" value="0.83" min="0" step="0.01" oninput="gcWalletYenRender()"><span class="unit">円/石</span></div>
         </div>
         <div class="field full">
           <div class="fhelp" style="margin-top:-4px;">例: 150石=120円なら「0.8」。円換算が不要なら0を入力してください</div>
-        </div>
-        <div class="field">
-          <div class="flabel">天井(保証)</div><div class="fhelp">最上位が必ず出る回数。0=なし</div>
-          <div class="igroup"><input type="number" id="gcPity" value="200" min="0" step="10"><span class="unit">回</span></div>
         </div>
         <div class="field full">
           <div class="flabel">天井カウントのリセット</div><div class="fhelp">目玉当選で天井カウントを戻すか。実際のガチャは機種で異なる</div>
@@ -982,9 +994,7 @@
           </div>
         </div>
       </div>
-      <div class="tier-head"><span>レア度名</span><span>排出率(%)</span><span></span><span></span></div>
-      <div id="gcTiers"></div>
-      <button class="add-row" onclick="addGcTier()">+ レア度を追加</button>
+      </div>
       <div style="height:10px"></div>
       <div class="preset-bar" data-p="gc"></div>
       <button class="run" onclick="gcBuild()">この設計でガチャを作る(理論値も計算)</button>
@@ -1007,6 +1017,7 @@
       <div class="remain" id="gcPityView"></div>
       <div class="result-banner" id="gcResult"><div class="r-tier">↓ ボタンを押して引く</div><div class="r-coin">—</div></div>
       <div id="gcTheoryHead"></div>
+      <div id="gc-theory"></div>
       <div class="gc-pie-compare">
         <div id="gcTheoryPie"></div>
         <div id="gcActualPie"></div>
@@ -1020,7 +1031,6 @@
         <button class="btn2 danger" onclick="gcBuild()">リセット</button>
       </div>
       <div class="pull-log" id="gcLog"></div>
-      <div id="gc-theory"></div>
     </div>
     <div id="rsQuickHost-gc"></div>
   </div>

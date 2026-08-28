@@ -688,20 +688,24 @@
             <div class="igroup"><input type="number" id="slAtCoins" value="800" min="0" step="50"><span class="unit">枚</span></div>
           </div>
           <div class="field">
-            <div class="flabel">純増(補助入力)</div><div class="fhelp">純増×AT平均G数→平均獲得枚数を自動計算</div>
-            <div class="igroup"><input type="number" id="slAtJunzo" value="" min="0" step="0.1" placeholder="2.5" oninput="slJunzoCalc()"><span class="unit">枚/G</span></div>
-          </div>
-          <div class="field">
-            <div class="flabel">AT平均G数(補助入力)</div><div class="fhelp"></div>
-            <div class="igroup"><input type="number" id="slAtG2" value="" min="0" step="10" placeholder="320" oninput="slJunzoCalc()"><span class="unit">G</span></div>
-          </div>
-          <div class="field">
             <div class="flabel">AT後の引き戻し率</div><div class="fhelp">AT終了後、新しい有利区間で再突入する率</div>
             <div class="igroup"><input type="number" id="slAtModoshi" value="20" min="0" max="95"><span class="unit">%</span></div>
           </div>
           <div class="field">
             <div class="flabel">コイン持ち</div><div class="fhelp">50枚で回せるG数</div>
             <div class="igroup"><input type="number" id="slAtMochi" value="34" min="1" step="0.5"><span class="unit">G/50枚</span></div>
+          </div>
+        </div>
+        <div class="fold-head closed" onclick="this.classList.toggle('closed');$('slDetailAT').classList.toggle('closed');"><span class="fold-ar">▼</span>詳細設定(純増補助計算・規制モデル)</div>
+        <div class="fold-body closed" id="slDetailAT" style="max-height:2000px;">
+        <div class="fgrid">
+          <div class="field">
+            <div class="flabel">純増(補助入力)</div><div class="fhelp">純増×AT平均G数→平均獲得枚数を自動計算</div>
+            <div class="igroup"><input type="number" id="slAtJunzo" value="" min="0" step="0.1" placeholder="2.5" oninput="slJunzoCalc()"><span class="unit">枚/G</span></div>
+          </div>
+          <div class="field">
+            <div class="flabel">AT平均G数(補助入力)</div><div class="fhelp"></div>
+            <div class="igroup"><input type="number" id="slAtG2" value="" min="0" step="10" placeholder="320" oninput="slJunzoCalc()"><span class="unit">G</span></div>
           </div>
           <div class="field full">
             <div class="flabel">スマスロ規制モデル</div>
@@ -711,6 +715,7 @@
               <div class="chip" id="slSmartOff" onclick="slSetSmart(false)">規制なし(理論モデル)</div>
             </div>
           </div>
+        </div>
         </div>
       </div>
       <div id="slFormA" style="display:none;">
@@ -731,6 +736,10 @@
             <div class="flabel">REG獲得枚数</div><div class="fhelp"></div>
             <div class="igroup"><input type="number" id="slRegC" value="96" min="0"><span class="unit">枚</span></div>
           </div>
+        </div>
+        <div class="fold-head closed" onclick="this.classList.toggle('closed');$('slDetailA').classList.toggle('closed');"><span class="fold-ar">▼</span>詳細設定(コイン持ちの計算方法)</div>
+        <div class="fold-body closed" id="slDetailA" style="max-height:2000px;">
+        <div class="fgrid">
           <div class="field full">
             <div class="flabel">コイン持ちの計算方法</div>
             <div class="fhelp">簡易: 50枚あたりG数で概算 / 詳細: 1回転3枚消費・子役の払い出しを個別にシミュレート(実機に近い)</div>
@@ -750,6 +759,7 @@
             <div id="slKoyakuRows"></div>
             <button class="add-row" onclick="addKoyaku()">+ 子役を追加</button>
           </div>
+        </div>
         </div>
       </div>
       <div style="height:14px"></div>
@@ -2380,13 +2390,16 @@ function runSL(){
         <div class="stat"><div class="s-l">100回転以内の連続当選率</div><div class="s-v">${pct(p100*100)}</div><div class="s-sub">${slType==='a'?'BIG・REGいずれか':label}が1回以上出る確率</div></div>
         <div class="stat"><div class="s-l">今回のシミュレーション</div><div class="s-v">${yen(bal)}</div><div class="s-sub">${label}${hits}回${slType==='a'?' / REG'+regs+'回':''}${smart?' / 区間+2,400枚規制込み':''}</div></div>
       </div>`
-      +slBonusListHTML(bonusRec,p,pReg)
-      +(bonusRec.length>=5?`<div class="chart-card"><div class="chart-head"><div class="c-title">ボーナス間隔の分布(今回のシミュレーション・${bonusRec.length}回)</div></div><canvas id="slGapHistC"></canvas><div class="fhelp" style="margin-top:6px;">1回のボーナスから次のボーナスまでに要したゲーム数の分布です。山が左に寄るほど連続当選しやすく、右に長い裾を引くほどハマりやすい機種です。</div></div>`:'')
-      +`<div class="chart-card"><div class="chart-head"><div class="c-title">収支の分布(${histCampaigns}回シミュレーションを繰り返した結果 / ${histG.toLocaleString()}Gごと)</div></div><canvas id="slHistC"></canvas><div class="fhelp" style="margin-top:6px;">この分布は「同じ条件で何度も打ったとき、最終収支がどんな範囲にどれくらいの確率でばらつくか」を表します。山が右(プラス側)に寄るほど勝ちやすく、左に長い裾を引くほど大負けのリスクがあります。緑=プラス収支・赤=マイナス収支の回数です。コイン持ちを甘く見積もるほど左裾が伸びやすくなります。</div></div>`
-      +`<div style="margin:4px 0 10px;"><button class="btn2" onclick="cmpAdd('sl',{label:'${(new Date()).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})}',evPositive:${totalEV>=0},vals:['${(evG>=0?'+':'−')+cf(Math.abs(Math.round(evG)))}','${num(1000/costG)}G/千円','${pct(kikai)}']})">📊 このスペックを比較に追加</button></div>`
       +`<div class="chart-card"><div class="chart-head"><div class="c-title">当選図(横軸: ゲーム数 / ●=当選位置とG数)</div>
         <div class="legend"><span class="li"><span class="sw" style="border-color:#39FF88;"></span>シミュレーション</span><span class="li"><span class="sw" style="border-color:#C8A25B;border-top-style:dashed;"></span>理論値</span>${slType==='a'?'<span class="li" style="color:#E63946;">B=BIG</span><span class="li" style="color:#4FA3E0;">R=REG</span>':''}<button class="btn2" style="padding:4px 10px;font-size:11px;" onclick="runSL()">🔁 再試行</button></div></div>
-        <canvas id="slChart"></canvas></div>`;
+        <canvas id="slChart"></canvas></div>`
+      +`<div class="chart-card"><div class="chart-head"><div class="c-title">収支の分布(${histCampaigns}回シミュレーションを繰り返した結果 / ${histG.toLocaleString()}Gごと)</div></div><canvas id="slHistC"></canvas><div class="fhelp" style="margin-top:6px;">この分布は「同じ条件で何度も打ったとき、最終収支がどんな範囲にどれくらいの確率でばらつくか」を表します。山が右(プラス側)に寄るほど勝ちやすく、左に長い裾を引くほど大負けのリスクがあります。緑=プラス収支・赤=マイナス収支の回数です。コイン持ちを甘く見積もるほど左裾が伸びやすくなります。</div></div>`
+      +`<div class="fold-head closed" onclick="this.classList.toggle('closed');$('slAdvancedBody').classList.toggle('closed');"><span class="fold-ar">▼</span>詳細データ・分析ツール</div>`
+      +`<div class="fold-body closed" id="slAdvancedBody" style="max-height:4000px;">`
+      +slBonusListHTML(bonusRec,p,pReg)
+      +(bonusRec.length>=5?`<div class="chart-card"><div class="chart-head"><div class="c-title">ボーナス間隔の分布(今回のシミュレーション・${bonusRec.length}回)</div></div><canvas id="slGapHistC"></canvas><div class="fhelp" style="margin-top:6px;">1回のボーナスから次のボーナスまでに要したゲーム数の分布です。山が左に寄るほど連続当選しやすく、右に長い裾を引くほどハマりやすい機種です。</div></div>`:'')
+      +`<div style="margin:4px 0 10px;"><button class="btn2" onclick="cmpAdd('sl',{label:'${(new Date()).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})}',evPositive:${totalEV>=0},vals:['${(evG>=0?'+':'−')+cf(Math.abs(Math.round(evG)))}','${num(1000/costG)}G/千円','${pct(kikai)}']})">📊 このスペックを比較に追加</button></div>`
+      +`</div>`;
     requestAnimationFrame(()=>{
       drawChart($('slChart'),series,evLine,{xLabel:'ゲーム数',yLabel:'収支(円)',markers});
       histInto('slHistC',histSamples,'円');
@@ -2470,12 +2483,15 @@ function runSLYen(p,coins,pReg,coinsReg,mochi,costG,label,modoshi){
         <tr><td>−50%で損切り</td><td>${ruleLoss.expG.toLocaleString()}G</td><td>${pct(ruleLoss.winPct)}</td><td>${pct(ruleLoss.bustPct)}</td></tr>
       </tbody></table></div>
       <div class="fhelp" style="margin-top:6px;">「勝ち逃げ/損切り」は、その時点の収支が投資額の±50%に達したら即座にやめた場合の理論値です。</div></div>`
-    +slBonusListHTML(main.bonusRec||[],p,pReg)
-    +((main.bonusRec&&main.bonusRec.length>=5)?`<div class="chart-card"><div class="chart-head"><div class="c-title">ボーナス間隔の分布(今回のシミュレーション・${main.bonusRec.length}回)</div></div><canvas id="slGapHistC"></canvas><div class="fhelp" style="margin-top:6px;">1回のボーナスから次のボーナスまでに要したゲーム数の分布です。山が左に寄るほど連続当選しやすく、右に長い裾を引くほどハマりやすい機種です。</div></div>`:'')
-    +`<div class="chart-card"><div class="chart-head"><div class="c-title">収支の分布(投資${yen(cash0)}を${RUNS}回シミュレーションした最終収支)</div></div><canvas id="slHistC"></canvas><div class="fhelp" style="margin-top:6px;">この分布は「同じ条件で何度も打ったとき、最終収支がどんな範囲にどれくらいの確率でばらつくか」を表します。山が右(プラス側)に寄るほど勝ちやすく、左に長い裾を引くほど大負けのリスクがあります。緑=プラス収支・赤=マイナス収支の回数です。コイン持ちを甘く見積もるほど左裾が伸びやすくなります。</div></div>`
     +`<div class="chart-card"><div class="chart-head"><div class="c-title">収支の推移(横軸: ゲーム数 / 投資${yen(cash0)})</div>
       <div class="legend"><span class="li"><span class="sw" style="border-color:#39FF88;"></span>シミュレーション</span><span class="li"><span class="sw" style="border-color:#C8A25B;border-top-style:dashed;"></span>理論値</span><button class="btn2" style="padding:4px 10px;font-size:11px;" onclick="runSL()">🔁 再試行</button><button class="btn2 danger" style="padding:4px 10px;font-size:11px;" onclick="slYReset()">🗑 結果をクリア</button></div></div>
-      <canvas id="slChart"></canvas></div>`;
+      <canvas id="slChart"></canvas></div>`
+    +`<div class="chart-card"><div class="chart-head"><div class="c-title">収支の分布(投資${yen(cash0)}を${RUNS}回シミュレーションした最終収支)</div></div><canvas id="slHistC"></canvas><div class="fhelp" style="margin-top:6px;">この分布は「同じ条件で何度も打ったとき、最終収支がどんな範囲にどれくらいの確率でばらつくか」を表します。山が右(プラス側)に寄るほど勝ちやすく、左に長い裾を引くほど大負けのリスクがあります。緑=プラス収支・赤=マイナス収支の回数です。コイン持ちを甘く見積もるほど左裾が伸びやすくなります。</div></div>`
+    +`<div class="fold-head closed" onclick="this.classList.toggle('closed');$('slAdvancedBody').classList.toggle('closed');"><span class="fold-ar">▼</span>詳細データ・分析ツール</div>`
+    +`<div class="fold-body closed" id="slAdvancedBody" style="max-height:4000px;">`
+    +slBonusListHTML(main.bonusRec||[],p,pReg)
+    +((main.bonusRec&&main.bonusRec.length>=5)?`<div class="chart-card"><div class="chart-head"><div class="c-title">ボーナス間隔の分布(今回のシミュレーション・${main.bonusRec.length}回)</div></div><canvas id="slGapHistC"></canvas><div class="fhelp" style="margin-top:6px;">1回のボーナスから次のボーナスまでに要したゲーム数の分布です。山が左に寄るほど連続当選しやすく、右に長い裾を引くほどハマりやすい機種です。</div></div>`:'')
+    +`</div>`;
   requestAnimationFrame(()=>{
     drawChart($('slChart'),main.series,evLine,{xLabel:'ゲーム数',yLabel:'収支(円)'});
     histInto('slHistC',histSamples,'円');

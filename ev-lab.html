@@ -1077,6 +1077,8 @@
       <div class="rt-hint">← 横にスクロールできます →</div>
       <div class="rt-scroll"><div id="rtTable" style="margin-bottom:10px;"></div></div>
       <div class="remain" id="rtBets"></div>
+      <div class="fold-head closed" style="margin-top:10px;" onclick="this.classList.toggle('closed');$('rtAdvBet').classList.toggle('closed');"><span class="fold-ar">▼</span>上級ベット(ストリート/スプリット/コーナー/セクター)</div>
+      <div class="fold-body closed" id="rtAdvBet" style="max-height:2000px;">
       <div class="field full" style="margin-top:10px;">
         <div class="flabel">詳細ベット(ガチ勢向け)</div>
         <div class="fhelp">通常の1点・アウトサイドに加えて、スプリット/ストリート/コーナーを組めます</div>
@@ -1099,7 +1101,11 @@
           <div class="chip" onclick="rtSectorBet('orphelins')">オルファン(残り・8数字)</div>
         </div>
       </div>
+      </div>
+      <div class="fold-head closed" style="margin-top:10px;" onclick="this.classList.toggle('closed');$('ruBiasFold').classList.toggle('closed');"><span class="fold-ar">▼</span>出目統計・偏り分析</div>
+      <div class="fold-body closed" id="ruBiasFold" style="max-height:2000px;">
       <div id="ruBiasBox" style="margin-top:10px;"></div>
+      </div>
     </div>
     <div class="card ru-solo">
       <div class="wallet">
@@ -1172,7 +1178,10 @@
         <div class="chart-head"><div class="c-title">所持金の推移(横軸: ラウンド)</div><div class="legend" id="rbChartLegend"></div></div>
         <canvas id="rbChart"></canvas>
       </div>
+      <div class="fold-head closed" style="margin-top:10px;" onclick="this.classList.toggle('closed');$('rbHistFold').classList.toggle('closed');"><span class="fold-ar">▼</span>ラウンド別所持金の表</div>
+      <div class="fold-body closed" id="rbHistFold" style="max-height:3000px;">
       <div id="rbHistoryTable" style="overflow-x:auto;"></div>
+      </div>
     </div>
 
     <div class="card">

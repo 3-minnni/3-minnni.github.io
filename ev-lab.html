@@ -416,6 +416,7 @@
     font-family:var(--font-mono);font-size:var(--fs-sm);padding:3px 0;border-top:1px solid var(--line);}
   .vr-row .vr-n{color:var(--ink-3);}
   .vr-row .vr-share{color:var(--ink-2);}
+  .vr-row .vr-g{color:var(--gold-hi);font-size:var(--fs-xs);margin-left:6px;}
   .vr-row .vr-balls{color:var(--ink);font-weight:600;text-align:right;}
   .pct-big{font-family:var(--font-mono);font-size:22px;font-weight:700;color:var(--gold-hi);}
   .pct-strip{display:flex;gap:8px;flex-wrap:wrap;align-items:baseline;background:var(--card2);border:1px solid var(--gold-deep);border-radius:11px;padding:10px 14px;margin-bottom:10px;}
@@ -764,8 +765,8 @@
         </div>
       </div>
       <div class="flabel" style="margin-top:6px;">出玉振り分け</div>
-      <div class="fhelp" style="margin-bottom:4px;">1連ごとに、この振り分けから確率に応じて出玉が決まります。合計100%になるように入力してください。</div>
-      <div class="tier-head" style="grid-template-columns:1fr 1fr 30px;"><span>出玉(玉)</span><span>振り分け(%)</span><span></span></div>
+      <div class="fhelp" style="margin-bottom:4px;">1連ごとに、この振り分けから確率に応じて出玉が決まります。合計100%になるように入力してください。<b>★次回</b>をONにした枠を引くと、その次の1回は継続率に関わらず必ず継続します(次回濃厚)。</div>
+      <div class="tier-head" style="grid-template-columns:1fr 1fr auto 30px;"><span>出玉(玉)</span><span>振り分け(%)</span><span>次回濃厚</span><span></span></div>
       <div id="pkVrDistRows"></div>
       <button class="add-row" onclick="addPkVrDist()">+ 振り分けを追加</button>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
@@ -1794,18 +1795,21 @@ addPkDist(1500,50);addPkDist(4500,35);addPkDist(7500,15);
    見ないため、最小のPオブジェクトを渡せば無改修で流用できる)。
    既存の pkFirstHit は「継続判定→当たり」の順だが、あちらは通常時からの突入を
    扱うためであり変更しない。こちらは仕様どおり「1連目は確定→以降継続判定」。 */
-function addPkVrDist(balls,share){
+function addPkVrDist(balls,share,guaranteed){
   const div=document.createElement('div');div.className='tier-row';
-  div.style.gridTemplateColumns='1fr 1fr 30px';
+  div.style.gridTemplateColumns='1fr 1fr auto 30px';
   div.innerHTML=`<input type="number" value="${balls??1500}" min="0" step="100">
     <input type="number" value="${share??''}" min="0" max="100" step="1">
+    ${pkFlagBtn('guaranteed','★次回','この枠が出たら次の1回は継続確定(次回濃厚)')}
     <button class="rm" onclick="this.parentElement.remove()">×</button>`;
   $('pkVrDistRows').appendChild(div);
+  if(guaranteed)div.querySelector('.rowflag[data-flag="guaranteed"]').classList.add('on');
 }
 function pkVrDist(){
+  /* フラグの読み取りも既存の pkReadFlags をそのまま使う(このモードで意味を持つのは guaranteed のみ) */
   return [...document.querySelectorAll('#pkVrDistRows .tier-row')].map(r=>{
     const ins=r.querySelectorAll('input');
-    return{balls:parseFloat(ins[0].value)||0,share:parseFloat(ins[1].value)||0};
+    return{balls:parseFloat(ins[0].value)||0,share:parseFloat(ins[1].value)||0,...pkReadFlags(r)};
   }).filter(d=>d.share>0);
 }
 /* STEP3(RUSH中の出玉振り分け)と継続率を写す。未入力なら通常時の振り分けを使う */
@@ -1813,7 +1817,7 @@ function pkVrCopyFromRush(){
   const src=pkRushDist().length?pkRushDist():pkDist();
   if(!src.length){toast('コピー元の振り分けが入力されていません。STEP2かSTEP3で出玉振り分けを入力してください。',true);return;}
   $('pkVrDistRows').innerHTML='';
-  src.forEach(d=>addPkVrDist(d.balls,d.share));
+  src.forEach(d=>addPkVrDist(d.balls,d.share,d.guaranteed));
   const cont=V('pkCont');
   if(cont>0)$('pkVrCont').value=cont;
   toast('STEP'+(pkRushDist().length?'3':'2')+'の振り分け'+src.length+'件をコピーしました');
@@ -1836,12 +1840,16 @@ function runPkVr(){
   let chainSum=0,ballSum=0,maxChain=0,maxBalls=0;
   const chainSamples=[],ballSamples=[],recent=[];
   for(let t=1;t<=trials;t++){
-    let chain=0,balls=0;const log=[];
-    do{
+    let chain=0,balls=0,guaranteed=false;const log=[];
+    while(true){
       const row=pkDrawRush(P);               // ★既存関数をそのまま使用
       chain++;balls+=row.balls;
-      if(t>trials-KEEP)log.push({n:chain,share:row.share,balls:row.balls});
-    }while(Math.random()<cont);
+      if(t>trials-KEEP)log.push({n:chain,share:row.share,balls:row.balls,g:!!row.guaranteed});
+      /* ★次回の枠を引いたら、次の1回だけ継続率100%(判定を飛ばす)。既存の pkFirstHit と同じ扱い */
+      guaranteed=!!row.guaranteed;
+      if(!guaranteed&&Math.random()>=cont)break;
+      if(chain>=PK_CHAIN_MAX)break;   // 全枠★次回のような設定で無限に伸びないための安全弁
+    }
     chainSum+=chain;ballSum+=balls;
     if(chain>maxChain)maxChain=chain;
     if(balls>maxBalls)maxBalls=balls;
@@ -1849,8 +1857,11 @@ function runPkVr(){
     if(t>trials-KEEP)recent.unshift({t,chain,balls,log});
   }
   const avgChain=chainSum/trials,avgBalls=ballSum/trials;
-  /* 継続率から理論的に期待される連チャン数 = 1/(1-継続率)。実測との突き合わせ用 */
-  const theoChain=cont<1?1/(1-cont):Infinity;
+  /* 理論的に期待される連チャン数。★次回の枠を引いた回は必ず継続するので、
+     1回あたりの継続確率は  g + (1-g)×継続率   (g=★次回枠を引く確率)。
+     平均連チャン = 1/(1-継続確率) = 1/((1-g)(1-継続率)) */
+  const gShare=dist.filter(d=>d.guaranteed).reduce((s,d)=>s+d.share,0)/tot;
+  const theoChain=(cont<1&&gShare<1)?1/((1-gShare)*(1-cont)):Infinity;
 
   $('pkVrOut').innerHTML=
     `<div class="verdict win pop">
@@ -1872,7 +1883,7 @@ function runPkVr(){
       ${recent.map(r=>
         `<div class="vr-trial">
           <div class="vr-head">試行 #${r.t.toLocaleString()} — <b>${r.chain}連</b>で終了 / 合計 <b>${cf(r.balls)}</b>玉</div>
-          ${r.log.map(e=>`<div class="vr-row"><span class="vr-n">${e.n}連目</span><span class="vr-share">${num(e.share,0)}%枠</span><span class="vr-balls">${cf(e.balls)}玉</span></div>`).join('')}
+          ${r.log.map(e=>`<div class="vr-row"><span class="vr-n">${e.n}連目</span><span class="vr-share">${num(e.share,0)}%枠${e.g?'<b class="vr-g">★次回</b>':''}</span><span class="vr-balls">${cf(e.balls)}玉</span></div>`).join('')}
         </div>`).join('')}
     </div>`;
   requestAnimationFrame(()=>{
@@ -3889,6 +3900,8 @@ function pkParams(){
     jtOn:pkJt,jtPull:pkJt?1-Math.pow(1-1/jtN,jtSpins):0,
     jtMiss:pkJtMiss,jtRush:pkJtRush};
 }
+/* 連チャンの打ち切り上限。全枠★次回のような設定で無限ループにならないための安全弁 */
+const PK_CHAIN_MAX=10000;
 function pkFirstHit(P){
   let balls=0,chain=0,ltHit=false,guard=0;
   // rush(): 継続チェイン。startLt/startGuaranteedは直前の1枠(初当たり or 時短中当たり)が
@@ -3899,6 +3912,10 @@ function pkFirstHit(P){
       if(P.ltOn&&!lt&&!P.rushHasPromote&&Math.random()<P.ltP){lt=true;ltHit=true;}
       if(lt&&P.ltDown>0&&!P.ltHasDemote&&Math.random()<P.ltDown)lt=false;
       if(!guaranteed&&Math.random()>=(lt?P.cLT:P.c))break;
+      /* 振り分けの全枠に「★次回」を付けると継続判定が永久に飛ばされ、
+         ブラウザが固まる。現実には起こらない連チャン数で打ち切る安全弁
+         (通常の設定では到達しないため計算結果は変わらない) */
+      if(chain>=PK_CHAIN_MAX)break;
       guaranteed=false;
       const row=lt?pkDrawLt(P):pkDrawRush(P);
       balls+=row.balls;chain++;

@@ -60,6 +60,29 @@ function foldState(w, bodyId) {
     R.check('パチンコ: 大数字(v-num)がある', !!(v && v.querySelector('.v-num')));
   }
 
+  /* パチンコ: 2モードの出力が同時にDOMへ残ってもidが衝突しないこと。
+     以前は両モードが同じ id="pkDistPies" を出力していたため、投資金額モードで
+     描画すると getElementById が先に見つかる(隠れている)ガチ側を掴み、
+     投資側の振り分け円グラフが空のままになっていた。 */
+  {
+    const w = await boot(TARGET, { seed: 1 });
+    w.runPK(); await sleep(200);          // ガチ側の出力を作る
+    w.pkSetMode('f');
+    $(w, 'pkFunYen').value = '20000';
+    w.funStart(); await sleep(300);        // 投資側の出力も作る
+    const ids = (pre) => [...w.document.querySelectorAll('[id^="' + pre + '"]')].map((e) => e.id);
+    const boxes = ids('pkDistPies');
+    R.check('振り分け円グラフのidが重複しない', new Set(boxes).size === boxes.length && boxes.length === 2, boxes.join(','));
+    R.check('  ガチ側と投資側の両方の器がある',
+      !!$(w, 'pkDistPies_g') && !!$(w, 'pkDistPies_f'));
+    w.pkDistPiesDraw(w.pkParams(), 'f');
+    R.check('投資金額モードで自分側にcanvasが作られる',
+      $(w, 'pkDistPies_f').querySelectorAll('canvas').length > 0,
+      $(w, 'pkDistPies_f').querySelectorAll('canvas').length + '枚');
+    const toggles = ids('pkPieToggle_');
+    R.check('トグルのidも重複しない', new Set(toggles).size === toggles.length, toggles.join(','));
+  }
+
   /* 統計: 生涯トータルが先頭(結果表示ファースト) */
   {
     const w = await boot(TARGET, { seed: 1 });

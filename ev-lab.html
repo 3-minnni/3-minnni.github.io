@@ -408,6 +408,15 @@
   .fold-body{overflow:hidden;transition:max-height .25s;}
   .fold-body.closed{max-height:0!important;}
 
+  /* 仮想ラッシュモード: 1試行ぶんの連チャン内訳 */
+  .vr-trial{background:var(--card2);border:1px solid var(--line);border-radius:11px;padding:11px 14px;margin-bottom:8px;}
+  .vr-trial .vr-head{font-size:var(--fs-md);font-weight:700;margin-bottom:6px;}
+  .vr-trial .vr-head b{font-family:var(--font-mono);color:var(--gold-hi);}
+  .vr-row{display:grid;grid-template-columns:64px 1fr auto;gap:8px;align-items:baseline;
+    font-family:var(--font-mono);font-size:var(--fs-sm);padding:3px 0;border-top:1px solid var(--line);}
+  .vr-row .vr-n{color:var(--ink-3);}
+  .vr-row .vr-share{color:var(--ink-2);}
+  .vr-row .vr-balls{color:var(--ink);font-weight:600;text-align:right;}
   .pct-big{font-family:var(--font-mono);font-size:22px;font-weight:700;color:var(--gold-hi);}
   .pct-strip{display:flex;gap:8px;flex-wrap:wrap;align-items:baseline;background:var(--card2);border:1px solid var(--gold-deep);border-radius:11px;padding:10px 14px;margin-bottom:10px;}
 
@@ -530,13 +539,14 @@
       <div class="chips">
         <div class="chip on" id="pkModeG" onclick="pkSetMode('g')">ガチ理論値モード<small>計算・グラフ</small></div>
         <div class="chip" id="pkModeF" onclick="pkSetMode('f')">投資金額設定モード<small>いくらで何回転</small></div>
+        <div class="chip" id="pkModeV" onclick="pkSetMode('v')">仮想ラッシュモード<small>RUSHだけを試行</small></div>
       </div>
     </div>
-    <div class="card">
+    <div class="card pk-spec">
       <div class="card-title"><span class="step">STEP 1</span><h3>レート</h3></div>
       <div class="chips" id="pkRates"></div>
     </div>
-    <div class="card">
+    <div class="card pk-spec">
       <div class="card-title"><span class="step">STEP 2</span><h3>通常時</h3></div>
       <div class="fgrid">
         <div class="field">
@@ -571,7 +581,7 @@
         <div class="igroup"><input type="number" id="pkEnter" value="50" min="0" max="100"><span class="unit">%</span></div>
       </div>
     </div>
-    <div class="card">
+    <div class="card pk-spec">
       <div class="fold-head" onclick="this.classList.toggle('closed');$('foldRushBody').classList.toggle('closed');">
         <span class="fold-ar">▼</span><span class="step">STEP 3</span><h3 style="margin:0;">右打ち中(RUSH中)</h3>
       </div>
@@ -612,7 +622,7 @@
       </div>
       </div>
     </div>
-    <div class="card">
+    <div class="card pk-spec">
       <div class="card-title"><span class="step">STEP 4</span><h3>LT中(上位ラッシュ)</h3></div>
       <div class="fgrid">
         <div class="field full">
@@ -650,7 +660,7 @@
         <div class="fhelp" style="margin-top:10px;">※ LTからさらに上位のLTへ昇格する多段階構成には現状対応していません(2階層目のLTが必要な機種は今後の対応候補です)。</div>
       </div>
     </div>
-    <div class="card">
+    <div class="card pk-spec">
       <div class="card-title"><span class="step">STEP 5</span><h3>時短・引き戻し</h3></div>
       <div class="fgrid">
         <div class="field full">
@@ -690,7 +700,7 @@
         <button class="add-row" onclick="addPkJtDist()">+ 振り分けを追加</button>
       </div>
     </div>
-    <div class="card">
+    <div class="card pk-spec">
       <div class="card-title"><span class="step">RUN</span><h3>計算を実行</h3><span class="hint">合計100%になるように</span></div>
       <div style="display:flex;gap:14px;align-items:center;margin-top:12px;flex-wrap:wrap;">
         <canvas id="pkPie" style="width:150px;height:150px;flex:none;"></canvas>
@@ -738,6 +748,33 @@
         <div id="funTheory"></div>
       </div>
     </div>
+
+    <!-- 仮想ラッシュモード: 通常時を挟まず「RUSHに入った状態」だけを切り出して試行する -->
+    <div class="card" id="pkVr" style="display:none;">
+      <div class="card-title"><span class="step">RUSH</span><h3>仮想ラッシュモード</h3><span class="hint">RUSHだけを何度も試す</span></div>
+      <div class="fhelp" style="margin-bottom:10px;">通常時の初当たりは挟まず、<b>RUSHに入った状態</b>から始めて何連続くか・どれだけ出るかだけを調べます。1連目は必ず当たり、そこから継続率で判定します。</div>
+      <div class="fgrid" style="margin-bottom:10px;">
+        <div class="field">
+          <div class="flabel">継続率</div><div class="fhelp">1回の当たりごとの継続率</div>
+          <div class="igroup"><input type="number" id="pkVrCont" value="80" min="0" max="99.9" step="0.1"><span class="unit">%</span></div>
+        </div>
+        <div class="field">
+          <div class="flabel">試行回数</div><div class="fhelp">ラッシュを何回ぶん試すか</div>
+          <div class="igroup"><input type="number" id="pkVrTrials" value="10000" min="1" max="100000" step="1000"><span class="unit">回</span></div>
+        </div>
+      </div>
+      <div class="flabel" style="margin-top:6px;">出玉振り分け</div>
+      <div class="fhelp" style="margin-bottom:4px;">1連ごとに、この振り分けから確率に応じて出玉が決まります。合計100%になるように入力してください。</div>
+      <div class="tier-head" style="grid-template-columns:1fr 1fr 30px;"><span>出玉(玉)</span><span>振り分け(%)</span><span></span></div>
+      <div id="pkVrDistRows"></div>
+      <button class="add-row" onclick="addPkVrDist()">+ 振り分けを追加</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+        <button class="btn2" onclick="pkVrCopyFromRush()">STEP3の設定をコピー</button>
+      </div>
+      <div style="height:10px"></div>
+      <button class="run" onclick="runPkVr()">この条件でシミュレートする</button>
+    </div>
+    <div id="pkVrOut"></div>
   </div>
 
   <!-- ================= スロット ================= -->
@@ -1571,13 +1608,21 @@ function pkPie(){
     `<span class="li"><span style="width:10px;height:10px;border-radius:3px;background:${PIE_COLORS[i%PIE_COLORS.length]};display:inline-block;"></span>${x.balls.toLocaleString()}玉 — ${num(x.share,0)}%</span>`).join('')
     +(Math.round(total)!==100?`<span class="li" style="color:#FF5C5C;">合計${num(total,0)}% (100%にしてください)</span>`:'');
 }
-let pkLt=false,pkJt=false,pkModeFun=false;
+let pkLt=false,pkJt=false,pkModeFun=false,pkMode='g';
+/* m: 'g'=ガチ理論値 / 'f'=投資金額設定 / 'v'=仮想ラッシュ
+   仮想ラッシュは通常時を扱わないため、スペック入力(.pk-spec)ごと隠して専用画面にする */
 function pkSetMode(m){
-  pkModeFun=m==='f';
-  $('pkModeG').classList.toggle('on',!pkModeFun);
-  $('pkModeF').classList.toggle('on',pkModeFun);
-  $('pkFun').style.display=pkModeFun?'':'none';
-  $('pk-out').style.display=pkModeFun?'none':'';
+  pkMode=(m==='f'||m==='v')?m:'g';
+  pkModeFun=pkMode==='f';                       // 既存コードが参照するフラグは維持
+  const isV=pkMode==='v';
+  $('pkModeG').classList.toggle('on',pkMode==='g');
+  $('pkModeF').classList.toggle('on',pkMode==='f');
+  $('pkModeV').classList.toggle('on',isV);
+  document.querySelectorAll('#panel-pk .pk-spec').forEach(el=>{el.style.display=isV?'none':'';});
+  $('pkFun').style.display=pkMode==='f'?'':'none';
+  $('pk-out').style.display=pkMode==='g'?'':'none';
+  $('pkVr').style.display=isV?'':'none';
+  $('pkVrOut').style.display=isV?'':'none';
 }
 function pkSetLt(on){
   pkLt=on;
@@ -1742,6 +1787,100 @@ function pkDistPiesDraw(P,ns){
   requestAnimationFrame(()=>panels.forEach(([title,segs,id])=>pieInto(id,segs,title,'')));
 }
 addPkDist(1500,50);addPkDist(4500,35);addPkDist(7500,15);
+
+/* ===================== 仮想ラッシュモード =====================
+   通常時の初当たりを挟まず、「RUSHに入った状態」だけを切り出して試行する。
+   抽選は既存の pkDrawRush をそのまま使う(あの関数は P.rushD / P.rushTot しか
+   見ないため、最小のPオブジェクトを渡せば無改修で流用できる)。
+   既存の pkFirstHit は「継続判定→当たり」の順だが、あちらは通常時からの突入を
+   扱うためであり変更しない。こちらは仕様どおり「1連目は確定→以降継続判定」。 */
+function addPkVrDist(balls,share){
+  const div=document.createElement('div');div.className='tier-row';
+  div.style.gridTemplateColumns='1fr 1fr 30px';
+  div.innerHTML=`<input type="number" value="${balls??1500}" min="0" step="100">
+    <input type="number" value="${share??''}" min="0" max="100" step="1">
+    <button class="rm" onclick="this.parentElement.remove()">×</button>`;
+  $('pkVrDistRows').appendChild(div);
+}
+function pkVrDist(){
+  return [...document.querySelectorAll('#pkVrDistRows .tier-row')].map(r=>{
+    const ins=r.querySelectorAll('input');
+    return{balls:parseFloat(ins[0].value)||0,share:parseFloat(ins[1].value)||0};
+  }).filter(d=>d.share>0);
+}
+/* STEP3(RUSH中の出玉振り分け)と継続率を写す。未入力なら通常時の振り分けを使う */
+function pkVrCopyFromRush(){
+  const src=pkRushDist().length?pkRushDist():pkDist();
+  if(!src.length){toast('コピー元の振り分けが入力されていません。STEP2かSTEP3で出玉振り分けを入力してください。',true);return;}
+  $('pkVrDistRows').innerHTML='';
+  src.forEach(d=>addPkVrDist(d.balls,d.share));
+  const cont=V('pkCont');
+  if(cont>0)$('pkVrCont').value=cont;
+  toast('STEP'+(pkRushDist().length?'3':'2')+'の振り分け'+src.length+'件をコピーしました');
+}
+function runPkVr(){
+  const dist=pkVrDist();
+  const errs=validate([
+    {bad:dist.length===0,msg:'出玉振り分けを1行以上入力してください。1連あたりの出玉が決まらないとシミュレートできません(例: 1500玉・30%)'},
+    {bad:V('pkVrCont')<0||V('pkVrCont')>=100,msg:'継続率は0以上100未満で入力してください。100%だと永久に終わらないラッシュになってしまいます(例: 80)'},
+    {bad:V('pkVrTrials')<1,msg:'試行回数は1以上の数値を入力してください。0回では分布を作れません(例: 10000)'}
+  ]);
+  if(errs){$('pkVrOut').innerHTML=errs;return;}
+
+  const cont=Math.min(0.999,Math.max(0,V('pkVrCont')/100));
+  const trials=vClamp('pkVrTrials',1,SIM_MAX);
+  const tot=dist.reduce((s,x)=>s+x.share,0)||1;
+  const P={rushD:dist,rushTot:tot};          // pkDrawRush が必要とする最小の形
+  const KEEP=5;                               // 明細として残す直近の試行数
+
+  let chainSum=0,ballSum=0,maxChain=0,maxBalls=0;
+  const chainSamples=[],ballSamples=[],recent=[];
+  for(let t=1;t<=trials;t++){
+    let chain=0,balls=0;const log=[];
+    do{
+      const row=pkDrawRush(P);               // ★既存関数をそのまま使用
+      chain++;balls+=row.balls;
+      if(t>trials-KEEP)log.push({n:chain,share:row.share,balls:row.balls});
+    }while(Math.random()<cont);
+    chainSum+=chain;ballSum+=balls;
+    if(chain>maxChain)maxChain=chain;
+    if(balls>maxBalls)maxBalls=balls;
+    chainSamples.push(chain);ballSamples.push(balls);
+    if(t>trials-KEEP)recent.unshift({t,chain,balls,log});
+  }
+  const avgChain=chainSum/trials,avgBalls=ballSum/trials;
+  /* 継続率から理論的に期待される連チャン数 = 1/(1-継続率)。実測との突き合わせ用 */
+  const theoChain=cont<1?1/(1-cont):Infinity;
+
+  $('pkVrOut').innerHTML=
+    `<div class="verdict win pop">
+      <div class="v-badge">RUSH ${trials.toLocaleString()}回ぶんの試行</div>
+      <div class="v-num">平均 ${cf(Math.round(avgBalls))}玉</div>
+      <div class="v-label">1回のラッシュで出る玉数の平均</div>
+      <div class="v-note">平均${num(avgChain,2)}連で終了(継続率${num(cont*100,1)}%の理論値 ${num(theoChain,2)}連)</div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="s-l">平均連チャン数</div><div class="s-v">${num(avgChain,2)}連</div><div class="s-sub">理論値 ${num(theoChain,2)}連</div></div>
+      <div class="stat"><div class="s-l">最大連チャン数</div><div class="s-v">${cf(maxChain)}連</div><div class="s-sub">${trials.toLocaleString()}回中の最高</div></div>
+      <div class="stat"><div class="s-l">平均出玉</div><div class="s-v">${cf(Math.round(avgBalls))}玉</div><div class="s-sub">1ラッシュあたり</div></div>
+      <div class="stat"><div class="s-l">最大出玉</div><div class="s-v">${cf(maxBalls)}玉</div><div class="s-sub">${trials.toLocaleString()}回中の最高</div></div>
+    </div>
+    <div class="chart-card"><div class="chart-head"><div class="c-title">連チャン数の分布</div></div><canvas id="pkVrChainHist"></canvas></div>
+    <div class="chart-card"><div class="chart-head"><div class="c-title">出玉の分布</div></div><canvas id="pkVrBallHist"></canvas></div>
+    <div class="card">
+      <div class="card-title"><span class="step">明細</span><h3>直近${recent.length}回の内訳</h3><span class="hint">何連目に何%枠を引いたか</span></div>
+      ${recent.map(r=>
+        `<div class="vr-trial">
+          <div class="vr-head">試行 #${r.t.toLocaleString()} — <b>${r.chain}連</b>で終了 / 合計 <b>${cf(r.balls)}</b>玉</div>
+          ${r.log.map(e=>`<div class="vr-row"><span class="vr-n">${e.n}連目</span><span class="vr-share">${num(e.share,0)}%枠</span><span class="vr-balls">${cf(e.balls)}玉</span></div>`).join('')}
+        </div>`).join('')}
+    </div>`;
+  requestAnimationFrame(()=>{
+    histInto('pkVrChainHist',chainSamples,'連');
+    histInto('pkVrBallHist',ballSamples,'玉');
+  });
+}
+addPkVrDist(1500,30);addPkVrDist(3000,40);addPkVrDist(7000,30);
 
 /* ===================== スロット ===================== */
 const SL_RATES=[{label:'5スロ',sub:'5円/枚',rate:5},{label:'10スロ',sub:'10円/枚',rate:10},{label:'20スロ',sub:'20円/枚',rate:20}];

@@ -827,19 +827,24 @@
           <div class="fhelp">現在の遊技G数を入力(手動更新)</div>
           <div class="igroup"><input type="number" id="kkG" value="0" min="0" step="100" oninput="kkRender()"><span class="unit">G</span></div>
         </div>
-        <div class="field">
-          <button class="btn2" id="kkFsBtn" onclick="kkFullscreen()" style="margin-top:20px;">📱 全画面表示(横向き推奨)</button>
-        </div>
       </div>
-      <div class="fgrid" style="margin-bottom:10px;">
-        <div class="field"><div class="flabel">白ボタンの役名</div><div class="fhelp">チャンス目・こぼし目・単独チェリー等</div>
-          <div class="igroup"><input type="text" id="kkName1" value="チャンス目" oninput="kkRender()"></div></div>
-        <div class="field"><div class="flabel">赤ボタンの役名</div><div class="fhelp">チェリー等</div>
-          <div class="igroup"><input type="text" id="kkName2" value="チェリー" oninput="kkRender()"></div></div>
-        <div class="field"><div class="flabel">緑ボタンの役名</div><div class="fhelp">スイカ等</div>
-          <div class="igroup"><input type="text" id="kkName3" value="スイカ" oninput="kkRender()"></div></div>
-        <div class="field"><div class="flabel">黄ボタンの役名</div><div class="fhelp">ベル等</div>
-          <div class="igroup"><input type="text" id="kkName4" value="ベル" oninput="kkRender()"></div></div>
+      <div class="fold-head closed" onclick="this.classList.toggle('closed');$('kkDetailBody').classList.toggle('closed');"><span class="fold-ar">▼</span>表示・役名の設定</div>
+      <div class="fold-body closed" id="kkDetailBody" style="max-height:2000px;">
+        <div class="fgrid" style="margin-bottom:10px;margin-top:10px;">
+          <div class="field">
+            <button class="btn2" id="kkFsBtn" onclick="kkFullscreen()">📱 全画面表示(横向き推奨)</button>
+          </div>
+        </div>
+        <div class="fgrid" style="margin-bottom:10px;">
+          <div class="field"><div class="flabel">白ボタンの役名</div><div class="fhelp">チャンス目・こぼし目・単独チェリー等</div>
+            <div class="igroup"><input type="text" id="kkName1" value="チャンス目" oninput="kkRender()"></div></div>
+          <div class="field"><div class="flabel">赤ボタンの役名</div><div class="fhelp">チェリー等</div>
+            <div class="igroup"><input type="text" id="kkName2" value="チェリー" oninput="kkRender()"></div></div>
+          <div class="field"><div class="flabel">緑ボタンの役名</div><div class="fhelp">スイカ等</div>
+            <div class="igroup"><input type="text" id="kkName3" value="スイカ" oninput="kkRender()"></div></div>
+          <div class="field"><div class="flabel">黄ボタンの役名</div><div class="fhelp">ベル等</div>
+            <div class="igroup"><input type="text" id="kkName4" value="ベル" oninput="kkRender()"></div></div>
+        </div>
       </div>
       <div class="kk-device">
         <div class="kk-lcd"><span class="kk-lcd-l">総ゲーム数</span><span class="kk-lcd-v" id="kkLcdG">0G</span></div>
@@ -857,13 +862,16 @@
         <button class="btn2" onclick="kkUndo()">1つ戻す</button>
         <button class="btn2 danger" onclick="kkReset()">リセット</button>
       </div>
-      <div class="flabel" style="margin-top:14px;">設定1〜6の理論値を入力して期待度を比較</div>
-      <div class="fhelp">解析サイト・雑誌の設定別確率「1/x」のxを入力(空欄の役は無視)。下の保存欄に機種名を付けて保存すると、次回から入力し直さずに呼び出せます。</div>
-      <div id="kjTable" class="kj-grid-wrap"></div>
-      <div class="preset-bar" data-p="hk"></div>
-      <button class="btn2" onclick="kjCalc()" style="margin-top:8px;">設定期待度を計算</button>
-      <div id="kjOut" style="margin-top:10px;"></div>
-      <div class="fhelp" style="margin-top:8px;">タップでカウント。表示される1/xを機種の設定別確率表(雑誌・解析サイト)と見比べて設定を推測してください。設定別確率はメーカー非公開の機種も多く、アプリ内蔵は正確性を保証できないため見比べ方式にしています。</div>
+      <div class="fold-head closed" style="margin-top:10px;" onclick="this.classList.toggle('closed');$('hkAnalysisBody').classList.toggle('closed');"><span class="fold-ar">▼</span>設定1〜6比較</div>
+      <div class="fold-body closed" id="hkAnalysisBody" style="max-height:3000px;">
+        <div class="flabel" style="margin-top:14px;">設定1〜6の理論値を入力して期待度を比較</div>
+        <div class="fhelp">解析サイト・雑誌の設定別確率「1/x」のxを入力(空欄の役は無視)。下の保存欄に機種名を付けて保存すると、次回から入力し直さずに呼び出せます。</div>
+        <div id="kjTable" class="kj-grid-wrap"></div>
+        <div class="preset-bar" data-p="hk"></div>
+        <button class="btn2" onclick="kjCalc()" style="margin-top:8px;">設定期待度を計算</button>
+        <div id="kjOut" style="margin-top:10px;"></div>
+        <div class="fhelp" style="margin-top:8px;">タップでカウント。表示される1/xを機種の設定別確率表(雑誌・解析サイト)と見比べて設定を推測してください。設定別確率はメーカー非公開の機種も多く、アプリ内蔵は正確性を保証できないため見比べ方式にしています。</div>
+      </div>
     </div>
   </div>
 

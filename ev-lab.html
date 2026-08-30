@@ -94,8 +94,11 @@
   body.light .verdict{box-shadow:0 8px 20px rgba(27,28,25,.10);}
   .verdict.win{background:var(--pos-soft);border-color:rgba(61,220,151,.4);}
   .verdict.lose{background:var(--neg-soft);border-color:rgba(230,57,70,.4);}
-  .verdict .v-label{font-size:var(--fs-sm);font-weight:500;color:var(--ink-2);}
-  .verdict .v-num{font-family:'IBM Plex Mono',monospace;font-size:32px;font-weight:700;line-height:1.25;margin:2px 0;}
+  .verdict .v-badge{display:inline-flex;align-items:center;gap:4px;font-size:var(--fs-sm);font-weight:700;border-radius:999px;padding:3px 12px;margin-bottom:4px;border:1px solid;}
+  .verdict.win .v-badge{background:var(--pos-soft);border-color:rgba(61,220,151,.45);color:var(--pos);}
+  .verdict.lose .v-badge{background:var(--neg-soft);border-color:rgba(230,57,70,.45);color:var(--neg);}
+  .verdict .v-label{font-size:var(--fs-xs);font-weight:500;color:var(--ink-3);margin-bottom:2px;}
+  .verdict .v-num{font-family:'IBM Plex Mono',monospace;font-size:34px;font-weight:700;line-height:1.25;margin:2px 0;}
   .verdict.win .v-num{color:var(--pos);text-shadow:0 0 24px rgba(61,220,151,.5);}
   .verdict.lose .v-num{color:var(--neg);text-shadow:0 0 24px rgba(255,92,92,.4);}
   .verdict .v-note{font-size:var(--fs-sm);color:var(--ink-2);}
@@ -1429,8 +1432,9 @@ function drawChart(canvas,series,evLine,opt){
 function verdict(ev,unit,noteWin,noteLose){
   const win=ev>=0;
   return `<div class="verdict ${win?'win':'lose'} pop">
-    <div class="v-label">理論上の期待収支(この条件を平均するとどうなるか)</div>
+    <div class="v-badge">${win?'▲ 期待値プラス':'▼ 期待値マイナス'}</div>
     <div class="v-num">${win?'+':''}${unit==='yen'?yen(ev):cf(ev)+(unit?' '+unit:'')}</div>
+    <div class="v-label">理論上の期待収支 — この条件を平均した場合</div>
     <div class="v-note">${win?noteWin:noteLose}</div></div>`;
 }
 
@@ -1628,7 +1632,7 @@ function pkPracticalCalc(){
   const realHourlyIncl=netPerHour/totalHoursIncl;
   const good=realSpins1k>=border;
   $('pkPracticalOut').innerHTML=
-    '<div class="verdict '+(good?'win':'lose')+' pop" style="margin-bottom:10px;"><div class="v-label">'+(good?'この実測値ならボーダー超え':'この実測値はボーダー未満')+'</div><div class="v-num">'+num(realSpins1k)+'回転/千円 (ボーダー'+num(border)+'回転)</div><div class="v-note">実測ベースの1回転期待値: '+(evSpinReal>=0?'+':'−')+cf(Math.abs(Math.round(evSpinReal)))+'円</div></div>'
+    '<div class="verdict '+(good?'win':'lose')+' pop" style="margin-bottom:10px;"><div class="v-badge">'+(good?'▲ ボーダー超え':'▼ ボーダー未満')+'</div><div class="v-num">'+num(realSpins1k)+'回転/千円 (ボーダー'+num(border)+'回転)</div><div class="v-note">実測ベースの1回転期待値: '+(evSpinReal>=0?'+':'−')+cf(Math.abs(Math.round(evSpinReal)))+'円</div></div>'
     +'<div class="stats">'
     +'<div class="stat"><div class="s-l">実測ベースの時給(理論値)</div><div class="s-v" style="color:'+(hourlyReal>=0?'var(--pos)':'var(--neg)')+'">'+(hourlyReal>=0?'+':'−')+cf(Math.abs(Math.round(hourlyReal)))+'円/h</div><div class="s-sub">250回転/時で換算</div></div>'
     +(travelH>0?'<div class="stat"><div class="s-l">移動・並び込みの実質時給</div><div class="s-v" style="color:'+(realHourlyIncl>=0?'var(--pos)':'var(--neg)')+'">'+(realHourlyIncl>=0?'+':'−')+cf(Math.abs(Math.round(realHourlyIncl)))+'円/h</div><div class="s-sub">遊技1時間+移動・並び'+num(travelH)+'時間で按分</div></div>':'')
@@ -2432,7 +2436,7 @@ function runSL(){
   }
   const render=()=>{
     $('sl-out').innerHTML=
-      (complete?'<div class="verdict win pop fxw" id="slComp"><div class="v-label">🏆 コンプリート機能作動</div><div class="v-num">MY 19,000枚</div><div class="v-note">'+playedG.toLocaleString()+'G時点で最下点から19,000枚に到達。当日の遊技はここで終了です。</div></div>':'')
+      (complete?'<div class="verdict win pop fxw" id="slComp"><div class="v-badge">🏆 コンプリート機能作動</div><div class="v-num">MY 19,000枚</div><div class="v-note">'+playedG.toLocaleString()+'G時点で最下点から19,000枚に到達。当日の遊技はここで終了です。</div></div>':'')
       +verdict(totalEV,'yen','機械割100%超え。理論上は打つほどプラス。',`${G.toLocaleString()}Gで平均${yen(Math.abs(totalEV))}負ける計算です。`)
       +`<div class="stats">
         <div class="stat"><div class="s-l">機械割(理論値)</div><div class="s-v">${pct(kikai)}</div><div class="s-sub">100%が損益分岐</div></div>

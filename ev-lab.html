@@ -342,6 +342,15 @@
   .modal{background:var(--card);border:1px solid var(--line2);border-radius:16px;padding:20px;max-width:430px;width:100%;max-height:80vh;overflow-y:auto;}
   .modal h4{margin:0 0 10px;font-size:var(--fs-lg);}
   .modal p{font-size:var(--fs-md);color:var(--ink-2);line-height:1.8;margin:0 0 12px;}
+  /* 取り消しスナックバー(削除直後に一定時間だけ出す) */
+  .undo-bar{position:fixed;left:50%;bottom:18px;transform:translate(-50%,180%);display:flex;align-items:center;gap:12px;
+    background:var(--card);border:1px solid var(--line2);border-radius:12px;padding:10px 14px;
+    box-shadow:0 10px 30px rgba(0,0,0,.5);z-index:120;transition:transform .28s cubic-bezier(.2,.8,.3,1);
+    font-size:var(--fs-sm);max-width:calc(100vw - 28px);}
+  .undo-bar.show{transform:translate(-50%,0);}
+  .undo-bar .u-msg{color:var(--ink-2);}
+  .undo-bar .btn2{padding:6px 12px;font-size:var(--fs-sm);white-space:nowrap;}
+  body.light .undo-bar{box-shadow:0 8px 22px rgba(27,28,25,.18);}
   .modal .m-btns{display:flex;gap:8px;}
   .modal .m-btns .btn2{flex:1;padding:11px;}
   .btn2.yes-danger{background:#E63946;border-color:#E63946;color:#fff;}
@@ -996,7 +1005,7 @@
         <button class="btn2 accent" onclick="opPull(100)">100連</button>
         <button class="btn2 accent" onclick="opPull(1000)">1000連</button>
         <button class="btn2 accent" id="opMaxPullBtn" onclick="opPullMax()">回せるMAX回数を引く(0口)</button>
-        <button class="btn2 danger" onclick="opBuild()">リセット(再シャッフル)</button>
+        <button class="btn2 danger" onclick="opReshuffle()">リセット(再シャッフル)</button>
       </div>
       <div class="chart-card">
         <div class="chart-head"><div class="c-title">コイン収支の推移(横軸: 引いた口数)</div>
@@ -1728,7 +1737,23 @@ const SL_G_PER_HOUR=3600/SL_SEC_PER_G;
 let kk={big:0,reg:0,k1:0,k2:0,k3:0,k4:0},kkHist=[];
 function kkAdd(k){kk[k]++;kkHist.push(k);kkRender();}
 function kkUndo(){const last=kkHist.pop();if(last)kk[last]--;kkRender();}
-function kkReset(){kk={big:0,reg:0,k1:0,k2:0,k3:0,k4:0};kkHist=[];kkRender();}
+function kkReset(){
+  const total=kk.big+kk.reg+kk.k1+kk.k2+kk.k3+kk.k4;
+  const doReset=()=>{
+    const prev={kk:{...kk},hist:[...kkHist],g:$('kkG')?$('kkG').value:''};
+    kk={big:0,reg:0,k1:0,k2:0,k3:0,k4:0};kkHist=[];
+    if($('kkG'))$('kkG').value=0;
+    kkRender();
+    undoOffer('カウンターをリセットしました('+total+'回分)',()=>{
+      kk=prev.kk;kkHist=prev.hist;
+      if($('kkG'))$('kkG').value=prev.g;
+      kkRender();
+    },12);
+  };
+  /* カウント済みなら実戦データの損失なので確認を挟む。0件なら黙って初期化 */
+  if(total>0)confirmBox('カウントした'+total+'回分の記録と総ゲーム数をすべて消去します。<br>実戦中の場合、これまでのカウントは復元できません(直後なら「元に戻す」で戻せます)。',true,doReset);
+  else doReset();
+}
 function kkFullscreen(){
   const el=document.documentElement;
   if(!document.fullscreenElement){if(el.requestFullscreen)el.requestFullscreen().catch(()=>{});}
@@ -2245,6 +2270,33 @@ function confirmBox(msg,danger,onYes){
   btns[0].onclick=()=>bg.remove();
   btns[1].onclick=()=>{bg.remove();onYes();};
 }
+/* ---- 取り消し(UNDO) ----
+   削除系の操作で「消える直前の状態」を保持し、一定時間だけ元に戻せるようにする。
+   restore は呼ばれたら状態を戻して再描画まで行うコールバック。 */
+let __undoFn=null,__undoTimer=null;
+function undoOffer(msg,restore,sec){
+  __undoFn=restore;
+  clearTimeout(__undoTimer);
+  let bar=$('undoBar');
+  if(!bar){
+    bar=document.createElement('div');bar.id='undoBar';bar.className='undo-bar';
+    document.body.appendChild(bar);
+  }
+  bar.innerHTML='<span class="u-msg">'+escHtml(msg)+'</span><button class="btn2" onclick="undoRun()">元に戻す</button>';
+  /* requestAnimationFrame は非表示タブ等で発火しないことがあるため、
+     強制リフローでトランジションの開始位置を確定させてからクラスを付ける */
+  bar.classList.remove('show');
+  void bar.offsetWidth;
+  bar.classList.add('show');
+  __undoTimer=setTimeout(()=>{bar.classList.remove('show');__undoFn=null;},(sec||8)*1000);
+}
+function undoRun(){
+  if(!__undoFn)return;
+  const f=__undoFn;__undoFn=null;
+  clearTimeout(__undoTimer);
+  const bar=$('undoBar');if(bar)bar.classList.remove('show');
+  f();
+}
 function confettiBurst(host){
   if(FX!=='full'||!host)return;
   const colors=['#E63946','#E8C879','#39FF88','#4FA3E0','#A020F0','#FFFFFF'];
@@ -2262,7 +2314,13 @@ function confettiBurst(host){
 /* ---- 統計 ---- */
 function stAll(){try{return JSON.parse(localStorage.getItem('evlab_stats')||'{}');}catch(e){return window.__st||(window.__st={});}}
 function stSave(o){try{localStorage.setItem('evlab_stats',JSON.stringify(o));}catch(e){window.__st=o;}}
-function stReset(){confirmBox('統計をすべてリセットしますか?この操作は戻せません。',true,()=>{stSave({});stRender();});}
+function stReset(){
+  confirmBox('シミュレーション統計をすべて消去します。各タブで積み上げた集計はこの操作で失われます(直後なら「元に戻す」で復元できます)。',true,()=>{
+    const prev=stAll();
+    stSave({});stRender();
+    undoOffer('シミュ統計をリセットしました',()=>{stSave(prev);stRender();},12);
+  });
+}
 /* ---- チュートリアル ---- */
 const TUT={
  pk:['レートを選び、台のスペック(大当たり確率・回転数/千円・出玉振り分け)を入力','RUSH・LT・時短を設定して「計算する」→ 期待値とボーダーをモンテカルロ推定で表示','投資金額設定モードに切り替えると、指定金額で何回転もつか+理論値(破産確率・勝率)を確認できます'],
@@ -2905,7 +2963,12 @@ function presetRestore(p,s){
 function presetSave(p){
   const nameEl=$('pname-'+p);
   const name=(nameEl&&nameEl.value.trim())||('無題 '+new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'}));
-  confirmBox('「'+escHtml(name)+'」として現在のスペックを保存しますか?',false,()=>{
+  /* 同名が既にあれば「上書き」であることを明示する(黙って上書きしない) */
+  const exists=!!(lsAll()[p]||{})[name];
+  const msg=exists
+    ?'すでに保存されている「'+escHtml(name)+'」を、いまの入力内容で上書きします。<br>以前保存した内容は元に戻せません。'
+    :'「'+escHtml(name)+'」として現在のスペックを保存しますか?';
+  confirmBox(msg,exists,()=>{
     const all=lsAll();all[p]=all[p]||{};
     const keys=Object.keys(all[p]);
     if(keys.length>=100)delete all[p][keys[0]];
@@ -2916,9 +2979,15 @@ function presetSave(p){
 function presetDel(p){
   const sel=$('psel-'+p);if(!sel)return;
   const nm=sel.value;
-  confirmBox('スペック「'+escHtml(nm)+'」を削除しますか?<br>この操作は元に戻せません。',true,()=>{
+  if(!nm)return;
+  confirmBox('保存したスペック「'+escHtml(nm)+'」を削除します。この設定内容は失われます(直後なら「元に戻す」で復元できます)。',true,()=>{
     const all=lsAll();
-    if(all[p]){delete all[p][nm];lsSaveAll(all);presetBarRender(p);}
+    if(!all[p]||!all[p][nm])return;
+    const prev=all[p][nm];
+    delete all[p][nm];lsSaveAll(all);presetBarRender(p);
+    undoOffer('スペック「'+nm+'」を削除しました',()=>{
+      const cur=lsAll();cur[p]=cur[p]||{};cur[p][nm]=prev;lsSaveAll(cur);presetBarRender(p);
+    },12);
   });
 }
 function tplLoad(p){
@@ -3072,7 +3141,16 @@ function rsAdd(){
   $('rsInv').value='';$('rsRet').value='';$('rsHours').value='';if($('rsMemo'))$('rsMemo').value='';
   rsRender();
 }
-function rsDel(i){const a=rsAll();a.splice(i,1);rsSave(a);rsRender();}
+function rsDel(i){
+  const a=rsAll();
+  const removed=a[i];
+  if(!removed)return;
+  a.splice(i,1);rsSave(a);rsRender();
+  /* 1件削除はモーダルを挟まず、直後に取り消せるようにする(誤タップ対策) */
+  undoOffer('実践記録を1件削除しました('+removed.d+' '+removed.g+')',()=>{
+    const cur=rsAll();cur.push(removed);cur.sort((x,y)=>x.d<y.d?1:-1);rsSave(cur);rsRender();
+  },10);
+}
 function rsQuickWidget(tabKey,kind){
   return '<div class="card">'
     +'<div class="card-title"><span class="step">記録</span><h3>今日の実践収支を記録</h3><span class="hint">統計タブに反映されます</span></div>'
@@ -3280,8 +3358,12 @@ function statAdd(cat,net,inv){
   stSave(s);
 }
 function stDelCat(cat){
-  confirmBox('シミュ統計の「'+escHtml(cat)+'」を削除しますか?<br>この操作は元に戻せません。',true,()=>{
-    const s=stAll();delete s[cat];stSave(s);stRender();
+  confirmBox('シミュ統計から「'+escHtml(cat)+'」の集計を削除します。この項目の通算回数・投資・収支はすべて失われます(直後なら「元に戻す」で復元できます)。',true,()=>{
+    const s=stAll();const prev=s[cat];
+    delete s[cat];stSave(s);stRender();
+    undoOffer('「'+cat+'」を削除しました',()=>{
+      const cur=stAll();cur[cat]=prev;stSave(cur);stRender();
+    },12);
   });
 }
 function stRender(){
@@ -3400,6 +3482,13 @@ function opApplyGuarantee(deck,tierIdx,N){
     const tmp=deck[target];deck[target]=deck[donor];deck[donor]=tmp;
   }
   return{deck,shortfall:0};
+}
+/* 「リセット(再シャッフル)」専用。引いた履歴・収支がすべて消えるため、
+   実際に引いた後だけ確認を挟む(未着手なら黙って組み直す) */
+function opReshuffle(){
+  if(opDrawn>0){
+    confirmBox('これまでに引いた'+cf(opDrawn)+'口の履歴・収支・当選記録をすべて破棄して、新しくシャッフルし直します。<br>この操作は元に戻せません。',true,opBuild);
+  }else opBuild();
 }
 function opBuild(){
   if(opGuarOn)opGuarPopulateSelect();
@@ -3951,12 +4040,21 @@ function dataImport(file){
   r.onload=()=>{
     try{
       const d=JSON.parse(r.result);
-      confirmBox('バックアップを読み込みますか?<br>現在のリアル統計・シミュ統計・保存スペックは上書きされます。',true,()=>{
+      confirmBox('バックアップから復元すると、いまこの端末にあるリアル統計・シミュ統計・保存スペックはファイルの内容へ置き換わります。<br>現在の記録を残したい場合は、先に「エクスポート」で保存してから実行してください(直後なら「元に戻す」で戻せます)。',true,()=>{
+        /* 復元直前の状態を丸ごと退避し、取り消しできるようにする */
+        const prev={real:rsAll(),sim:stAll(),presets:localStorage.getItem('evlab_presets')};
         if(d.realStats)rsSave(d.realStats);
         if(d.simStats)stSave(d.simStats);
         if(d.presets)localStorage.setItem('evlab_presets',JSON.stringify(d.presets));
         if(d.budgets)try{Object.keys(d.budgets).forEach(k=>localStorage.setItem(k,d.budgets[k]));}catch(e){}
         rsRender();stRender();['pk','sl','op','gc','lt','hk'].forEach(presetBarRender);
+        undoOffer('バックアップから復元しました',()=>{
+          rsSave(prev.real);stSave(prev.sim);
+          try{ if(prev.presets===null)localStorage.removeItem('evlab_presets');
+               else localStorage.setItem('evlab_presets',prev.presets); }catch(e){}
+          rsRender();stRender();['pk','sl','op','gc','lt','hk'].forEach(presetBarRender);
+          $('dataIOMsg').innerHTML='<div class="remain"><span class="rc">↩ 復元前の状態に戻しました</span></div>';
+        },15);
         $('dataIOMsg').innerHTML='<div class="remain"><span class="rc gold">✓ 復元しました</span></div>';
       });
     }catch(e){$('dataIOMsg').innerHTML='<div class="err-box">読み込めませんでした。ファイル形式を確認してください。</div>';}

@@ -1563,8 +1563,14 @@ $('pkJtN').addEventListener('input',pkJtUpdate);
 function pkDraw(P){let r=Math.random()*P.tot,acc=0;for(const x of P.d){acc+=x.share;if(r<acc)return x;}return P.d[P.d.length-1];}
 function runPK(){
   const P=pkParams();
-  if(P.d.length===0){$('pk-out').innerHTML='<div class="warn">出玉の振り分けを1行以上入力してください。</div>';return;}
-  const trials=Math.min(100000,Math.max(1,Math.round(V('pkTrials'))));
+  const errs=validate([
+    {bad:V('pkProb')<1,msg:'大当たり確率は1以上の数値を入力してください。0や空欄だと「毎回転かならず当たる台」になってしまい、期待値が計算できません(「1/319」なら 319 を入力)'},
+    {bad:V('pkSpins1k')<=0,msg:'1,000円あたりの回転数は0より大きい数値を入力してください。0回転だと投資しても玉が回らず、ボーダーを計算できません(4パチなら18前後が目安)'},
+    {bad:P.d.length===0,msg:'出玉の振り分けを1行以上入力してください。大当たり1回で得られる玉数が分からないと期待値を計算できません(例: 1500玉・55%)'},
+    {bad:V('pkTrials')<1,msg:'総回転数は1以上の数値を入力してください。0回転では収支のシミュレーションができません(1日なら2,000〜3,000回転が目安)'}
+  ]);
+  if(errs){$('pk-out').innerHTML=errs;return;}
+  const trials=vClamp('pkTrials',1,SIM_MAX);
   const p=1/P.N,cost=1000/P.spins1k;
   const heso=Math.max(0,Math.round(V('pkHeso'))),hesoYen=heso*pkRate.rate;
   const TH=20000;let tyB=0,tyC=0,ltN=0;
@@ -2166,7 +2172,7 @@ function funPress(amount){
 function kjCalc(){
   const G=Math.max(0,Math.round(V('kkG')));
   const obs=[kk.big,kk.reg,kk.k1,kk.k2,kk.k3,kk.k4];
-  if(G<=0){$('kjOut').innerHTML='<div class="warn">総ゲーム数を入力してください。</div>';return;}
+  if(G<=0){$('kjOut').innerHTML='<div class="warn">上の「カウント中の総ゲーム数」に1以上の数値を入力してください。設定判別は「何ゲーム回して何回当たったか」の比率で判定するため、ゲーム数が分からないと計算できません。</div>';return;}
   const lls=[];
   for(let s=0;s<6;s++){
     let ll=0,used=0;
@@ -2179,7 +2185,7 @@ function kjCalc(){
     }
     lls.push(used>0?ll:null);
   }
-  if(lls.every(x=>x===null)){$('kjOut').innerHTML='<div class="warn">設定別の分母を1つ以上入力してください。</div>';return;}
+  if(lls.every(x=>x===null)){$('kjOut').innerHTML='<div class="warn">下の表に、設定1〜6それぞれの理論確率(1/xのx)を1つ以上入力してください。実戦のカウント数と理論値を突き合わせて判定するため、比較対象がないと期待度を出せません(解析サイト・雑誌の数値をBIG/REG欄などに転記してください)。</div>';return;}
   const mx=Math.max(...lls.filter(x=>x!==null));
   const ws=lls.map(l=>l===null?0:Math.exp(l-mx));
   const sum=ws.reduce((a,b)=>a+b,0);
@@ -2406,6 +2412,18 @@ function slEGain(coins,modoshi,smart){
   return e1/(1-Math.min(.95,modoshi));
 }
 function runSL(){
+  /* 機種タイプごとに必要な入力が違うため、選択中のフォームだけを検証する */
+  const slErrs=slType==='at'?validate([
+    {bad:V('slAtProb')<1,msg:'AT初当たり確率は1以上の数値を入力してください。0や空欄だと「毎ゲーム必ずATに当たる台」になってしまい、機械割が計算できません(「1/300」なら 300 を入力)'},
+    {bad:V('slAtCoins')<=0,msg:'AT1回の平均獲得枚数は0より大きい数値を入力してください。0枚だと当たっても出玉がなく、期待値が必ずマイナスになってしまいます'},
+    {bad:V('slAtMochi')<=0,msg:'コイン持ち(50枚あたりのゲーム数)は0より大きい数値を入力してください。0だと1回転あたりの投資額が計算できません(通常は30〜50G)'}
+  ]):validate([
+    {bad:V('slBig')<1,msg:'BIG確率は1以上の数値を入力してください。0や空欄だと「毎ゲーム必ずBIGに当たる台」になってしまい、機械割が計算できません(「1/240」なら 240 を入力)'},
+    {bad:V('slReg')<1,msg:'REG確率は1以上の数値を入力してください。0や空欄だと「毎ゲーム必ずREGに当たる台」になってしまいます(「1/400」なら 400 を入力)'},
+    {bad:V('slBigC')<=0&&V('slRegC')<=0,msg:'BIG・REGの平均獲得枚数を入力してください。両方0枚だと当たっても出玉がなく、期待値が必ずマイナスになってしまいます'},
+    {bad:slMochiMode!=='detail'&&V('slAMochi')<=0,msg:'コイン持ち(50枚あたりのゲーム数)は0より大きい数値を入力してください。0だと1回転あたりの投資額が計算できません(通常は30〜50G)'}
+  ]);
+  if(slErrs){$('sl-out').innerHTML=slErrs;return;}
   let p,coins,mochi,label,pReg=0,coinsReg=0,modoshi=0;
   if(slType==='at'){
     p=1/Math.max(1,V('slAtProb'));coins=Math.max(1,V('slAtCoins'));
@@ -2761,8 +2779,8 @@ function rtDetailPreview(){
 }
 function rtDetailBet(){
   const r=rtDetailCompute();
-  if(!r){alert('この基準の数字ではベットを組めません');return;}
-  if(rtTotal()+rtAmt>ruWallet){alert('所持金('+cf(ruWallet)+')を超えています');return;}
+  if(!r){alert('この基準の数字では、選んだ種類のベットを組めません。盤面の端の数字だと隣接するマスが足りないためです。中央寄りの数字を基準に選ぶか、ベットの種類を変えてください。');return;}
+  if(rtTotal()+rtAmt>ruWallet){alert('所持金('+cf(ruWallet)+')を超えるためベットできません。チップ額を小さくするか、「全取消」でベットを整理してから置き直してください。');return;}
   rtBets[r.key]=(rtBets[r.key]||0)+rtAmt;
   rtRender();rtDetailPreview();
 }
@@ -2773,7 +2791,7 @@ const RU_SECTORS={
 };
 function rtSectorBet(name){
   const nums=RU_SECTORS[name];if(!nums)return;
-  if(rtTotal()+nums.length*rtAmt>ruWallet){alert('所持金('+cf(ruWallet)+')を超えています(このセクターは'+nums.length+'数字×チップ額が必要です)');return;}
+  if(rtTotal()+nums.length*rtAmt>ruWallet){alert('所持金('+cf(ruWallet)+')を超えるためベットできません。このセクターは'+nums.length+'個の数字すべてに賭けるため「'+nums.length+'×チップ額」が必要です。チップ額を小さくしてから置き直してください。');return;}
   nums.forEach(num=>{rtBets['n'+num]=(rtBets['n'+num]||0)+rtAmt;});
   rtRender();
 }
@@ -3019,11 +3037,13 @@ function foldBlock(title,innerHTML,openByDefault){
 }
 
 /* ---- 入力検証(全体共通) ---- */
+/* 入力エラーの共通表示。各メッセージは「何が間違っているか・なぜダメか・どう直すか」を
+   1件で伝える文にすること(単なる『計算できません』で終わらせない) */
 function validate(rules){
   const errs=[];
   rules.forEach(r=>{if(r.bad)errs.push(r.msg);});
   if(errs.length===0)return null;
-  return '<div class="err-box"><b>⚠ 実行不可なシミュレーションです。</b><br>次の項目を確認してください:<br>'+errs.map(e=>'・'+e).join('<br>')+'</div>';
+  return '<div class="err-box"><b>⚠ この設定では計算できません。</b><br>'+errs.map(e=>'・'+e).join('<br>')+'</div>';
 }
 
 /* ---- 分数⇔枚数 自動連動(オリパ) ---- */
@@ -3047,7 +3067,7 @@ function rsSave(a){try{localStorage.setItem('evlab_real',JSON.stringify(a));}cat
 function rsAdd(){
   const d=$('rsDate').value,g=$('rsKind').value,inv=Math.round(V('rsInv')),ret=Math.round(V('rsRet')),hours=V('rsHours');
   const memo=($('rsMemo')&&$('rsMemo').value||'').trim();
-  if(!d){alert('日程を選択してください');return;}
+  if(!d){alert('日程を選択してください。記録は日付ごとに集計し、収支推移グラフの並び順にも使うため、日付がないと保存できません。');return;}
   const a=rsAll();a.push({d,g,inv,ret,hours,memo});a.sort((x,y)=>x.d<y.d?1:-1);rsSave(a);
   $('rsInv').value='';$('rsRet').value='';$('rsHours').value='';if($('rsMemo'))$('rsMemo').value='';
   rsRender();
@@ -3124,9 +3144,9 @@ function gcBuild(){
     return{name:ins[0].value||'?',rate:(parseFloat(ins[1].value)||0)/100};
   }).filter(t=>Number.isFinite(t.rate)&&t.rate>0);
   const errs=validate([
-    {bad:defs.length===0,msg:'レア度と排出率を1つ以上入力してください'},
-    {bad:defs.reduce((s,t)=>s+t.rate,0)>1.0001,msg:'排出率の合計が100%を超えています(合計'+pct(defs.reduce((s,t)=>s+t.rate,0)*100)+')'},
-    {bad:V('gcCost')<=0,msg:'1回の消費(石)が0です'}
+    {bad:defs.length===0,msg:'レア度と排出率を1つ以上入力してください。排出率が全て0だと当たりが存在せず、天井までの期待値を計算できません(例: SSR 0.7%)'},
+    {bad:defs.reduce((s,t)=>s+t.rate,0)>1.0001,msg:'排出率の合計が100%を超えています(合計'+pct(defs.reduce((s,t)=>s+t.rate,0)*100)+')。確率の合計は100%以下になるよう、各レア度の値を下げてください'},
+    {bad:V('gcCost')<=0,msg:'1回の消費(石)は0より大きい数値を入力してください。0石だと「無料で引けるガチャ」になり、石あたりの期待値を計算できません(例: 300)'}
   ]);
   if(errs){$('gc-theory').innerHTML=errs;$('gcPlay').style.display='none';return;}
   gcTiersDef=defs;
@@ -3387,9 +3407,10 @@ function opBuild(){
   const cost=V('opCost'),floor=V('opFloor');
   const tiers=opGetTiers(T);
   const errs=validate([
-    {bad:tiers.length===0,msg:'等級を1つ以上、枚数または1/nとともに入力してください'},
-    {bad:cost<=0,msg:'1口の価格が0コインです'},
-    {bad:tiers.reduce((s,t)=>s+t.count,0)>T,msg:'当たり枚数の合計('+tiers.reduce((s,t)=>s+t.count,0)+')が総口数('+T+')を超えています'}
+    {bad:V('opTotal')<1,msg:'総口数は1以上の数値を入力してください。0口ではくじ自体が成立せず、当選確率を計算できません(例: 5000)'},
+    {bad:tiers.length===0,msg:'等級を1つ以上、封入枚数または確率(1/n)とあわせて入力してください。当たりが1つもないと還元率を計算できません'},
+    {bad:cost<=0,msg:'1口の価格は0より大きい数値を入力してください。0コインだと「無料で引けるくじ」になり、還元率(戻り÷投資)が計算できません'},
+    {bad:V('opTotal')>=1&&tiers.reduce((s,t)=>s+t.count,0)>T,msg:'当たりの封入枚数の合計('+cf(tiers.reduce((s,t)=>s+t.count,0))+'枚)が総口数('+cf(T)+'口)を超えています。総口数を増やすか、各等級の封入枚数を減らしてください'}
   ]);
   if(errs){$('opOdds').innerHTML=errs;$('opPlay').style.display='none';return;}
   const rem=Math.min(T,Math.max(0,Math.round(V('opRemainIn'))));
@@ -4198,7 +4219,7 @@ function rbBuildTable(){
   T.querySelectorAll('.rt-cell').forEach(c=>c.onclick=()=>{
     const pl=rb.players[rb.cur];const bet=(rbBetsCur[c.dataset.k]||0)+rbAmt;
     const staged=Object.values(rbBetsCur).reduce((a,b)=>a+b,0)-(rbBetsCur[c.dataset.k]||0)+bet;
-    if(staged>pl.money){alert(pl.name+'の所持金('+cf(pl.money)+'pt)を超えています');return;}
+    if(staged>pl.money){alert(pl.name+'さんの所持金('+cf(pl.money)+'pt)を超えるためベットできません。チップ額を小さくするか、置いたベットを取り消してから置き直してください。');return;}
     rbBetsCur[c.dataset.k]=bet;rbRenderTable();
   });
 }

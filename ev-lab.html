@@ -1221,8 +1221,10 @@
         </select>
       </div>
       <div style="height:10px"></div>
-      <div class="flabel" id="ltHistLabel" style="display:none;">抽選履歴(新しい順)</div>
-      <div class="lt-hist" id="ltHistory"></div>
+      <div class="fold-head" id="ltHistLabel" style="display:none;" onclick="this.classList.toggle('closed');$('ltHistFold').classList.toggle('closed');"><span class="fold-ar">▼</span>抽選履歴(新しい順)</div>
+      <div class="fold-body" id="ltHistFold" style="max-height:3000px;">
+        <div class="lt-hist" id="ltHistory"></div>
+      </div>
     </div>
   </div>
 

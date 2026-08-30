@@ -344,6 +344,14 @@
   .rt-cell.out{background:#123A2A;font-size:10px;}
   .rt-cell:hover{filter:brightness(1.25);}
   .rt-bet{position:absolute;right:1px;bottom:1px;background:#E8C879;color:#241A02;border-radius:999px;font-size:9px;padding:1px 5px;font-weight:700;}
+  /* 友達対戦: プレイヤーごとの賭け金をその人の色で並べる。
+     マスが狭いため小さく折り返し、自分の分は白縁で見分けられるようにする */
+  .rt-bets{position:absolute;left:1px;right:1px;bottom:1px;display:flex;flex-wrap:wrap;
+    gap:1px;justify-content:flex-end;align-items:flex-end;pointer-events:none;}
+  .rt-bets .rt-b{font-family:var(--font-mono);font-size:8.5px;font-weight:700;font-style:normal;
+    line-height:1.35;color:#14100A;border-radius:3px;padding:0 3px;white-space:nowrap;
+    box-shadow:0 0 0 1px rgba(0,0,0,.55);}
+  .rt-bets .rt-b.self{box-shadow:0 0 0 1.5px #fff,0 0 0 2.5px rgba(0,0,0,.55);}
   .rt-dots{position:absolute;left:2px;top:2px;display:flex;gap:2px;flex-wrap:wrap;max-width:28px;}
   .rt-dots i{width:8px;height:8px;border-radius:50%;display:block;border:1.5px solid rgba(255,255,255,.85);box-shadow:0 0 0 1px rgba(0,0,0,.5);}
   .player-dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:4px;border:1.5px solid rgba(255,255,255,.65);vertical-align:middle;box-shadow:0 0 0 1px rgba(0,0,0,.35);}
@@ -4365,21 +4373,26 @@ function rbChip(el){
 }
 function rbClear(){rbBetsCur={};rbRenderTable();}
 function rbPaintCell(c,parts){
+  /* 友達対戦では複数人が同じマスに賭ける。以前は全員の合計を1つの数字で
+     出していたため「自分がいくら賭けたか」が読み取れなかった。
+     プレイヤーごとに、その人の色のチップで金額を並べる。 */
+  const oldBets=c.querySelector('.rt-bets');if(oldBets)oldBets.remove();
   const oldBet=c.querySelector('.rt-bet');if(oldBet)oldBet.remove();
   const oldDots=c.querySelector('.rt-dots');if(oldDots)oldDots.remove();
   if(!parts.length)return;
-  const sum=parts.reduce((s,p)=>s+p.amt,0);
-  const s=document.createElement('span');s.className='rt-bet';s.textContent=sum>=1000?(Math.round(sum/100)/10)+'k':sum;c.appendChild(s);
-  const dots=document.createElement('span');dots.className='rt-dots';
-  dots.innerHTML=parts.map(p=>'<i style="background:'+p.color+';"></i>').join('');
-  c.appendChild(dots);
+  const box=document.createElement('span');box.className='rt-bets';
+  box.innerHTML=parts.map(p=>
+    '<i class="rt-b'+(p.self?' self':'')+'" style="background:'+p.color+';" title="'+escHtml(p.name||'')+' '+cf(p.amt)+'">'
+    +(p.amt>=1000?(Math.round(p.amt/100)/10)+'k':p.amt)+'</i>').join('');
+  c.appendChild(box);
 }
 function rbRenderTable(){
   // 既に確定した(rb.curより前の)プレイヤーのベットも、色分けして盤面に重ねて表示する
   document.querySelectorAll('#rbTable .rt-cell').forEach(c=>{
     const k=c.dataset.k,parts=[];
-    for(let i=0;i<rb.cur;i++){const a=rb.players[i].bets&&rb.players[i].bets[k];if(a)parts.push({amt:a,color:RB_COLS[i%RB_COLS.length]});}
-    const cur=rbBetsCur[k];if(cur)parts.push({amt:cur,color:RB_COLS[rb.cur%RB_COLS.length]});
+    for(let i=0;i<rb.cur;i++){const a=rb.players[i].bets&&rb.players[i].bets[k];if(a)parts.push({amt:a,color:RB_COLS[i%RB_COLS.length],name:rb.players[i].name});}
+    /* 手番中の自分の分は self を付けて縁取りし、他人の分と区別できるようにする */
+    const cur=rbBetsCur[k];if(cur)parts.push({amt:cur,color:RB_COLS[rb.cur%RB_COLS.length],name:rb.players[rb.cur].name,self:true});
     rbPaintCell(c,parts);
   });
   const total=Object.values(rbBetsCur).reduce((a,b)=>a+b,0);
@@ -4408,7 +4421,7 @@ function rbTurn(){
 function rbRenderAllBets(){
   document.querySelectorAll('#rbTable .rt-cell').forEach(c=>{
     const k=c.dataset.k,parts=[];
-    rb.players.forEach((p,i)=>{if(p.bets&&p.bets[k])parts.push({amt:p.bets[k],color:RB_COLS[i%RB_COLS.length]});});
+    rb.players.forEach((p,i)=>{if(p.bets&&p.bets[k])parts.push({amt:p.bets[k],color:RB_COLS[i%RB_COLS.length],name:p.name});});
     rbPaintCell(c,parts);
   });
   $('rbBets').innerHTML=rb.players.map((p,i)=>{

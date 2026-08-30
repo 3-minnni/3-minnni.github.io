@@ -157,6 +157,37 @@ function foldState(w, bodyId) {
     R.check('コイン持ちが極端でも機械割が発散しない', v < 400, v + '%');
   }
 
+  /* スロット: レート選択(5 / 10 / 20スロ)。
+     既定は20スロ。SL_RATESは位置ではなく値で既定を選ぶ実装にしてあるので、
+     レートを増やしても既定がずれない。 */
+  {
+    const w = await boot(TARGET, { seed: 1 });
+    const chips = () => [...w.document.querySelectorAll('#slRates .chip')];
+    const evOf = () => {
+      const m = text($(w, 'sl-out')).match(/(\+|−)¥([\d,]+)/);
+      return m ? (m[1] === '−' ? -1 : 1) * parseInt(m[2].replace(/,/g, ''), 10) : null;
+    };
+    const labels = chips().map((c) => c.textContent.trim());
+    R.check('スロットのレートが 5 / 10 / 20 の3種', labels.length === 3
+      && /^5スロ/.test(labels[0]) && /^10スロ/.test(labels[1]) && /^20スロ/.test(labels[2]), labels.join(' / '));
+    const on = chips().filter((c) => c.classList.contains('on'));
+    R.check('既定は20スロ', on.length === 1 && /^20スロ/.test(on[0].textContent.trim()),
+      on.map((c) => c.textContent.trim()).join(','));
+
+    w.slSetType('a');
+    $(w, 'slBig').value = '240'; $(w, 'slBigC').value = '300';
+    $(w, 'slReg').value = '400'; $(w, 'slRegC').value = '100';
+    $(w, 'slAMochi').value = '33'; $(w, 'slG').value = '6000';
+    w.runSL(); await sleep(200);
+    const ev20 = evOf();
+    const kikai20 = text($(w, 'sl-out')).match(/機械割\(理論値\)\s*([\d.]+)%/)[1];
+    chips()[1].click(); w.runSL(); await sleep(200);
+    const ev10 = evOf();
+    const kikai10 = text($(w, 'sl-out')).match(/機械割\(理論値\)\s*([\d.]+)%/)[1];
+    R.check('10スロの収支は20スロのちょうど半分', Math.abs(ev10 * 2 - ev20) <= 2, `${ev20}円 → ${ev10}円`);
+    R.check('機械割はレートに依存しない', kikai20 === kikai10, `${kikai20}% / ${kikai10}%`);
+  }
+
   /* 統計: 生涯トータルが先頭(結果表示ファースト) */
   {
     const w = await boot(TARGET, { seed: 1 });

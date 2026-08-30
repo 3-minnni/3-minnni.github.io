@@ -2555,7 +2555,18 @@ function runSL(){
   const eGain=slType==='at'?slEGain(coins,modoshi,smart):0;
   const evG=(slType==='at'?p*eGain:(p*coins+pReg*coinsReg))*slRate.rate-costG;
   const totalEV=evG*G,totalCost=costG*G;
-  const kikai=totalCost>0?((totalCost+totalEV)/totalCost)*100:100;
+  /* 機械割は業界の定義どおり「総払出 ÷ 総投入」で出す。
+     投入は1G=3枚。コイン持ちは純減(3枚 − 子役払出)なので、
+     子役払出/G は 3 - 50/mochi として復元できる。
+       機械割 = (子役払出 + ボーナス払出) ÷ 3
+     以前は (純減 + 収支) ÷ 純減 = ボーナス払出 ÷ 純減 で計算していたため、
+     分母に子役の戻りが含まれず、100%からの乖離が約2倍(=3÷純減)に
+     拡大して表示されていた(100%ちょうどのときだけ一致する)。
+     なお収支・期待値そのものは従来から正しく、ここの表示だけの問題。 */
+  const netPerG=50/mochi;                                  // 1Gあたり純減(枚)
+  const koyakuPerG=Math.max(0,3-netPerG);                  // 1Gあたり子役払出(枚)
+  const bonusPerG=slType==='at'?p*eGain:(p*coins+pReg*coinsReg); // 1Gあたりボーナス払出(枚)
+  const kikai=((koyakuPerG+bonusPerG)/3)*100;
   const hourly=evG*SL_G_PER_HOUR;
   const pAny=slType==='a'?1-(1-p)*(1-pReg):p;
   const p100=1-Math.pow(1-pAny,Math.min(100,G));

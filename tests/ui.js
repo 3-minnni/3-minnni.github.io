@@ -119,6 +119,44 @@ function foldState(w, bodyId) {
       !threw && !/今回の回転数/.test(text($(w, 'funStat'))), threw || '');
   }
 
+  /* スロット: 機械割が業界の定義「総払出 ÷ 総投入(1G=3枚)」で計算されること。
+     以前は「ボーナス払出 ÷ 純減」で、分母に子役の戻りが含まれず
+     100%からの乖離が約2倍に拡大していた。 */
+  {
+    const official = (big, bigC, reg, regC, mochi) => {
+      const N = 50 / mochi;               // 1Gあたり純減
+      const B = bigC / big + regC / reg;  // 1Gあたりボーナス払出
+      return ((3 - N) + B) / 3 * 100;     // (子役払出 + ボーナス払出) ÷ 3投入
+    };
+    const CASES = [
+      ['低設定寄り', 240, 300, 400, 100, 33],
+      ['高設定寄り', 220, 312, 330, 96, 34],
+      ['100%付近', 250, 300, 400, 100, 33.6],
+    ];
+    for (const [name, big, bigC, reg, regC, mochi] of CASES) {
+      const w = await boot(TARGET, { seed: 1 });
+      w.slSetType('a');
+      $(w, 'slBig').value = big; $(w, 'slBigC').value = bigC;
+      $(w, 'slReg').value = reg; $(w, 'slRegC').value = regC;
+      $(w, 'slAMochi').value = mochi; $(w, 'slG').value = '6000';
+      w.runSL(); await sleep(200);
+      const m = text($(w, 'sl-out')).match(/機械割\(理論値\)\s*([\d.]+)%/);
+      const shown = m ? parseFloat(m[1]) : NaN;
+      const exp = official(big, bigC, reg, regC, mochi);
+      R.check(`機械割が総払出÷総投入と一致(${name})`, Math.abs(shown - exp) < 0.1,
+        `公式${exp.toFixed(2)}% / 表示${shown}%`);
+    }
+    /* コイン持ちを極端に大きくしても発散しないこと(旧式は分母が0に近づき爆発した) */
+    const w = await boot(TARGET, { seed: 1 });
+    w.slSetType('a');
+    $(w, 'slBig').value = '240'; $(w, 'slBigC').value = '300';
+    $(w, 'slReg').value = '400'; $(w, 'slRegC').value = '100';
+    $(w, 'slAMochi').value = '999'; $(w, 'slG').value = '3000';
+    w.runSL(); await sleep(200);
+    const v = parseFloat((text($(w, 'sl-out')).match(/機械割\(理論値\)\s*([\d.]+)%/) || [])[1]);
+    R.check('コイン持ちが極端でも機械割が発散しない', v < 400, v + '%');
+  }
+
   /* 統計: 生涯トータルが先頭(結果表示ファースト) */
   {
     const w = await boot(TARGET, { seed: 1 });

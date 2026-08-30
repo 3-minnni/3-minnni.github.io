@@ -10,7 +10,12 @@ async function snapshot(file) {
   const w = await boot(file, { seed: 20260830 });
   const out = {};
   w.runPK(); await sleep(200); out['パチンコ'] = text($(w, 'pk-out'));
-  w.runSL(); await sleep(200); out['スロット'] = text($(w, 'sl-out'));
+  /* スロットは機械割の定義を是正した回(2026-08-31)に表示が変わっている。
+     収支・投資額など他の数値は不変で、機械割の1箇所だけが変化する。
+     退行チェックでは機械割を除いた部分を比較し、機械割の正しさは
+     tests/ui.js の「機械割が総払出÷総投入で計算される」で担保する。 */
+  w.runSL(); await sleep(200);
+  out['スロット(機械割を除く)'] = text($(w, 'sl-out')).replace(/機械割\(理論値\)[\d.]+%/, '機械割(理論値)<除外>');
   w.opBuild(); w.opPull(10); await sleep(200);
   out['オリパ理論値'] = text($(w, 'opOdds'));
   out['オリパ結果'] = text($(w, 'opResult'));

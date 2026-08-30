@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>期待値ラボ</title>
+<!-- サイトのルートに来た人をアプリ本体へ送る。
+     アプリの実体は ev-lab.html 側にあり、PWA の start_url もそちらを指している。
+     JSが無効でも移動できるよう meta refresh を主、script を補助として置く。 -->
+<meta http-equiv="refresh" content="0; url=./ev-lab.html">
+<link rel="canonical" href="./ev-lab.html">
+<meta name="theme-color" content="#0B0B10">
+<style>
+  html,body{margin:0;height:100%;}
+  body{background:#0B0B10;color:#A6ADBF;
+    font-family:'Hiragino Sans','Yu Gothic Medium','Noto Sans JP',Meiryo,system-ui,sans-serif;
+    display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;}
+  a{color:#E8C879;}
+</style>
+</head>
+<body>
+  <p>期待値ラボへ移動しています…<br>
+     自動で切り替わらない場合は <a href="./ev-lab.html">こちらから開いてください</a>。</p>
+  <script>location.replace('./ev-lab.html');</script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "name": "evlab-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "期待値ラボ(ev-lab.html)の開発用テスト。配布物には含まれない。",
+  "scripts": {
+    "test": "node run-all.js",
+    "validation": "node run-all.js validation",
+    "errmsg": "node run-all.js errmsg",
+    "undo": "node run-all.js undo",
+    "injection": "node run-all.js injection",
+    "ui": "node run-all.js ui",
+    "perf": "node run-all.js perf",
+    "fuzz": "node run-all.js fuzz"
+  },
+  "devDependencies": {
+    "jsdom": "^24.0.0"
+  }
+}

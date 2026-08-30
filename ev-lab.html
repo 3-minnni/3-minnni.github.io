@@ -3133,6 +3133,10 @@ function rsAdd(){
   $('rsInv').value='';$('rsRet').value='';$('rsHours').value='';if($('rsMemo'))$('rsMemo').value='';
   rsRender();
 }
+/* 一覧表の既定表示件数(集計・グラフは常に全件で計算する) */
+const RS_TABLE_LIMIT=100;
+let rsShowAll=false;
+function rsShowAllToggle(){rsShowAll=!rsShowAll;rsRender();}
 function rsDel(i){
   const a=rsAll();
   const removed=a[i];
@@ -3196,9 +3200,18 @@ function rsRender(){
     chrono.forEach(r=>{run+=(r.ret-r.inv);rsSeries.push(run);});
     requestAnimationFrame(()=>drawChart($('rsChart'),rsSeries,null,{xLabel:'記録順',yLabel:'累計収支(円)'}));
   }
+  /* 一覧表は記録が増えるほど無制限に伸びるため、既定では新しい順に一定件数だけ描画する。
+     ヒーロー表示・集計・グラフは上で全件から計算済みなので、数値の正確さは損なわれない。 */
+  const shown=rsShowAll?f:f.slice(0,RS_TABLE_LIMIT);
+  const moreBar=f.length>RS_TABLE_LIMIT
+    ?'<div class="fhelp" style="margin-top:10px;">新しい順に<b>'+cf(shown.length)+'</b>件を表示中(全'+cf(f.length)+'件)。上の集計・グラフは全'+cf(f.length)+'件で計算しています。'
+      +'<button class="btn2" style="margin-left:8px;padding:4px 10px;font-size:11px;" onclick="rsShowAllToggle()">'
+      +(rsShowAll?'表示を'+RS_TABLE_LIMIT+'件に戻す':'全'+cf(f.length)+'件を表示')+'</button></div>'
+    :'';
   $('rsTable').innerHTML=f.length
-    ?'<table class="rs-table"><thead><tr><th>日付</th><th>種別</th><th>投資</th><th>回収</th><th>時間</th><th>収支</th><th>メモ</th><th></th></tr></thead><tbody>'
-      +f.map((r,i)=>{const n=r.ret-r.inv;const memo=r.memo?escHtml(r.memo):'';return '<tr class="'+(n>=0?'win':'lose')+'"><td>'+escHtml(r.d)+'</td><td>'+escHtml(r.g)+'</td><td>'+cf(r.inv)+'</td><td>'+cf(r.ret)+'</td><td>'+(r.hours?num(r.hours,1)+'h':'—')+'</td><td style="color:'+(n>=0?'var(--pos)':'var(--neg)')+'">'+(n>=0?'+ ':'− ')+cf(Math.abs(n))+'</td><td class="rs-memo" title="'+memo+'">'+(memo?(memo.length>10?memo.slice(0,10)+'…':memo):'—')+'</td><td class="rs-del" onclick="rsDel('+a.indexOf(r)+')">×</td></tr>';}).join('')
+    ?moreBar
+      +'<table class="rs-table"><thead><tr><th>日付</th><th>種別</th><th>投資</th><th>回収</th><th>時間</th><th>収支</th><th>メモ</th><th></th></tr></thead><tbody>'
+      +shown.map((r,i)=>{const n=r.ret-r.inv;const memo=r.memo?escHtml(r.memo):'';return '<tr class="'+(n>=0?'win':'lose')+'"><td>'+escHtml(r.d)+'</td><td>'+escHtml(r.g)+'</td><td>'+cf(r.inv)+'</td><td>'+cf(r.ret)+'</td><td>'+(r.hours?num(r.hours,1)+'h':'—')+'</td><td style="color:'+(n>=0?'var(--pos)':'var(--neg)')+'">'+(n>=0?'+ ':'− ')+cf(Math.abs(n))+'</td><td class="rs-memo" title="'+memo+'">'+(memo?(memo.length>10?memo.slice(0,10)+'…':memo):'—')+'</td><td class="rs-del" onclick="rsDel('+a.indexOf(r)+')">×</td></tr>';}).join('')
       +'</tbody></table>'
     :'<div class="fhelp">記録がありません。上のフォームから追加してください。</div>';
 }
@@ -3698,11 +3711,17 @@ let ruHist=[];
 function ruDetailLogRender(){
   const box=$('ruDetailLog');if(!box)return;
   if(!ruSpinLog.length){box.innerHTML='';return;}
-  const rows=ruSpinLog.map(s=>{
+  /* スピンのたびに増え続けるため、描画は直近分のみに絞る(統計は別途全件で集計している) */
+  const RU_LOG_LIMIT=200;
+  const draw=ruSpinLog.slice(0,RU_LOG_LIMIT);
+  const rows=draw.map(s=>{
     const colName=(s.n===0||s.n==='00')?'緑':(RU_RED.has(s.n)?'赤':'黒');
     return '<div class="cclog-line" style="color:'+(s.delta>=0?'var(--pos)':'var(--neg)')+';">'+s.no+'回目: 出目'+s.n+'('+colName+') ベット'+cf(s.total)+' 払戻'+cf(s.payout)+' → '+(s.delta>=0?'+':'−')+cf(Math.abs(s.delta))+'</div>';
   }).join('');
-  box.innerHTML=foldBlock('試行別履歴('+ruSpinLog.length+'件・賭け金/払戻/収支)',rows,false);
+  const title=ruSpinLog.length>RU_LOG_LIMIT
+    ?'試行別履歴(全'+ruSpinLog.length+'件中 新しい'+RU_LOG_LIMIT+'件・賭け金/払戻/収支)'
+    :'試行別履歴('+ruSpinLog.length+'件・賭け金/払戻/収支)';
+  box.innerHTML=foldBlock(title,rows,false);
 }
 function ruBiasRender(){
   const box=$('ruBiasBox');if(!box)return;
@@ -3813,6 +3832,8 @@ function ruSettle(n){
 }
 /* ---- カスタム抽選: 回転時間・回数記録・音 ---- */
 let ltSpinCount=0;
+/* 抽選履歴カードの保持上限(これを超えた古い分は破棄) */
+const LT_HIST_LIMIT=200;
 function ltPickChild(item){
   if(!item.children||item.children.length===0)return null;
   const total=item.children.reduce((s,c)=>s+c.w,0);
@@ -3861,7 +3882,10 @@ function ltSpin(){
         +'<span class="lt-swatch" style="background:'+swatchColor+';"></span>'
         +'<span class="lt-name">'+escHtml(fullName)+'</span>'
         +'<span class="rankb r'+rank+'">'+rank+'位</span>';
-      $('ltHistory').prepend(card);
+      const hist=$('ltHistory');
+      hist.prepend(card);
+      /* 回すたびに増え続けるため、古いカードは破棄して描画コストを一定に保つ */
+      while(hist.children.length>LT_HIST_LIMIT)hist.removeChild(hist.lastElementChild);
       if($('ltHistLabel'))$('ltHistLabel').style.display='';
     }
   }

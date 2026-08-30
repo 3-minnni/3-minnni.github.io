@@ -668,8 +668,6 @@
       <div style="height:12px"></div>
       <div class="preset-bar" data-p="pk"></div>
       <button class="run" onclick="runPK()">この条件で計算する</button>
-      <div style="display:flex;gap:8px;margin-top:8px;"><button class="btn2" onclick="shareURL('pk')">🔗 この設定を共有URLにする</button></div>
-      <div id="share-pk"></div>
     </div>
     <div id="pk-out"><div class="fhelp" style="text-align:center;padding:18px 12px;">↑ 入力後に「この条件で計算する」を押すと、ここに期待値・ボーダー・シミュレーション結果が表示されます</div></div>
     <div id="cmp-pk"></div>
@@ -836,8 +834,6 @@
       <div style="height:12px"></div>
       <div class="preset-bar" data-p="sl"></div>
       <button class="run" onclick="runSL()">この条件で計算する</button>
-      <div style="display:flex;gap:8px;margin-top:8px;"><button class="btn2" onclick="shareURL('sl')">🔗 この設定を共有URLにする</button></div>
-      <div id="share-sl"></div>
     </div>
     <div id="sl-out"></div>
     <div id="cmp-sl"></div>
@@ -978,8 +974,6 @@
       <div style="height:10px"></div>
       <div class="preset-bar" data-p="op"></div>
       <button class="run" onclick="opBuild()">この設計でオリパを作る(理論値も計算)</button>
-      <div style="display:flex;gap:8px;margin-top:8px;"><button class="btn2" onclick="shareURL('op')">🔗 この設計を共有URLにする</button></div>
-      <div id="share-op"></div>
     </div>
 
     <div class="card" id="opPlay" style="display:none;">
@@ -1062,8 +1056,6 @@
       <div style="height:10px"></div>
       <div class="preset-bar" data-p="gc"></div>
       <button class="run" onclick="gcBuild()">この設計でガチャを作る(理論値も計算)</button>
-      <div style="display:flex;gap:8px;margin-top:8px;"><button class="btn2" onclick="shareURL('gc')">🔗 この設計を共有URLにする</button></div>
-      <div id="share-gc"></div>
     </div>
     <div class="card" id="gcPlay" style="display:none;">
       <div class="card-title"><span class="step">STEP 2</span><h3>仮想の石で引いてみる</h3></div>
@@ -4010,8 +4002,9 @@ new MutationObserver(muts=>{
 a11yScan(document);
 
 /* ============================================================
-   v8 — おすすめ機能: データバックアップ・共有URL・比較モード・
-   ベット戦略シム・分布ヒストグラム・依存症予防アラート・PWA・自動テーマ
+   v8 — おすすめ機能: データバックアップ・比較モード・
+   ベット戦略シム・分布ヒストグラム・PWA・自動テーマ
+   (共有URLは2026-08-30に廃止、依存症予防アラートはユーザー方針により削除済み)
    ============================================================ */
 /* ---- A: データのエクスポート/インポート ---- */
 function dataExport(){
@@ -4061,34 +4054,10 @@ function dataImport(file){
   };
   r.readAsText(file);
 }
-/* ---- B: 設定シェアURL ---- */
-function shareURL(p){
-  try{
-    const snap=presetSnap(p);
-    const enc=btoa(encodeURIComponent(JSON.stringify({p,snap})));
-    const url=location.origin+location.pathname+'#share='+enc;
-    if(navigator.clipboard&&navigator.clipboard.writeText){
-      navigator.clipboard.writeText(url).then(()=>shareMsg(p,'コピーしました: '+url),()=>shareMsg(p,url));
-    }else shareMsg(p,url);
-  }catch(e){shareMsg(p,'共有URLの作成に失敗しました');}
-}
-function shareMsg(p,text){
-  const el=$('share-'+p);
-  if(el)el.innerHTML='<div class="fhelp" style="word-break:break-all;">'+escHtml(text)+'</div>';
-}
-function shareURLApply(){
-  const m=location.hash.match(/share=([^&]+)/);
-  if(!m)return;
-  try{
-    const d=JSON.parse(decodeURIComponent(atob(m[1])));
-    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
-    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
-    const tabEl=document.querySelector('.tab[data-tab="'+d.p+'"]');
-    if(tabEl){tabEl.classList.add('active');$('panel-'+d.p).classList.add('active');curTab=d.p;}
-    presetRestore(d.p,d.snap);
-    history.replaceState(null,'',location.pathname);
-  }catch(e){}
-}
+/* 設定シェアURL機能は削除(2026-08-30)。
+   復元側 shareURLApply がどこからも呼ばれておらず機能しておらず、
+   ユーザー判断で機能ごと廃止。設定の持ち運びはプリセット保存と
+   データのエクスポート/インポートで行う。 */
 /* ---- D: スペック比較モード(パチンコ・スロット) ---- */
 let cmpList={pk:[],sl:[]};
 function cmpAdd(p,metrics){

@@ -809,7 +809,7 @@
       <div class="fgrid">
         <div class="field" id="slGWrap">
           <div class="flabel">総ゲーム数</div><div class="fhelp">1日=6,000〜8,000G目安</div>
-          <div class="igroup"><input type="number" id="slG" value="5000" min="1" step="500"><span class="unit">G</span></div>
+          <div class="igroup"><input type="number" id="slG" value="5000" min="1" max="100000" step="500"><span class="unit">G</span></div>
         </div>
         <div class="field" id="slYWrap" style="display:none;">
           <div class="flabel">投資金額</div><div class="fhelp">この金額を使い切るまでのG数で計算</div>
@@ -919,7 +919,7 @@
       <div class="fgrid" style="margin-bottom:12px;">
         <div class="field">
           <div class="flabel">総口数</div><div class="fhelp"></div>
-          <div class="igroup"><input type="number" id="opTotal" value="5000" min="1" step="100"><span class="unit">口</span></div>
+          <div class="igroup"><input type="number" id="opTotal" value="5000" min="1" max="100000" step="100"><span class="unit">口</span></div>
         </div>
         <div class="field">
           <div class="flabel">1口の価格</div><div class="fhelp"></div>
@@ -1362,7 +1362,20 @@
 <script>
 /* ===== utils ===== */
 const $=id=>document.getElementById(id);
-const V=id=>parseFloat($(id).value)||0;
+/* 入力値の読み取り。空欄・文字列・NaN・±Infinity はすべて 0 に落とし、
+   計算側へ非有限値が漏れないようにする(Infinityは parseFloat('1e400') 等で到達しうる) */
+const V=id=>{const el=$(id);if(!el)return 0;const v=parseFloat(el.value);return Number.isFinite(v)?v:0;};
+/* ループ回数・配列サイズを決める入力の共通クランプ(ブラウザのフリーズ防止) */
+const SIM_MAX=100000;
+const vClamp=(id,lo,hi)=>Math.min(hi,Math.max(lo,Math.round(V(id))));
+/* 配列の最小/最大。Math.min(...arr) はスプレッド引数の上限でスタックオーバーフローするため使わない */
+function extent(arr,seed){
+  let mn=seed!==undefined?seed:Infinity,mx=seed!==undefined?seed:-Infinity;
+  for(let i=0;i<arr.length;i++){const v=arr[i];if(!Number.isFinite(v))continue;if(v<mn)mn=v;if(v>mx)mx=v;}
+  if(!Number.isFinite(mn))mn=0;
+  if(!Number.isFinite(mx))mx=0;
+  return[mn,mx];
+}
 let FX=(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)?'off':'full';
 const fxOn=()=>FX!=='off';
 const fxDur=(full,light)=>FX==='full'?full:light;
@@ -1373,10 +1386,13 @@ function fxFlip(){
   $('fxLabel').textContent='演出 '+(FX==='full'?'フル':FX==='light'?'軽量':'OFF');
   particlesSet(FX==='full');
 }
-function yen(n){const r=Math.round(n);return (r<0?'−':'')+'¥'+Math.abs(r).toLocaleString();}
-function cf(n){const r=Math.round(n);return (r<0?'−':'')+Math.abs(r).toLocaleString();}
-function num(n,d=1){return (Math.round(n*10**d)/10**d).toLocaleString();}
-function pct(n,d=1){return num(n,d)+'%';}
+/* 表示ヘルパー: 非有限値(NaN/±Infinity)は画面に出さず「—」にする最終防波堤。
+   計算側の取りこぼしがあっても "NaN" や "∞" がユーザーの目に触れないようにする */
+const NOVAL='—';
+function yen(n){if(!Number.isFinite(n))return NOVAL;const r=Math.round(n);return (r<0?'−':'')+'¥'+Math.abs(r).toLocaleString();}
+function cf(n){if(!Number.isFinite(n))return NOVAL;const r=Math.round(n);return (r<0?'−':'')+Math.abs(r).toLocaleString();}
+function num(n,d=1){if(!Number.isFinite(n))return NOVAL;return (Math.round(n*10**d)/10**d).toLocaleString();}
+function pct(n,d=1){if(!Number.isFinite(n))return NOVAL;return num(n,d)+'%';}
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 
 document.querySelectorAll('.tab').forEach(t=>{
@@ -1401,7 +1417,7 @@ function drawChart(canvas,series,evLine,opt){
   const padL=58,padR=12,padT=10,padB=32;
   const n=Math.max(series.length,2);
   const all=series.concat(evLine||[]);
-  let min=Math.min(0,...all),max=Math.max(0,...all);
+  let [min,max]=extent(all,0);
   if(min===max)max=min+1;
   const rg=max-min;min-=rg*.06;max+=rg*.06;
   const X=i=>padL+(w-padL-padR)*(i/(n-1));
@@ -2403,7 +2419,7 @@ function runSL(){
   }
   const costG=(50/mochi)*slRate.rate;
   if(slMode==='y'){runSLYen(p,coins,pReg,coinsReg,mochi,costG,label,modoshi);return;}
-  const G=Math.max(1,Math.round(V('slG')));
+  const G=vClamp('slG',1,SIM_MAX);
   const smart=slType==='at'&&slSmart;
   const eGain=slType==='at'?slEGain(coins,modoshi,smart):0;
   const evG=(slType==='at'?p*eGain:(p*coins+pReg*coinsReg))*slRate.rate-costG;
@@ -3014,7 +3030,7 @@ function validate(rules){
 function opSyncRow(input){
   const row=input.closest('.tier-row');if(!row)return;
   const ins=row.querySelectorAll('input');
-  const T=Math.max(1,Math.round(V('opTotal')));
+  const T=vClamp('opTotal',1,SIM_MAX);
   // ins[2]=枚数, ins[3]=1/n
   if(input===ins[2]&&ins[2].value){
     const cnt=parseFloat(ins[2].value)||0;
@@ -3101,16 +3117,19 @@ function rsRender(){
 let gcEyeHits=[],gcEye2Hits=[],gcCeilReset=true,gcHitLog=[];
 function gcSetCeil(on){gcCeilReset=on;$('gcCeilOn').classList.toggle('on',on);$('gcCeilOff').classList.toggle('on',!on);}
 function gcBuild(){
-  gcTiersDef=[...document.querySelectorAll('#gcTiers .tier-row')].map(r=>{
+  /* 検証を通過するまでグローバル(gcTiersDef)を書き換えない。
+     途中で早期returnすると gcHits と要素数がずれ、gcHits[tier]++ が NaN になるため */
+  const defs=[...document.querySelectorAll('#gcTiers .tier-row')].map(r=>{
     const ins=r.querySelectorAll('input');
     return{name:ins[0].value||'?',rate:(parseFloat(ins[1].value)||0)/100};
-  }).filter(t=>t.rate>0);
+  }).filter(t=>Number.isFinite(t.rate)&&t.rate>0);
   const errs=validate([
-    {bad:gcTiersDef.length===0,msg:'レア度と排出率を1つ以上入力してください'},
-    {bad:gcTiersDef.reduce((s,t)=>s+t.rate,0)>1.0001,msg:'排出率の合計が100%を超えています(合計'+pct(gcTiersDef.reduce((s,t)=>s+t.rate,0)*100)+')'},
+    {bad:defs.length===0,msg:'レア度と排出率を1つ以上入力してください'},
+    {bad:defs.reduce((s,t)=>s+t.rate,0)>1.0001,msg:'排出率の合計が100%を超えています(合計'+pct(defs.reduce((s,t)=>s+t.rate,0)*100)+')'},
     {bad:V('gcCost')<=0,msg:'1回の消費(石)が0です'}
   ]);
   if(errs){$('gc-theory').innerHTML=errs;$('gcPlay').style.display='none';return;}
+  gcTiersDef=defs;
   const order=gcTiersDef.map((t,i)=>({i,r:t.rate})).sort((a,b)=>a.r-b.r);
   gcRank=[];order.forEach((o,pos)=>gcRank[o.i]=Math.min(6,pos+1));
   gcCount=0;gcSince=0;gcSpent=0;gcHits=gcTiersDef.map(()=>0);gcEyeHits=[];gcEye2Hits=[];gcHitLog=[];
@@ -3177,7 +3196,9 @@ function gcRender(last){
 }
 function gcPull(n){
   const cost=V('gcCost'),pity=Math.max(0,Math.round(V('gcPity')));
-  if(gcTiersDef.length===0)return;
+  /* ビルド未完了・状態不整合のまま引かせない(gcHitsとの要素数ずれがNaNの原因になる) */
+  if(gcTiersDef.length===0||gcHits.length!==gcTiersDef.length)return;
+  if(cost<=0)return;
   let best=99,pulled=0;const log=[];
   for(let k=0;k<n;k++){
     if(gcWallet<cost)break;
@@ -3305,8 +3326,8 @@ function addOpTier(name,coin,count,frac){
     <input type="text" value="${frac??''}" placeholder="1/500">
     <button class="rm" onclick="this.parentElement.remove()">×</button>`;
   const ins=div.querySelectorAll('input');
-  ins[2].addEventListener('input',()=>{if(ins[2].value){const T=Math.max(1,Math.round(V('opTotal')));const c=parseFloat(ins[2].value)||0;ins[3].value=c>0?'1/'+num(T/c,0).replace(/,/g,''):'';}});
-  ins[3].addEventListener('input',()=>{const m=(ins[3].value||'').match(/^1\s*\/\s*([0-9.]+)$/);if(m){const T=Math.max(1,Math.round(V('opTotal')));const d=parseFloat(m[1]);if(d>0)ins[2].value=Math.max(1,Math.round(T/d));}});
+  ins[2].addEventListener('input',()=>{if(ins[2].value){const T=vClamp('opTotal',1,SIM_MAX);const c=parseFloat(ins[2].value)||0;ins[3].value=c>0?'1/'+num(T/c,0).replace(/,/g,''):'';}});
+  ins[3].addEventListener('input',()=>{const m=(ins[3].value||'').match(/^1\s*\/\s*([0-9.]+)$/);if(m){const T=vClamp('opTotal',1,SIM_MAX);const d=parseFloat(m[1]);if(d>0)ins[2].value=Math.max(1,Math.round(T/d));}});
   $('opTiers').appendChild(div);
 }
 function opGetTiers(total){
@@ -3362,7 +3383,7 @@ function opApplyGuarantee(deck,tierIdx,N){
 }
 function opBuild(){
   if(opGuarOn)opGuarPopulateSelect();
-  const T=Math.max(1,Math.round(V('opTotal')));
+  const T=vClamp('opTotal',1,SIM_MAX);
   const cost=V('opCost'),floor=V('opFloor');
   const tiers=opGetTiers(T);
   const errs=validate([
@@ -3974,11 +3995,11 @@ function histInto(canvasId,samples,unit){
   const w=cv.clientWidth||600,h=170;
   cv.width=w*dpr;cv.height=h*dpr;cv.style.height=h+'px';ctx.scale(dpr,dpr);
   ctx.clearRect(0,0,w,h);
-  const min=Math.min(...samples),max=Math.max(...samples);
+  const [min,max]=extent(samples);
   const buckets=20,range=(max-min)||1;
   const counts=new Array(buckets).fill(0);
-  samples.forEach(v=>{let idx=Math.floor((v-min)/range*buckets);if(idx>=buckets)idx=buckets-1;if(idx<0)idx=0;counts[idx]++;});
-  const maxC=Math.max(...counts);
+  samples.forEach(v=>{if(!Number.isFinite(v))return;let idx=Math.floor((v-min)/range*buckets);if(idx>=buckets)idx=buckets-1;if(idx<0)idx=0;counts[idx]++;});
+  const maxC=extent(counts,0)[1];
   const padL=8,padB=22,bw=(w-padL*2)/buckets;
   ctx.font='9px "IBM Plex Mono",monospace';ctx.fillStyle=CH.tick;ctx.textAlign='center';
   for(let i=0;i<buckets;i++){
@@ -4066,7 +4087,7 @@ function stratCompare(){
     const cv=$('stratChart');const ctx=cv.getContext('2d');const dpr=window.devicePixelRatio||1;
     const w=cv.clientWidth||600,h=240;cv.width=w*dpr;cv.height=h*dpr;cv.style.height=h+'px';ctx.scale(dpr,dpr);
     ctx.clearRect(0,0,w,h);
-    const all=results.flatMap(r=>r.series);const mn=Math.min(...all),mx=Math.max(...all);
+    const all=results.flatMap(r=>r.series);const [mn,mx]=extent(all);
     const Y=v=>h-20-((v-mn)/((mx-mn)||1))*(h-40);
     const X=i=>10+(i/(results[0].series.length-1))*(w-20);
     results.forEach(r=>{
@@ -4137,7 +4158,7 @@ function rbHistoryChartRender(){
   const w=cv.clientWidth||600,h=200;cv.width=w*dpr;cv.height=h*dpr;cv.style.height=h+'px';ctx.scale(dpr,dpr);
   ctx.clearRect(0,0,w,h);
   const all=rb.history.flatMap(hh=>hh.series);
-  const mn=Math.min(0,...all),mx=Math.max(...all);
+  const [mn,mx]=extent(all,0);
   const n=Math.max(2,rb.history[0].series.length);
   const Y=v=>h-24-((v-mn)/((mx-mn)||1))*(h-40);
   const X=i=>10+(i/(n-1))*(w-20);

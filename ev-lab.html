@@ -1806,7 +1806,7 @@ function opRender(lastResult){
   const remainByTier=opTierDefs.map((t,ti)=>({name:t.name,left:opDeck.slice(opDrawn).filter(x=>x===ti).length,total:t.count}));
   const totalLeft=opDeck.length-opDrawn;
   $('opRemain').innerHTML=`<span class="rc">残り口数: <b>${cf(totalLeft)}</b></span>`
-    +remainByTier.map(r=>`<span class="rc ${r.left>0?'gold':''}">${r.name} 残り<b>${r.left}</b>/${r.total}${r.left>0&&totalLeft>0?' (1/'+num(totalLeft/r.left,0)+')':''}</span>`).join('');
+    +remainByTier.map(r=>`<span class="rc ${r.left>0?'gold':''}">${escHtml(r.name)} 残り<b>${r.left}</b>/${r.total}${r.left>0&&totalLeft>0?' (1/'+num(totalLeft/r.left,0)+')':''}</span>`).join('');
   const maxBtn=$('opMaxPullBtn');
   if(maxBtn)maxBtn.textContent='回せるMAX回数を引く('+cf(opMaxPulls())+'口)';
   const rb=$('opResult');
@@ -1833,7 +1833,7 @@ addOpTier('1等',50000,'10');addOpTier('2等',10000,'50');addOpTier('3等',4000,
 let gcTiersDef=[],gcCount=0,gcSince=0,gcSpent=0,gcWallet=30000,gcStart=30000,gcSeries=[0],gcHits=[];
 function addGcTier(name,rate){
   const div=document.createElement('div');div.className='tier-row';
-  div.innerHTML=`<input type="text" value="${name??''}" placeholder="SSR">
+  div.innerHTML=`<input type="text" value="${escHtml(name??'')}" placeholder="SSR">
     <input type="number" value="${rate??''}" min="0" max="100" step="0.1" placeholder="0.7">
     <span></span><button class="rm" onclick="this.parentElement.remove()">×</button>`;
   $('gcTiers').appendChild(div);
@@ -2116,7 +2116,7 @@ function funTheory(budget){
     {name:'−50%で損切り',r:lossEarly}
   ];
   const ruleRows=rules.map(x=>
-    '<tr><td>'+x.name+'</td><td>'+cf(x.r.expSpins)+'回転</td><td>'+pct(x.r.winPct)+'</td><td>'+pct(x.r.bustPct)+'</td>'
+    '<tr><td>'+escHtml(x.name)+'</td><td>'+cf(x.r.expSpins)+'回転</td><td>'+pct(x.r.winPct)+'</td><td>'+pct(x.r.bustPct)+'</td>'
     +'<td style="color:'+(x.r.totalEV>=0?'var(--pos)':'var(--neg)')+';">'+(x.r.totalEV>=0?'+':'−')+cf(Math.abs(x.r.totalEV))+'円</td></tr>'
   ).join('');
   $('funTheory').innerHTML=
@@ -2667,7 +2667,7 @@ function addLtRow(name,w,color,children){
   const block=document.createElement('div');block.className='lt-item-block';
   const div=document.createElement('div');div.className='tier-row';
   div.style.gridTemplateColumns='1.3fr .8fr 46px .5fr 44px 30px';
-  div.innerHTML=`<input type="text" value="${name??''}" placeholder="項目名">
+  div.innerHTML=`<input type="text" value="${escHtml(name??'')}" placeholder="項目名">
     <input type="number" value="${w??1}" min="0" step="0.5">
     <input type="color" value="${color||LT_COLORS[Math.floor(Math.random()*LT_COLORS.length)]}" style="height:34px;padding:2px;border:1px solid var(--line2);border-radius:8px;background:var(--bg2);cursor:pointer;">
     <span class="mono" style="font-size:10px;color:var(--ink-3);"></span>
@@ -2692,7 +2692,7 @@ function addLtChildRow(kids,name,w,color){
   const oldAdd=kids.querySelector('.lt-child-add');if(oldAdd)oldAdd.remove();
   const oldBar=kids.querySelector('.lt-child-bar');if(oldBar)oldBar.remove();
   const row=document.createElement('div');row.className='lt-child-row';
-  row.innerHTML=`<input type="text" value="${name??''}" placeholder="子項目名">
+  row.innerHTML=`<input type="text" value="${escHtml(name??'')}" placeholder="子項目名">
     <input type="number" value="${w??1}" min="0" step="0.5">
     <input type="color" value="${color||LT_COLORS[kids.querySelectorAll('.lt-child-row').length%LT_COLORS.length]}" style="height:30px;padding:2px;border:1px solid var(--line2);border-radius:7px;background:var(--bg2);cursor:pointer;">
     <button class="rm" onclick="const k=this.closest('.lt-children');this.parentElement.remove();ltChildPct(k);">×</button>`;
@@ -2714,8 +2714,8 @@ function ltChildPct(kids){
   }).filter(d=>d.w>0);
   const total=data.reduce((s,d)=>s+d.w,0)||1;
   if(data.length<2){bar.innerHTML='';return;}
-  bar.innerHTML='<div class="lt-child-bar-track">'+data.map(d=>'<span style="width:'+(d.w/total*100)+'%;background:'+d.color+';" title="'+d.name+' '+num(d.w/total*100,0)+'%"></span>').join('')+'</div>'
-    +'<div class="lt-child-bar-legend">'+data.map(d=>'<span class="lt-cbl-item"><i style="background:'+d.color+';"></i>'+d.name+' '+num(d.w/total*100,0)+'%</span>').join('')+'</div>';
+  bar.innerHTML='<div class="lt-child-bar-track">'+data.map(d=>'<span style="width:'+(d.w/total*100)+'%;background:'+d.color+';" title="'+escHtml(d.name)+' '+num(d.w/total*100,0)+'%"></span>').join('')+'</div>'
+    +'<div class="lt-child-bar-legend">'+data.map(d=>'<span class="lt-cbl-item"><i style="background:'+d.color+';"></i>'+escHtml(d.name)+' '+num(d.w/total*100,0)+'%</span>').join('')+'</div>';
 }
 function ltPct(){
   const rows=[...document.querySelectorAll('#ltRows .tier-row')];
@@ -3094,7 +3094,7 @@ function pieInto(canvasId,segments,centerLabel,centerVal){
 }
 function pieLegend(segments){
   const total=segments.reduce((s,x)=>s+x.v,0)||1;
-  return segments.map(s=>'<span class="li"><span style="width:11px;height:11px;border-radius:3px;background:'+(s.rainbow?'linear-gradient(90deg,#E63946,#E8C879,#39FF88,#4FA3E0,#A020F0)':s.color)+';display:inline-block;"></span>'+s.name+' '+pct(s.v/total*100)+'</span>').join('');
+  return segments.map(s=>'<span class="li"><span style="width:11px;height:11px;border-radius:3px;background:'+(s.rainbow?'linear-gradient(90deg,#E63946,#E8C879,#39FF88,#4FA3E0,#A020F0)':s.color)+';display:inline-block;"></span>'+escHtml(s.name)+' '+pct(s.v/total*100)+'</span>').join('');
 }
 
 /* ---- 折りたたみ ---- */
@@ -3196,7 +3196,7 @@ function rsRender(){
     +'<div class="stat"><div class="s-l">総回収</div><div class="s-v">'+yen(ret)+'</div></div>'
     +'<div class="stat"><div class="s-l">記録数</div><div class="s-v">'+f.length+'件</div><div class="s-sub">勝率'+pct(winRate)+'</div></div>';
   $('rsByKind').innerHTML=Object.keys(byKind).length
-    ?'<div class="remain">'+Object.entries(byKind).map(([k,v])=>'<span class="rc'+(v.ret>=v.inv?' gold':'')+'">'+k+': 回収率<b>'+pct(v.inv>0?v.ret/v.inv*100:0)+'</b> 勝率<b>'+pct(v.n?v.w/v.n*100:0)+'</b> 収支<b>'+(v.ret-v.inv>=0?'+ ':'− ')+cf(Math.abs(v.ret-v.inv))+'</b></span>').join('')+'</div>'
+    ?'<div class="remain">'+Object.entries(byKind).map(([k,v])=>'<span class="rc'+(v.ret>=v.inv?' gold':'')+'">'+escHtml(k)+': 回収率<b>'+pct(v.inv>0?v.ret/v.inv*100:0)+'</b> 勝率<b>'+pct(v.n?v.w/v.n*100:0)+'</b> 収支<b>'+(v.ret-v.inv>=0?'+ ':'− ')+cf(Math.abs(v.ret-v.inv))+'</b></span>').join('')+'</div>'
     :'';
   if($('rsChart')&&f.length>0){
     const chrono=[...f].sort((x,y)=>x.d<y.d?-1:1);
@@ -3206,7 +3206,7 @@ function rsRender(){
   }
   $('rsTable').innerHTML=f.length
     ?'<table class="rs-table"><thead><tr><th>日付</th><th>種別</th><th>投資</th><th>回収</th><th>時間</th><th>収支</th><th>メモ</th><th></th></tr></thead><tbody>'
-      +f.map((r,i)=>{const n=r.ret-r.inv;const memo=r.memo?escHtml(r.memo):'';return '<tr class="'+(n>=0?'win':'lose')+'"><td>'+r.d+'</td><td>'+r.g+'</td><td>'+cf(r.inv)+'</td><td>'+cf(r.ret)+'</td><td>'+(r.hours?num(r.hours,1)+'h':'—')+'</td><td style="color:'+(n>=0?'var(--pos)':'var(--neg)')+'">'+(n>=0?'+ ':'− ')+cf(Math.abs(n))+'</td><td class="rs-memo" title="'+memo+'">'+(memo?(memo.length>10?memo.slice(0,10)+'…':memo):'—')+'</td><td class="rs-del" onclick="rsDel('+a.indexOf(r)+')">×</td></tr>';}).join('')
+      +f.map((r,i)=>{const n=r.ret-r.inv;const memo=r.memo?escHtml(r.memo):'';return '<tr class="'+(n>=0?'win':'lose')+'"><td>'+escHtml(r.d)+'</td><td>'+escHtml(r.g)+'</td><td>'+cf(r.inv)+'</td><td>'+cf(r.ret)+'</td><td>'+(r.hours?num(r.hours,1)+'h':'—')+'</td><td style="color:'+(n>=0?'var(--pos)':'var(--neg)')+'">'+(n>=0?'+ ':'− ')+cf(Math.abs(n))+'</td><td class="rs-memo" title="'+memo+'">'+(memo?(memo.length>10?memo.slice(0,10)+'…':memo):'—')+'</td><td class="rs-del" onclick="rsDel('+a.indexOf(r)+')">×</td></tr>';}).join('')
       +'</tbody></table>'
     :'<div class="fhelp">記録がありません。上のフォームから追加してください。</div>';
 }
@@ -3242,15 +3242,15 @@ function gcBuild(){
   const other=1-gcTiersDef.reduce((s,t)=>s+t.rate,0);
   if(other>0)segs.push({name:'通常枠',v:other,color:'#3A3A50'});
   $('gcTheoryHead').innerHTML=
-    '<div class="pct-strip"><span class="l" style="font-size:11px;color:var(--gold);">目玉('+gcTiersDef[0].name+')排出率</span> <span class="pct-big">'+pct(p*100,2)+'</span>'
-    +(gcTiersDef[1]?'<span class="l" style="font-size:11px;color:var(--ink-2);margin-left:8px;">第2目玉('+gcTiersDef[1].name+')</span> <span class="mono" style="font-size:15px;color:var(--ink);">'+pct(gcTiersDef[1].rate*100,2)+'</span>':'')+'</div>';
+    '<div class="pct-strip"><span class="l" style="font-size:11px;color:var(--gold);">目玉('+escHtml(gcTiersDef[0].name)+')排出率</span> <span class="pct-big">'+pct(p*100,2)+'</span>'
+    +(gcTiersDef[1]?'<span class="l" style="font-size:11px;color:var(--ink-2);margin-left:8px;">第2目玉('+escHtml(gcTiersDef[1].name)+')</span> <span class="mono" style="font-size:15px;color:var(--ink);">'+pct(gcTiersDef[1].rate*100,2)+'</span>':'')+'</div>';
   $('gcTheoryPie').innerHTML=
     '<div class="gc-pie-col"><div class="gc-pie-h">確率上の排出割合</div><canvas id="gcPie"></canvas><div class="legend">'+pieLegend(segs)+'</div></div>';
   $('gcActualPie').innerHTML=
     '<div class="gc-pie-col"><div class="gc-pie-h">実際の排出割合</div><div class="fhelp" style="margin-top:24px;">まだ引いていません</div></div>';
   $('gc-theory').innerHTML=
     '<div class="stats">'
-    +'<div class="stat"><div class="s-l">'+gcTiersDef[0].name+'の期待初当たり</div><div class="s-v">'+num(expPulls)+'回</div><div class="s-sub">期待消費 '+cf(expPulls*cost)+'石 / 独立試行</div></div>'
+    +'<div class="stat"><div class="s-l">'+escHtml(gcTiersDef[0].name)+'の期待初当たり</div><div class="s-v">'+num(expPulls)+'回</div><div class="s-sub">期待消費 '+cf(expPulls*cost)+'石 / 独立試行</div></div>'
     +'<div class="stat"><div class="s-l">所持石で目玉を1枚以上</div><div class="s-v">'+pct(pEye*100)+'</div><div class="s-sub">所持'+cf(gcWallet)+'石=最大'+affordable+'連</div></div>'
     +'</div>';
   requestAnimationFrame(()=>pieInto('gcPie',segs,'排出率','目玉'+pct(p*100,1)));
@@ -3289,7 +3289,7 @@ function gcRender(last){
     +'<span class="rc gold">天井まで残り <b>'+Math.max(0,pity-gcSince)+'</b>回</span>':'')
     +(gcEyeHits.length?'<span class="rc gold">'+(gcTiersDef[0]?gcTiersDef[0].name:'目玉')+'当選: '+gcEyeHits.map((n,i)=>(i+1)+'回目='+n+'連目').join(' / ')+'</span>':'')
     +(gcEye2Hits.length?'<span class="rc">第2目玉: '+gcEye2Hits.map((n,i)=>(i+1)+'回目='+n+'連目').join(' / ')+'</span>':'');
-  $('gcCounts').innerHTML=gcTiersDef.map((t,i)=>'<span class="rc'+(gcHits[i]>0&&gcRank[i]<=2?' gold':'')+'">'+t.name+': <b>'+gcHits[i]+'</b>枚</span>').join('');
+  $('gcCounts').innerHTML=gcTiersDef.map((t,i)=>'<span class="rc'+(gcHits[i]>0&&gcRank[i]<=2?' gold':'')+'">'+escHtml(t.name)+': <b>'+gcHits[i]+'</b>枚</span>').join('');
   if(last===null){const rb=$('gcResult');rb.className='result-banner';rb.innerHTML='<div class="r-tier">↓ ボタンを押して引く</div><div class="r-coin">—</div>';}
 }
 function gcPull(n){
@@ -3321,7 +3321,7 @@ function gcPull(n){
   const rank=hit?gcRank[best]:6;
   const show=()=>{
     rb.className='result-banner '+(hit?'fx-r'+rank:'')+' pop';
-    rb.innerHTML='<div class="r-tier">'+pulled+'連の結果 '+(hit?'— 最高: '+gcTiersDef[best].name+(rank===1?' 🌈':''):'— 全部通常枠')+'</div>'
+    rb.innerHTML='<div class="r-tier">'+pulled+'連の結果 '+(hit?'— 最高: '+escHtml(gcTiersDef[best].name)+(rank===1?' 🌈':''):'— 全部通常枠')+'</div>'
       +'<div class="r-coin">−'+cf(cost*pulled)+' 石消費</div>'
       +(pulled<n?'<div class="r-tier" style="color:var(--neg);font-size:12.5px;margin-top:4px;">⚠ '+n+'連を希望しましたが、石不足のため'+pulled+'連で打ち切りました</div>':'');
     if(hit&&rank===1){confettiBurst(rb);SFX.jackpot();}
@@ -3346,7 +3346,7 @@ function gcActualPieRender(){
   if(other>0)segs.push({name:'通常枠',v:other,color:'#3A3A50'});
   $('gcActualPie').innerHTML=
     '<div class="gc-pie-col"><div class="gc-pie-h">実際の排出割合(通算'+cf(gcCount)+'連)</div><canvas id="gcActPieC"></canvas><div class="legend">'
-    +segs.map((s,i)=>'<span class="li"><span class="sw" style="background:'+s.color+';border-color:'+s.color+';"></span>'+s.name+' '+pct(s.v/gcCount*100,1)+(gcTiersDef[i]?'(理論'+pct(gcTiersDef[i].rate*100,1)+')':'')+'</span>').join('')
+    +segs.map((s,i)=>'<span class="li"><span class="sw" style="background:'+s.color+';border-color:'+s.color+';"></span>'+escHtml(s.name)+' '+pct(s.v/gcCount*100,1)+(gcTiersDef[i]?'(理論'+pct(gcTiersDef[i].rate*100,1)+')':'')+'</span>').join('')
     +'</div><div class="fhelp" style="margin-top:6px;">試行が少ないとブレます</div></div>';
   requestAnimationFrame(()=>pieInto('gcActPieC',segs,'実排出',cf(gcCount)+'連'));
 }
@@ -3377,7 +3377,7 @@ function stRender(){
     +(keys.length
     ?Object.entries(genres).map(([genre,cats])=>{
       const rows=cats.map(k=>{const v=s[k];const rate=(v.inv||0)>0?((v.inv+v.net)/v.inv*100):null;
-        return '<div class="st-row"><span class="st-n">'+k+'</span><span class="st-c">'+v.n+'回 / 投資'+cf(v.inv||0)+(rate!==null?' / 回収率'+pct(rate):'')+'</span><span class="st-v" style="color:'+(v.net>=0?'var(--pos)':'var(--neg)')+';">'+(v.net>=0?'+':'−')+cf(Math.abs(v.net))+'</span><span class="st-del" onclick="stDelCat(\''+k.replace(/'/g,"\\'")+'\')">×</span></div>';
+        return '<div class="st-row"><span class="st-n">'+escHtml(k)+'</span><span class="st-c">'+v.n+'回 / 投資'+cf(v.inv||0)+(rate!==null?' / 回収率'+pct(rate):'')+'</span><span class="st-v" style="color:'+(v.net>=0?'var(--pos)':'var(--neg)')+';">'+(v.net>=0?'+':'−')+cf(Math.abs(v.net))+'</span><span class="st-del" onclick="stDelCat(\''+k.replace(/'/g,"\\'")+'\')">×</span></div>';
       }).join('');
       return '<div class="st-genre"><div class="st-genre-h">'+escHtml(genre)+'</div>'+rows+'</div>';
     }).join('')
@@ -3422,7 +3422,7 @@ let opHistArr=[],opWinList=[],opBatchNo=0,opHitLog=[];
 function addOpTier(name,coin,count,frac){
   const div=document.createElement('div');div.className='tier-row';
   div.style.gridTemplateColumns='1fr 1fr .7fr .7fr 30px';
-  div.innerHTML=`<input type="text" value="${name??''}" placeholder="1等">
+  div.innerHTML=`<input type="text" value="${escHtml(name??'')}" placeholder="1等">
     <input type="number" value="${coin??''}" min="0" step="500" placeholder="獲得coin">
     <input type="number" value="${count??''}" min="0" step="1" placeholder="枚数">
     <input type="text" value="${frac??''}" placeholder="1/500">
@@ -3532,7 +3532,7 @@ function opBuild(){
     const w100=probHyper(useT,t.count,Math.min(100,useT));
     const wWallet=probHyper(useT,t.count,affordable);
     return '<div class="remain" style="margin-bottom:4px;">'
-      +'<span class="rc'+(opRank[i]===1?' gold':'')+'">'+t.name+'<span class="rankb r'+opRank[i]+'" style="margin:0 4px;">'+opRank[i]+'位</span></span>'
+      +'<span class="rc'+(opRank[i]===1?' gold':'')+'">'+escHtml(t.name)+'<span class="rankb r'+opRank[i]+'" style="margin:0 4px;">'+opRank[i]+'位</span></span>'
       +'<span class="rc">10連で1口以上: <b>'+pct(w10*100)+'</b></span>'
       +'<span class="rc">100連で1口以上: <b>'+pct(w100*100)+'</b></span>'
       +'<span class="rc gold">全ツッパ('+affordable+'口/所持コイン全額)で1口以上: <b>'+pct(wWallet*100)+'</b></span>'
@@ -3549,10 +3549,10 @@ function opBuild(){
         :'<div class="remain"><span class="rc gold">✓ '+Math.round(V('opGuarN'))+'口ごとに「'+((tiersUse[Math.min(tiersUse.length-1,Math.max(0,Math.round(V('opGuarTier'))))]||{}).name||'')+'以上」を保証済み</span></div>')
       :'')
     +'<div class="pct-strip">'
-      +(tiersUse[0]?'<span style="font-size:11px;color:var(--gold);">'+tiersUse[0].name+'</span> <span class="pct-big">1/'+num(useT/Math.max(1,tiersUse[0].count),0)+'</span>':'')
-      +(tiersUse[1]?'<span style="font-size:11px;color:var(--ink-2);margin-left:10px;">'+tiersUse[1].name+'</span> <span class="mono" style="font-size:16px;color:var(--ink);">1/'+num(useT/Math.max(1,tiersUse[1].count),0)+'</span>':'')
+      +(tiersUse[0]?'<span style="font-size:11px;color:var(--gold);">'+escHtml(tiersUse[0].name)+'</span> <span class="pct-big">1/'+num(useT/Math.max(1,tiersUse[0].count),0)+'</span>':'')
+      +(tiersUse[1]?'<span style="font-size:11px;color:var(--ink-2);margin-left:10px;">'+escHtml(tiersUse[1].name)+'</span> <span class="mono" style="font-size:16px;color:var(--ink);">1/'+num(useT/Math.max(1,tiersUse[1].count),0)+'</span>':'')
     +'</div>'
-    +tiersUse.map((t,i)=>'<div class="remain" style="margin-bottom:4px;"><span class="rc gold">'+t.name+' <span class="rankb r'+opRank[i]+'">'+opRank[i]+'位</span>: <b>1/'+num(useT/Math.max(1,t.count),0)+'</b> で <b>'+cf(t.coin)+'</b>コイン ('+t.count+'枚封入)</span></div>').join('')
+    +tiersUse.map((t,i)=>'<div class="remain" style="margin-bottom:4px;"><span class="rc gold">'+escHtml(t.name)+' <span class="rankb r'+opRank[i]+'">'+opRank[i]+'位</span>: <b>1/'+num(useT/Math.max(1,t.count),0)+'</b> で <b>'+cf(t.coin)+'</b>コイン ('+t.count+'枚封入)</span></div>').join('')
     +'<div class="remain"><span class="rc">総還元率: <b>'+pct(kangen,2)+'</b></span><span class="rc">1口の期待損益: <b>'+(opEvPer>=0?'+':'−')+cf(Math.abs(opEvPer))+'</b>コイン</span></div>'
     +'<div class="flabel" style="margin-top:8px;">上位賞の当選確率(1口以上当たる確率)</div>'+winRateRows;
   $('opTheoryPie').innerHTML=
@@ -3577,7 +3577,7 @@ function opActualPieRender(){
   if(other>0)segs.push({name:'ハズレ',v:other,color:'#3A3A50'});
   $('opActualPie').innerHTML=
     '<div class="gc-pie-col"><div class="gc-pie-h">実際の当たり割合(通算'+cf(opDrawn)+'口)</div><canvas id="opActPieC"></canvas><div class="legend">'
-    +segs.map((s,i)=>'<span class="li"><span class="sw" style="background:'+s.color+';border-color:'+s.color+';"></span>'+s.name+' '+pct(s.v/opDrawn*100,1)+(opTierDefs[i]?'(理論'+pct(opTierDefs[i].count/(opDeck.length)*100,1)+')':'')+'</span>').join('')
+    +segs.map((s,i)=>'<span class="li"><span class="sw" style="background:'+s.color+';border-color:'+s.color+';"></span>'+escHtml(s.name)+' '+pct(s.v/opDrawn*100,1)+(opTierDefs[i]?'(理論'+pct(opTierDefs[i].count/(opDeck.length)*100,1)+')':'')+'</span>').join('')
     +'</div><div class="fhelp" style="margin-top:6px;">試行が少ないとブレます</div></div>';
   requestAnimationFrame(()=>pieInto('opActPieC',segs,'実当選',cf(opDrawn)+'口'));
 }
@@ -3613,7 +3613,7 @@ function opPull(n){
   $('opLog').innerHTML=
     foldBlock('開封履歴('+pulled+'口 / 先頭200件)',
       '<div style="display:flex;flex-wrap:wrap;gap:4px;padding-top:6px;">'+draw.map(t=>'<span class="pl '+(t===0?'t0':t===1?'t1':t>=2?'t2':'tx')+'">'+(t>=0?['1','2','3','4','5','6'][t]||'★':'—')+'</span>').join('')+'</div>',false)
-    +(opWinList.length?foldBlock('上位賞の当選口('+opWinList.length+'件)','<div class="remain" style="padding-top:6px;">'+opWinList.map(w=>{const ci=opTierDefs.findIndex(td=>td.name===w.name);const col=ci>=0?RCOL[ci%6]:'#E8B33C';const rk=ci>=0?opRank[ci]:1;return '<span class="rc" style="border-color:'+col+';color:'+col+';font-weight:700;"><span class="rankb r'+rk+'" style="margin-right:4px;">'+rk+'位</span>'+w.kuchi+'口目 / '+w.name+'</span>';}).join('')+'</div>',false):'')
+    +(opWinList.length?foldBlock('上位賞の当選口('+opWinList.length+'件)','<div class="remain" style="padding-top:6px;">'+opWinList.map(w=>{const ci=opTierDefs.findIndex(td=>td.name===w.name);const col=ci>=0?RCOL[ci%6]:'#E8B33C';const rk=ci>=0?opRank[ci]:1;return '<span class="rc" style="border-color:'+col+';color:'+col+';font-weight:700;"><span class="rankb r'+rk+'" style="margin-right:4px;">'+rk+'位</span>'+w.kuchi+'口目 / '+escHtml(w.name)+'</span>';}).join('')+'</div>',false):'')
     +(opHitLog.length?foldBlock('当選履歴(通算'+opDrawn+'口中'+opHitLog.length+'件 / 先頭200件)','<div class="remain" style="padding-top:6px;">'+opHitLog.slice(0,200).map(w=>'<span class="rc'+(w.rank===1?' gold':'')+'"><span class="rankb r'+w.rank+'" style="margin-right:4px;">'+w.rank+'位</span>'+w.kuchi+'口目 / '+escHtml(w.name)+'</span>').join('')+'</div>',false):'')
     +foldBlock('収支履歴','<div style="padding-top:6px;">'+opHistArr.map(h=>'<div class="cclog-line" style="color:'+(h.net>=0?'var(--pos)':'var(--neg)')+'">'+h.pulls+'連('+h.from+'口〜'+h.to+'口) '+(h.net>=0?'+ ':'− ')+cf(Math.abs(h.net))+'coin</div>').join('')+'</div>',false);
   const hit=bestTier<99;
@@ -3621,7 +3621,7 @@ function opPull(n){
   const shortReason=opDrawn>=opDeck.length?'完売':'コイン不足';
   const show=()=>{
     rb.className='result-banner '+(hit?'fx-r'+rank:'')+' pop';
-    rb.innerHTML='<div class="r-tier">'+pulled+'口引いた結果 '+(hit?'— '+opTierDefs[bestTier].name+'当選!!'+(rank===1?' 🌈':''):'— ハズレ')+'</div>'
+    rb.innerHTML='<div class="r-tier">'+pulled+'口引いた結果 '+(hit?'— '+escHtml(opTierDefs[bestTier].name)+'当選!!'+(rank===1?' 🌈':''):'— ハズレ')+'</div>'
       +'<div class="r-coin">+'+cf(gained)+' 獲得 / 差枚 '+(net>=0?'+':'−')+cf(Math.abs(net))+'</div>'
       +(pulled<n?'<div class="r-tier" style="color:var(--neg);font-size:12.5px;margin-top:4px;">⚠ '+n+'口を希望しましたが、'+shortReason+'のため'+pulled+'口で打ち切りました</div>':'');
     if(hit&&rank===1){confettiBurst(rb);SFX.jackpot();}else if(hit&&rank<=2)SFX.win();else if(!hit&&pulled>=10)SFX.lose();
@@ -4074,7 +4074,7 @@ function shareURL(p){
 }
 function shareMsg(p,text){
   const el=$('share-'+p);
-  if(el)el.innerHTML='<div class="fhelp" style="word-break:break-all;">'+text+'</div>';
+  if(el)el.innerHTML='<div class="fhelp" style="word-break:break-all;">'+escHtml(text)+'</div>';
 }
 function shareURLApply(){
   const m=location.hash.match(/share=([^&]+)/);

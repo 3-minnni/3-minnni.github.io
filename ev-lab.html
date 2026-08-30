@@ -2181,6 +2181,11 @@ function funRender(){
 }
 function funPress(amount){
   if(!fun||fun.over)return;
+  /* 実戦の回転数は毎回変わるため、範囲指定のときは「回すたび」に引き直す。
+     固定指定なら pkPickSpins1k はその値をそのまま返すので分岐は不要。
+     (理論値側の funTheory は元から試行ごとに引き直しており、
+      実プレイだけが開始時の1回で固定されたままだった) */
+  fun.perK=pkPickSpins1k(fun.spec);
   const P=fun.P,p=1/P.N,rate=pkRate.rate;
   const perK=Math.max(0.1,fun.perK);
   // amount=-1: 全額 / それ以外: その円数ぶん

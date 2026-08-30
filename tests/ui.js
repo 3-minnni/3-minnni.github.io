@@ -83,6 +83,42 @@ function foldState(w, bodyId) {
     R.check('トグルのidも重複しない', new Set(toggles).size === toggles.length, toggles.join(','));
   }
 
+  /* パチンコ投資金額モード: 回転数を範囲指定したとき、回すたびに引き直されること。
+     以前は funStart で1回だけ抽選し funPress が使い回していたため、
+     何度回しても同じ回転数のままだった(理論値側は元から毎回引き直していた)。 */
+  {
+    const w = await boot(TARGET, { seed: 1234 });
+    const shown = () => {
+      const m = text($(w, 'funStat')).match(/今回の回転数:\s*([\d.,]+)/);
+      return m ? m[1] : null;
+    };
+    w.pkSetMode('f');
+    w.pkSetFunSpinsMode(true);
+    $(w, 'pkFunSpinsMin').value = '10';
+    $(w, 'pkFunSpinsMax').value = '30';
+    $(w, 'pkFunYen').value = '50000';
+    w.funStart(); await sleep(150);
+    const vals = [shown()];
+    for (let i = 0; i < 5; i++) { w.funPress(1000); await sleep(50); vals.push(shown()); }
+    const uniq = [...new Set(vals.filter(Boolean))];
+    R.check('回転数の範囲指定: 回すたびに引き直される', uniq.length >= 4, '観測=[' + vals.join(', ') + ']');
+    const nums = vals.filter(Boolean).map((v) => parseFloat(v.replace(/,/g, '')));
+    R.check('回転数の範囲指定: 値が指定範囲(10〜30)に収まる', nums.every((n) => n >= 10 && n <= 30), nums.join(', '));
+  }
+  {
+    /* 固定指定は従来どおり変動しないこと */
+    const w = await boot(TARGET, { seed: 1234 });
+    w.pkSetMode('f');
+    w.pkSetFunSpinsMode(false);
+    $(w, 'pkSpins1k').value = '18';
+    $(w, 'pkFunYen').value = '30000';
+    w.funStart(); await sleep(120);
+    let threw = null;
+    try { for (let i = 0; i < 3; i++) w.funPress(1000); } catch (e) { threw = e.message; }
+    R.check('回転数の固定指定: 例外なく回せる(「今回の回転数」は出さない)',
+      !threw && !/今回の回転数/.test(text($(w, 'funStat'))), threw || '');
+  }
+
   /* 統計: 生涯トータルが先頭(結果表示ファースト) */
   {
     const w = await boot(TARGET, { seed: 1 });

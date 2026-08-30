@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>期待値ラボ — 賭ける前に、数字を見る。</title>
+<meta name="description" content="パチンコ・スロット・オリパ・ガチャ・ルーレットの期待値と確率をシミュレーションする学習ツール。実際のお金は使いません。">
+<meta name="theme-color" content="#0B0B10">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="期待値ラボ">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -4255,17 +4263,19 @@ function stratCompare(){
 const _themeFlipOrig=themeFlip;
 themeFlip=function(){_themeFlipOrig();try{localStorage.setItem('evlab_theme_manual','1');}catch(e){}
   if($('themeLabel'))$('themeLabel').textContent=LIGHT?'☀️ ライト':'🌙 ダーク';};
-/* ---- E: PWA最低限対応(マニフェストのみ。SW登録は別ファイルが必要なため省略) ---- */
+/* ---- E: PWA対応 ----
+   マニフェストとアイコンは実ファイル(manifest.json / icons/)として持つ。
+   以前は data: URI をJSで生成していたが、アイコンを持てず「インストール可能な
+   PWA」の条件を満たせないため、head の <link rel="manifest"> に置き換えた。
+
+   Service Worker はオフライン起動と2回目以降の高速化のために登録する。
+   file:// で開いた場合や未対応環境では登録できないため、必ず存在確認してから呼ぶ。 */
 (function(){
-  try{
-    const manifest={name:'期待値ラボ',short_name:'期待値ラボ',start_url:'.',display:'standalone',background_color:'#0B0B10',theme_color:'#C8A25B',icons:[]};
-    const link=document.createElement('link');
-    link.rel='manifest';
-    link.href='data:application/manifest+json,'+encodeURIComponent(JSON.stringify(manifest));
-    document.head.appendChild(link);
-    const meta=document.createElement('meta');meta.name='theme-color';meta.content='#0B0B10';
-    document.head.appendChild(meta);
-  }catch(e){}
+  if(!('serviceWorker' in navigator))return;
+  if(location.protocol!=='http:'&&location.protocol!=='https:')return; // file:// では登録不可
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{ /* 失敗してもアプリ本体は動く */ });
+  });
 })();
 /* ============================================================
    v9 — 友達対戦: ソロと同じ盤面ベット方式に刷新

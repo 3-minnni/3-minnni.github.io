@@ -1,0 +1,35 @@
+{
+  "name": "期待値ラボ — 賭ける前に、数字を見る。",
+  "short_name": "期待値ラボ",
+  "description": "パチンコ・スロット・オリパ・ガチャ・ルーレットの期待値と確率をシミュレーションする学習ツール。実際のお金は使いません。",
+  "lang": "ja",
+  "dir": "ltr",
+  "start_url": "./ev-lab.html",
+  "scope": "./",
+  "id": "/ev-lab",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0B0B10",
+  "theme_color": "#0B0B10",
+  "categories": ["education", "utilities"],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

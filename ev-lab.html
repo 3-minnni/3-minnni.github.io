@@ -1284,7 +1284,10 @@
       <div class="rs-sum" id="rsSummary"></div>
       <div id="rsByKind"></div>
       <div class="chart-card"><div class="chart-head"><div class="c-title">累計収支の推移(記録を古い順に積み上げ)</div></div><canvas id="rsChart"></canvas></div>
-      <div id="rsTable"></div>
+      <div class="fold-head closed" style="margin-top:10px;" onclick="this.classList.toggle('closed');$('rsTableFold').classList.toggle('closed');"><span class="fold-ar">▼</span>全記録一覧</div>
+      <div class="fold-body closed" id="rsTableFold" style="max-height:4000px;">
+        <div id="rsTable"></div>
+      </div>
     </div>
     <div class="card">
       <div class="card-title"><span class="step">SIM</span><h3>シミュレーション統計</h3><span class="hint">アプリ内の確定結果を自動積算</span></div>
@@ -3208,15 +3211,16 @@ function stRender(){
   const totalInv=keys.reduce((a,k)=>a+(s[k].inv||0),0);
   const genres={};
   keys.forEach(k=>{const genre=k.split('(')[0];genres[genre]=genres[genre]||[];genres[genre].push(k);});
-  $('stBody').innerHTML=(keys.length
+  $('stBody').innerHTML=
+    '<div class="st-row" style="border-bottom:2px solid var(--line2);"><span class="st-n">生涯トータル</span><span class="st-c">総投資 '+cf(totalInv)+(totalInv>0?' / 回収率'+pct((totalInv+total)/totalInv*100):'')+'</span><span class="st-v" style="font-size:20px;color:'+(total>=0?'var(--pos)':'var(--neg)')+';">'+(total>=0?'+':'−')+cf(Math.abs(total))+'</span></div>'
+    +(keys.length
     ?Object.entries(genres).map(([genre,cats])=>{
       const rows=cats.map(k=>{const v=s[k];const rate=(v.inv||0)>0?((v.inv+v.net)/v.inv*100):null;
         return '<div class="st-row"><span class="st-n">'+k+'</span><span class="st-c">'+v.n+'回 / 投資'+cf(v.inv||0)+(rate!==null?' / 回収率'+pct(rate):'')+'</span><span class="st-v" style="color:'+(v.net>=0?'var(--pos)':'var(--neg)')+';">'+(v.net>=0?'+':'−')+cf(Math.abs(v.net))+'</span><span class="st-del" onclick="stDelCat(\''+k.replace(/'/g,"\\'")+'\')">×</span></div>';
       }).join('');
       return '<div class="st-genre"><div class="st-genre-h">'+escHtml(genre)+'</div>'+rows+'</div>';
     }).join('')
-    :'<div class="fhelp">まだデータがありません。各タブで計算・実引きすると自動で積算されます。</div>')
-  +'<div class="st-row" style="border-top:2px solid var(--line2);border-bottom:none;"><span class="st-n">生涯トータル</span><span class="st-c">総投資 '+cf(totalInv)+(totalInv>0?' / 回収率'+pct((totalInv+total)/totalInv*100):'')+'</span><span class="st-v" style="font-size:20px;color:'+(total>=0?'var(--pos)':'var(--neg)')+';">'+(total>=0?'+':'−')+cf(Math.abs(total))+'</span></div>';
+    :'<div class="fhelp">まだデータがありません。各タブで計算・実引きすると自動で積算されます。</div>');
 }
 /* ---- 設定判別を独立タブへ ---- */
 function hkInit(){

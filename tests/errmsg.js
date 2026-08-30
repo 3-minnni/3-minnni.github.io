@@ -50,5 +50,34 @@ const ACTIONABLE = /入力してください|見直してください|減らし�
     w.opBuild(); await sleep(100);
     R.check('オリパ: 設定が不正なら引くエリアが隠れる', $(w, 'opPlay').style.display === 'none');
   }
+
+  /* 画面をブロックする alert() を使わず、非ブロッキングの通知バーで伝えること */
+  {
+    const w = await boot(TARGET, { seed: 1 });
+    $(w, 'rsDate').value = '';
+    w.rsAdd(); await sleep(80);
+    const bar = $(w, 'toastBar');
+    R.check('統計: 日付未選択で alert() を使わない', (w.__alerts || []).length === 0,
+      (w.__alerts || []).join(' / ') || 'alertなし');
+    R.check('統計: 通知バーが表示される', !!bar && bar.classList.contains('show'));
+    R.check('統計: 通知に理由と直し方が書かれている',
+      !!bar && /日程を選択してください/.test(bar.textContent), bar ? bar.textContent.slice(0, 60) : '');
+    R.check('統計: 記録は保存されない', w.rsAll().length === 0);
+  }
+  {
+    /* ルーレット: 所持金を超えるベットも通知バーで伝える。
+       所持金ガードは上級ベット(セクター/複合)側にあるためそちらで検証する */
+    const w = await boot(TARGET, { seed: 1 });
+    $(w, 'ruWalletSet').value = '100'; w.ruSetWallet();
+    const chip = [...w.document.querySelectorAll('.rt-chip')].find((c) => c.dataset.v === '5000');
+    if (chip) w.rtChip(chip);
+    w.rtSectorBet('voisins');
+    await sleep(80);
+    const bar = $(w, 'toastBar');
+    R.check('ルーレット: 所持金超過で alert() を使わない', (w.__alerts || []).length === 0,
+      (w.__alerts || []).join(' / ') || 'alertなし');
+    R.check('ルーレット: 通知バーに理由と直し方が出る',
+      !!bar && /超えるためベットできません/.test(bar.textContent), bar ? bar.textContent.slice(0, 50) : '(バーなし)');
+  }
   process.exit(R.finish());
 })().catch((e) => { console.error('ERR', e); process.exit(1); });

@@ -353,6 +353,12 @@
     font-size:var(--fs-sm);max-width:calc(100vw - 28px);}
   .undo-bar.show{transform:translate(-50%,0);}
   .undo-bar .u-msg{color:var(--ink-2);}
+  /* 通知バー: alert() の置き換え。画面をブロックしない。
+     取り消しバーと同時に出ても重ならないよう一段上に置く */
+  .toast-bar{bottom:76px;line-height:1.6;}
+  .toast-bar .t-msg{color:var(--ink-2);}
+  .toast-bar.bad{border-color:rgba(230,57,70,.5);}
+  .toast-bar.bad .t-msg{color:var(--neg);}
   .undo-bar .btn2{padding:6px 12px;font-size:var(--fs-sm);white-space:nowrap;}
   body.light .undo-bar{box-shadow:0 8px 22px rgba(27,28,25,.18);}
   .modal .m-btns{display:flex;gap:8px;}
@@ -2270,6 +2276,25 @@ function confirmBox(msg,danger,onYes){
   btns[0].onclick=()=>bg.remove();
   btns[1].onclick=()=>{bg.remove();onYes();};
 }
+/* ---- 通知バー ----
+   alert() は画面をブロックしモバイルでの操作を止めてしまうため、
+   入力の誤りは画面下部の非ブロッキングな通知で伝える。 */
+let __toastTimer=null;
+function toast(msg,bad){
+  let bar=$('toastBar');
+  if(!bar){
+    bar=document.createElement('div');bar.id='toastBar';bar.className='undo-bar toast-bar';
+    document.body.appendChild(bar);
+  }
+  bar.classList.toggle('bad',!!bad);
+  bar.innerHTML='<span class="t-msg">'+escHtml(msg)+'</span>';
+  /* rAFは非表示タブで発火しないため、強制リフローでトランジションを確定させる */
+  bar.classList.remove('show');
+  void bar.offsetWidth;
+  bar.classList.add('show');
+  clearTimeout(__toastTimer);
+  __toastTimer=setTimeout(()=>bar.classList.remove('show'),6000);
+}
 /* ---- 取り消し(UNDO) ----
    削除系の操作で「消える直前の状態」を保持し、一定時間だけ元に戻せるようにする。
    restore は呼ばれたら状態を戻して再描画まで行うコールバック。 */
@@ -2837,8 +2862,8 @@ function rtDetailPreview(){
 }
 function rtDetailBet(){
   const r=rtDetailCompute();
-  if(!r){alert('この基準の数字では、選んだ種類のベットを組めません。盤面の端の数字だと隣接するマスが足りないためです。中央寄りの数字を基準に選ぶか、ベットの種類を変えてください。');return;}
-  if(rtTotal()+rtAmt>ruWallet){alert('所持金('+cf(ruWallet)+')を超えるためベットできません。チップ額を小さくするか、「全取消」でベットを整理してから置き直してください。');return;}
+  if(!r){toast('この基準の数字では、選んだ種類のベットを組めません。盤面の端の数字だと隣接するマスが足りないためです。中央寄りの数字を基準に選ぶか、ベットの種類を変えてください。',true);return;}
+  if(rtTotal()+rtAmt>ruWallet){toast('所持金('+cf(ruWallet)+')を超えるためベットできません。チップ額を小さくするか、「全取消」でベットを整理してから置き直してください。',true);return;}
   rtBets[r.key]=(rtBets[r.key]||0)+rtAmt;
   rtRender();rtDetailPreview();
 }
@@ -2849,7 +2874,7 @@ const RU_SECTORS={
 };
 function rtSectorBet(name){
   const nums=RU_SECTORS[name];if(!nums)return;
-  if(rtTotal()+nums.length*rtAmt>ruWallet){alert('所持金('+cf(ruWallet)+')を超えるためベットできません。このセクターは'+nums.length+'個の数字すべてに賭けるため「'+nums.length+'×チップ額」が必要です。チップ額を小さくしてから置き直してください。');return;}
+  if(rtTotal()+nums.length*rtAmt>ruWallet){toast('所持金('+cf(ruWallet)+')を超えるためベットできません。このセクターは'+nums.length+'個の数字すべてに賭けるため「'+nums.length+'×チップ額」が必要です。チップ額を小さくしてから置き直してください。',true);return;}
   nums.forEach(num=>{rtBets['n'+num]=(rtBets['n'+num]||0)+rtAmt;});
   rtRender();
 }
@@ -3136,7 +3161,7 @@ function rsSave(a){try{localStorage.setItem('evlab_real',JSON.stringify(a));}cat
 function rsAdd(){
   const d=$('rsDate').value,g=$('rsKind').value,inv=Math.round(V('rsInv')),ret=Math.round(V('rsRet')),hours=V('rsHours');
   const memo=($('rsMemo')&&$('rsMemo').value||'').trim();
-  if(!d){alert('日程を選択してください。記録は日付ごとに集計し、収支推移グラフの並び順にも使うため、日付がないと保存できません。');return;}
+  if(!d){toast('日程を選択してください。記録は日付ごとに集計し、収支推移グラフの並び順にも使うため、日付がないと保存できません。',true);return;}
   const a=rsAll();a.push({d,g,inv,ret,hours,memo});a.sort((x,y)=>x.d<y.d?1:-1);rsSave(a);
   $('rsInv').value='';$('rsRet').value='';$('rsHours').value='';if($('rsMemo'))$('rsMemo').value='';
   rsRender();
@@ -4318,7 +4343,7 @@ function rbBuildTable(){
   T.querySelectorAll('.rt-cell').forEach(c=>c.onclick=()=>{
     const pl=rb.players[rb.cur];const bet=(rbBetsCur[c.dataset.k]||0)+rbAmt;
     const staged=Object.values(rbBetsCur).reduce((a,b)=>a+b,0)-(rbBetsCur[c.dataset.k]||0)+bet;
-    if(staged>pl.money){alert(pl.name+'さんの所持金('+cf(pl.money)+'pt)を超えるためベットできません。チップ額を小さくするか、置いたベットを取り消してから置き直してください。');return;}
+    if(staged>pl.money){toast(pl.name+'さんの所持金('+cf(pl.money)+'pt)を超えるためベットできません。チップ額を小さくするか、置いたベットを取り消してから置き直してください。',true);return;}
     rbBetsCur[c.dataset.k]=bet;rbRenderTable();
   });
 }

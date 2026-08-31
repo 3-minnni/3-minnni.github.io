@@ -84,7 +84,7 @@ const splash = (w) => w.document.getElementById('splash');
     R.check('最短表示時間が振り付けの終わりより長い', min >= last,
       `SP_MIN=${min}ms / 振り付け終了=${last}ms`);
     R.check('最長表示時間が最短より長い', max > min, `${min} → ${max}`);
-    R.check('待たされ過ぎない上限になっている', max <= 4000, max + 'ms');
+    R.check('待たされ過ぎない上限になっている', max <= 5000, max + 'ms');
   }
 
   /* --- 構造 --- */

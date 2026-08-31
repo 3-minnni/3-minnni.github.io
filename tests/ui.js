@@ -235,5 +235,50 @@ function foldState(w, bodyId) {
     R.check('切替で例外が出ていない', (w.__errs || []).length === 0, (w.__errs || []).join(' / ') || 'なし');
   }
 
+  /* KPIの強弱: タブごとに結論にあたる1枚だけを .stat.lead で大きく扱う。
+     見た目の大きさは jsdom では測れないので、正しい数値に付いているかを見る。 */
+  {
+    const w = await boot(TARGET, { seed: 1 });
+    const leadOf = (boxId) => {
+      const el = $(w, boxId).querySelector('.stat.lead');
+      return el ? text(el.querySelector('.s-l')) : null;
+    };
+    w.runPK(); await sleep(250);
+    R.check('パチンコ: 主要KPIはボーダーライン', leadOf('pk-out') === 'ボーダーライン', String(leadOf('pk-out')));
+    R.check('パチンコ: 主要KPIは1枚だけ',
+      $(w, 'pk-out').querySelectorAll('.stat.lead').length === 1);
+    R.check('パチンコ: 他のタイルは通常サイズのまま',
+      $(w, 'pk-out').querySelectorAll('.stat:not(.lead)').length >= 4);
+
+    w.runSL(); await sleep(250);
+    R.check('スロット: 主要KPIは機械割', leadOf('sl-out') === '機械割(理論値)', String(leadOf('sl-out')));
+
+    w.pkSetMode('v'); w.runPkVr(); await sleep(250);
+    R.check('仮想ラッシュ: 主要KPIは平均連チャン数',
+      leadOf('pkVrOut') === '平均連チャン数', String(leadOf('pkVrOut')));
+  }
+
+  /* グラフの縦軸ラベル: 回転させて左端に描くと目盛りの6桁数字と重なっていた。
+     左上へ横書きで置く形に変えたので、回転描画が残っていないことを確かめる。 */
+  {
+    const w = await boot(TARGET, { seed: 1 });
+    const calls = [];
+    const orig = w.HTMLCanvasElement.prototype.getContext;
+    w.HTMLCanvasElement.prototype.getContext = function (...a) {
+      const c = orig.apply(this, a);
+      return new Proxy(c, { get(t, p) {
+        if (p === 'rotate' || p === 'fillText') return (...args) => { calls.push([p, args[0]]); };
+        return t[p];
+      } });
+    };
+    w.runPK(); await sleep(300);
+    const rotated = calls.some(([k]) => k === 'rotate');
+    R.check('グラフが縦軸ラベルを回転描画しない', !rotated,
+      rotated ? 'rotate が呼ばれている' : '回転なし');
+    R.check('縦軸の単位は描画されている',
+      calls.some(([k, v]) => k === 'fillText' && /収支|差玉/.test(String(v))),
+      calls.filter(([k]) => k === 'fillText').slice(0, 3).map((c) => c[1]).join(' / '));
+  }
+
   process.exit(R.finish());
 })().catch((e) => { console.error('ERR', e); process.exit(1); });

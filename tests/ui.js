@@ -301,5 +301,24 @@ function foldState(w, bodyId) {
       /prefers-reduced-motion/.test(css) && /animation-duration:\.01ms!important/.test(css));
   }
 
+  /* ボーナス履歴の横幅。jsdom はレイアウトを持たないので実際の見切れは測れない
+     (実測はヘッドレスChromeで別途行った)。ここでは狭い画面向けの規則が
+     消えていないこと、右端の累計差枚を切っていた6列構成に戻っていないことを見る。 */
+  {
+    const w = await boot(TARGET, { seed: 1 });
+    const css = [...w.document.querySelectorAll('style')].map((e) => e.textContent).join('');
+    const cols = (css.match(/@media\(max-width:620px\)\{[^@]*?\.bh-row\{[^}]*grid-template-columns:([^;]*)/) || [])[1];
+    R.check('狭い画面向けのボーナス履歴の規則がある', !!cols, cols || '見つからない');
+    R.check('列数が6→5に減らされている',
+      !!cols && cols.trim().split(/\s+/).length === 5, (cols || '').trim());
+    R.check('回数の列は桁数に追従する(autoである)',
+      !!cols && cols.trim().indexOf('auto') === 0, (cols || '').trim());
+    R.check('時刻を回数の下へ折り返している',
+      /\.bh-row \.bh-time\{[^}]*grid-row:2/.test(css));
+    /* PC幅の6列指定はそのまま使うので残っていること */
+    R.check('PC幅の6列指定は残っている',
+      /\.bh-row\{[^}]*grid-template-columns:58px 44px 52px 1fr 56px 76px/.test(css));
+  }
+
   process.exit(R.finish());
 })().catch((e) => { console.error('ERR', e); process.exit(1); });

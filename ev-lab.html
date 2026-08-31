@@ -631,6 +631,17 @@
   .bh-cum{text-align:right;color:#FFE24A;text-shadow:0 0 6px rgba(255,226,74,.5);font-size:var(--fs-lg);}
   .bh-cum.min{color:#B8C0D8;text-shadow:none;}
   .bh-foot{display:flex;gap:var(--sp-3h);flex-wrap:wrap;padding:var(--sp-2) var(--sp-3);background:#0B0F30;color:#fff;font-family:var(--font-mono);font-size:var(--fs-sm);}
+  /* 狭い画面では6列の固定幅の合計(286px)+隙間(30px)が実効幅(約280px)を超え、
+     いちばん右の累計差枚(黄色)が .bh-wrap の overflow:hidden で切れていた。
+     時刻を回数の下へ折り返して5列に減らし、文字を小さくせずに収める。 */
+  @media(max-width:620px){
+    /* 回数の列は auto にして「100回目」のような3桁でも切れないようにする */
+    .bh-row{grid-template-columns:auto 32px 1fr 32px 78px;
+      gap:2px var(--sp-1);padding:var(--sp-1h) var(--sp-2);}
+    .bh-row>*{grid-row:1/span 2;}
+    .bh-row .bh-n{grid-column:1;grid-row:1;}
+    .bh-row .bh-time{grid-column:1;grid-row:2;line-height:1.15;}
+  }
   .bh-scroll{max-height:320px;overflow-y:auto;}
   .bh-scroll::-webkit-scrollbar{width:8px;}
   .bh-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.25);border-radius:var(--r-xs);}

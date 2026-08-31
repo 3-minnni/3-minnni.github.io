@@ -297,10 +297,42 @@
   .foot{font-size:11px;color:var(--ink-3);line-height:1.8;margin-top:26px;padding-top:14px;border-top:1px solid var(--line);}
 
   #fxP{position:fixed;inset:0;z-index:0;pointer-events:none;}
-  #splash{position:fixed;inset:0;z-index:100;background:radial-gradient(700px 420px at 50% 42%,#1A1712,#0B0B10 72%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;transition:opacity .45s;}
-  #splash .sp-title{font-size:40px;font-weight:900;background:linear-gradient(180deg,#FFF0C0,#E8C879 55%,#8A6A2F);-webkit-background-clip:text;background-clip:text;color:transparent;animation:spGlow 1.3s ease-in-out infinite alternate;}
-  #splash .sp-sub{font-family:var(--font-mono);font-size:11px;color:var(--ink-3);letter-spacing:.32em;}
-  @keyframes spGlow{from{filter:drop-shadow(0 0 6px rgba(232,200,121,.25));}to{filter:drop-shadow(0 0 24px rgba(232,200,121,.65));}}
+  /* ---- 起動画面「収束」 ----
+     試行を重ねるほど実測が期待値に近づく、というこのアプリの主題を1.5秒で見せる。
+     地色はテーマに追従させる(以前は黒固定で、ライト設定だと本体表示時に色が飛んでいた)。 */
+  #splash{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(700px 420px at 50% 46%,#1A1712,#0B0B10 74%);transition:opacity .42s ease;}
+  body.light #splash{background:radial-gradient(700px 420px at 50% 46%,#FFFFFF,#F0EFEA 74%);}
+  #splash canvas{position:absolute;inset:0;width:100%;height:100%;display:block;}
+  #splash .sp-stage{position:relative;display:flex;flex-direction:column;align-items:center;gap:9px;
+    margin-top:13vh;}
+  /* 軌跡がロゴに重なると読めなくなるため、背後だけ地色に沈める */
+  #splash .sp-stage::before{content:"";position:absolute;inset:-34px -56px;z-index:-1;
+    background:radial-gradient(ellipse at center,rgba(11,11,16,.92) 38%,rgba(11,11,16,0) 72%);}
+  body.light #splash .sp-stage::before{
+    background:radial-gradient(ellipse at center,rgba(245,244,241,.94) 38%,rgba(245,244,241,0) 72%);}
+  #splash .sp-mark{width:46px;height:46px;border-radius:13px;background:var(--gold-grad);color:#241A02;
+    display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-weight:700;
+    font-size:18px;opacity:0;transform:scale(.72) rotate(-8deg);}
+  #splash .sp-title{font-size:clamp(28px,9vw,40px);font-weight:900;letter-spacing:.02em;
+    background:linear-gradient(180deg,#FFF0C0,#E8C879 55%,#B08A3A);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    opacity:0;transform:translateY(10px);}
+  body.light #splash .sp-title{background:linear-gradient(180deg,#C8A25B,#A9803D 55%,#6B5222);
+    -webkit-background-clip:text;background-clip:text;}
+  #splash .sp-sub{font-family:var(--font-mono);font-size:11px;color:var(--ink-3);letter-spacing:.32em;opacity:0;}
+  #splash .sp-num{position:absolute;top:16px;right:18px;font-family:var(--font-mono);font-size:12px;
+    color:var(--gold);opacity:.85;font-variant-numeric:tabular-nums;letter-spacing:.04em;}
+  #splash.sp-run .sp-mark{animation:spMark .5s cubic-bezier(.2,1.5,.4,1) 1.02s forwards;}
+  #splash.sp-run .sp-title{animation:spRise .52s cubic-bezier(.2,.8,.3,1) 1.16s forwards;}
+  #splash.sp-run .sp-sub{animation:spFade .4s ease 1.4s forwards;}
+  /* 2回目以降・演出OFF・reduced-motion: 完成形をすぐ出す */
+  #splash.sp-still .sp-mark,#splash.sp-still .sp-title,#splash.sp-still .sp-sub{
+    opacity:1;transform:none;animation:none;}
+  #splash.sp-still .sp-num{display:none;}
+  @keyframes spMark{to{opacity:1;transform:scale(1) rotate(0);}}
+  @keyframes spRise{to{opacity:1;transform:translateY(0);}}
+  @keyframes spFade{to{opacity:1;}}
 
   .danger{border-radius:11px;padding:10px 14px;font-size:var(--fs-md);font-weight:700;margin-bottom:var(--sp-2);display:flex;align-items:center;gap:10px;}
   .danger .d-k{font-family:var(--font-mono);font-size:17px;}
@@ -533,7 +565,26 @@
 </style>
 </head>
 <body>
-<div id="splash"><div class="sp-title">期待値ラボ</div><div class="sp-sub">LOADING…</div></div>
+<script>
+/* テーマは描画される前に確定させる。
+   以前はスクリプト後半でライト判定していたため、ライト設定の人は
+   「黒い起動画面 → 急に白い本体」というちらつきを見ていた。 */
+(function(){try{
+  var manual=localStorage.getItem('evlab_theme_manual');
+  var light=manual?localStorage.getItem('evlab_theme_light')==='1'
+    :(window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches);
+  if(light)document.body.classList.add('light');
+}catch(e){}})();
+</script>
+<div id="splash">
+  <canvas id="spCanvas" aria-hidden="true"></canvas>
+  <div class="sp-stage">
+    <div class="sp-mark">EV</div>
+    <div class="sp-title">期待値ラボ</div>
+    <div class="sp-sub">LOADING…</div>
+  </div>
+  <div class="sp-num" id="spNum" aria-hidden="true"></div>
+</div>
 <canvas id="fxP"></canvas>
 <div class="wrap">
 
@@ -2476,11 +2527,120 @@ function particlesSet(on){
   };
   loop();
 }
+/* ---- 起動画面「収束」 ----
+   金色の水平線(期待値)に向かって、収支の軌跡が振れ幅を減らしながら収束していく。
+   以前は1.5秒の固定待ちで、読み込みが終わっていても待たされ、
+   遅い端末では準備前に消えていた。ここでは実際の準備完了と連動させ、
+   最短 SP_MIN・最長 SP_MAX の範囲で畳む。 */
+const SP_MIN=900,SP_MAX=2500,SP_DUR=1700;
 (function(){
   const sp=$('splash');if(!sp)return;
-  const hide=()=>{sp.style.opacity='0';setTimeout(()=>sp.remove(),480);};
-  sp.addEventListener('click',hide);
-  setTimeout(hide,1500);
+  const cv=$('spCanvas'),numEl=$('spNum');
+  const t0=performance.now();
+  let raf=null,done=false;
+
+  /* 初回だけフル演出。2回目以降・演出OFF・reduced-motion は完成形を一瞬だけ出す */
+  let firstVisit=true;
+  try{firstVisit=!sessionStorage.getItem('evlab_seen_splash');
+      sessionStorage.setItem('evlab_seen_splash','1');}catch(e){}
+  const full=firstVisit&&FX==='full';
+
+  const hide=()=>{
+    if(done)return;done=true;
+    if(raf)cancelAnimationFrame(raf);
+    sp.style.opacity='0';setTimeout(()=>sp.remove(),460);
+  };
+
+  if(!full){
+    sp.classList.add('sp-still');
+    setTimeout(hide,Math.min(SP_MIN,420));
+    sp.addEventListener('click',hide);
+    return;
+  }
+
+  sp.classList.add('sp-run');
+
+  /* 減衰するランダムウォーク。右へ進むほど期待値の線に収束する */
+  const pts=[];let v=0,peak=0;
+  for(let i=0;i<190;i++){
+    const damp=Math.pow(1-i/190,2.3);
+    v=v*.80+(Math.random()-.5)*2.1*damp;
+    pts.push(v);if(Math.abs(v)>peak)peak=Math.abs(v);
+  }
+  if(peak>0)for(let i=0;i<pts.length;i++)pts[i]/=peak;  // ±1に正規化して画面外へ出さない
+  const TARGET=104.7;
+  const ctx=cv.getContext('2d');
+  /* 地色に合わせて線の色を変える。明るい地では淡い色が飛んでしまうため */
+  const LT=document.body.classList.contains('light');
+  const C={line:LT?'169,128,61':'200,162,91',
+           w0:LT?'rgba(14,138,95,.45)':'rgba(61,220,151,.35)',
+           w1:LT?'rgba(14,138,95,1)':'rgba(61,220,151,.95)',
+           w2:LT?'#A9803D':'#E8C879',
+           shine:LT?'rgba(169,128,61,':'rgba(255,240,192,'};
+
+  const frame=now=>{
+    const dpr=window.devicePixelRatio||1;
+    const w=cv.clientWidth||window.innerWidth,h=cv.clientHeight||window.innerHeight;
+    cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    const t=Math.min(1,(now-t0)/SP_DUR);
+    ctx.clearRect(0,0,w,h);
+    const padX=w*.10,midY=h*.36,span=w-padX*2,amp=Math.min(h*.24,150);
+
+    // 1. 期待値の線が中央から左右へ伸びる
+    const e=1-Math.pow(1-Math.min(1,t/.16),3);
+    ctx.strokeStyle='rgba('+C.line+','+(.34+.40*e)+')';
+    ctx.lineWidth=1.4;ctx.setLineDash([5,5]);
+    ctx.beginPath();ctx.moveTo(w/2-span/2*e,midY);ctx.lineTo(w/2+span/2*e,midY);
+    ctx.stroke();ctx.setLineDash([]);
+
+    // 2. 収支の軌跡が左から描かれ、振れ幅を減らしていく
+    const drawT=Math.max(0,Math.min(1,(t-.10)/.68));
+    const last=Math.floor(drawT*(pts.length-1));
+    if(last>0){
+      ctx.beginPath();
+      for(let i=0;i<=last;i++){
+        const x=padX+span*(i/(pts.length-1)),y=midY-pts[i]*amp;
+        i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      }
+      const g=ctx.createLinearGradient(padX,0,padX+span,0);
+      g.addColorStop(0,C.w0);
+      g.addColorStop(.62,C.w1);
+      g.addColorStop(1,C.w2);
+      ctx.strokeStyle=g;ctx.lineWidth=2.1;ctx.lineJoin='round';ctx.stroke();
+      const hx=padX+span*(last/(pts.length-1)),hy=midY-pts[last]*amp;
+      ctx.beginPath();ctx.arc(hx,hy,3.4,0,Math.PI*2);
+      ctx.fillStyle=drawT>=1?C.w2:(LT?'#0E8A5F':'#3DDC97');ctx.fill();
+    }
+
+    // 3. 収束したら線に光が走る
+    if(t>.72){
+      const sh=Math.min(1,(t-.72)/.26),sx=padX+span*sh;
+      const sg=ctx.createLinearGradient(sx-70,0,sx+20,0);
+      sg.addColorStop(0,'rgba('+C.line+',0)');
+      sg.addColorStop(.75,C.shine+(.85*(1-sh*.45))+')');
+      sg.addColorStop(1,'rgba('+C.line+',0)');
+      ctx.strokeStyle=sg;ctx.lineWidth=2.6;
+      ctx.beginPath();ctx.moveTo(sx-70,midY);ctx.lineTo(sx+20,midY);ctx.stroke();
+    }
+
+    if(numEl)numEl.textContent='回収率 '+(t<.80
+      ?(TARGET+pts[Math.min(pts.length-1,last)]*36).toFixed(1)
+      :TARGET.toFixed(1))+'%';
+
+    if(t<1&&!done)raf=requestAnimationFrame(frame);
+  };
+  raf=requestAnimationFrame(frame);
+
+  /* 準備完了と連動して閉じる。最短時間は演出を見せきるために確保する */
+  const ready=()=>{
+    const wait=Math.max(0,SP_MIN-(performance.now()-t0));
+    setTimeout(hide,wait);
+  };
+  if(document.readyState==='complete')ready();
+  else window.addEventListener('load',ready,{once:true});
+  setTimeout(hide,SP_MAX);          // 最後の砦(load が来ない環境でも必ず閉じる)
+  sp.addEventListener('click',hide); // 待てない人はタップで飛ばせる
 })();
 particlesSet(true);
 
@@ -4793,18 +4953,22 @@ function stratCompare(){
     ctx.strokeStyle=CH.zero;ctx.beginPath();ctx.moveTo(10,Y(results[0].series[0]));ctx.lineTo(w-10,Y(results[0].series[0]));ctx.stroke();
   });
 }
-/* ---- F: システムのダーク/ライト設定に自動追従(未設定時のみ) ---- */
+/* ---- F: テーマの内部状態を、head で確定済みのクラスに合わせる ----
+   実際の判定(保存値 or システム設定)は body 直後のインラインスクリプトで
+   描画前に済ませている。ここではその結果を JS 側の変数へ反映するだけ。 */
 (function(){
   try{
-    const saved=localStorage.getItem('evlab_theme_manual');
-    if(!saved&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches){
-      LIGHT=true;document.body.classList.add('light');
+    if(document.body.classList.contains('light')){
+      LIGHT=true;
       CH={tick:'#8A8E84',grid:'#E6E4DC',zero:'#C5C2B8'};
+      if($('themeLabel'))$('themeLabel').textContent='☀️ ライト';
     }
   }catch(e){}
 })();
 const _themeFlipOrig=themeFlip;
-themeFlip=function(){_themeFlipOrig();try{localStorage.setItem('evlab_theme_manual','1');}catch(e){}
+themeFlip=function(){_themeFlipOrig();
+  try{localStorage.setItem('evlab_theme_manual','1');
+      localStorage.setItem('evlab_theme_light',LIGHT?'1':'0');}catch(e){}
   if($('themeLabel'))$('themeLabel').textContent=LIGHT?'☀️ ライト':'🌙 ダーク';};
 /* ---- E: PWA対応 ----
    マニフェストとアイコンは実ファイル(manifest.json / icons/)として持つ。

@@ -38,11 +38,12 @@ function baseline(ref) {
      seed          … Math.random を決定論化(省略時は素の乱数)
      reduceMotion  … true で FX='off' 相当(演出を同期完了させたいとき)
      hash          … location.hash(共有URL等の再現用)
+     light         … prefers-color-scheme: light を返す(テーマ判定の検証用)
      silenceFx     … 背景パーティクル(常時rAFループ)を止める。既定 true
                      ※これを止めないと無関係な Math.random 消費で
                        決定論的比較が壊れる(CLAUDE.mdの教訓)          */
 async function boot(file, opts = {}) {
-  const { seed, reduceMotion = true, hash = '', silenceFx = true } = opts;
+  const { seed, reduceMotion = true, hash = '', silenceFx = true, light = false } = opts;
   const dom = new JSDOM(fs.readFileSync(file, 'utf8'), {
     runScripts: 'dangerously',
     resources: 'usable',
@@ -54,7 +55,7 @@ async function boot(file, opts = {}) {
       if (seed !== undefined) w.Math.random = seededRandom(seed);
 
       w.matchMedia = (q) => ({
-        matches: reduceMotion && /reduce/.test(q),
+        matches: (reduceMotion && /reduce/.test(q)) || (light && /prefers-color-scheme:\s*light/.test(q)),
         media: q, addListener() {}, removeListener() {},
         addEventListener() {}, removeEventListener() {},
       });

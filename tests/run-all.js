@@ -3,6 +3,7 @@ const { spawnSync } = require('child_process');
 const path = require('path');
 
 const SUITES = [
+  ['splash',     '起動画面'],
   ['validation', '入力バリデーション + 退行チェック'],
   ['errmsg',     'エラーメッセージ'],
   ['undo',       '破壊的操作 + UNDO'],

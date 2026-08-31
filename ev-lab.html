@@ -1089,6 +1089,12 @@
   <!-- ================= ガチャ ================= -->
   <div class="panel" id="panel-gc">
     <div class="card">
+      <div class="chips">
+        <div class="chip on" id="gcModeP" onclick="gcSetMode('p')">独立確率ガチャ<small>毎回同じ確率</small></div>
+        <div class="chip" id="gcModeF" onclick="gcSetMode('f')">口数固定ガチャ<small>決まった口数から引く</small></div>
+      </div>
+    </div>
+    <div class="card gc-prob">
       <div class="card-title"><span class="step">STEP 1</span><h3>ガチャの設計</h3></div>
       <div class="fgrid" style="margin-bottom:12px;">
         <div class="field">
@@ -1126,7 +1132,7 @@
       <div class="preset-bar" data-p="gc"></div>
       <button class="run" onclick="gcBuild()">この設計でガチャを作る(理論値も計算)</button>
     </div>
-    <div class="card" id="gcPlay" style="display:none;">
+    <div class="card gc-prob" id="gcPlay" style="display:none;">
       <div class="card-title"><span class="step">STEP 2</span><h3>仮想の石で引いてみる</h3></div>
       <div class="wallet">
         <div><div class="w-l">所持石</div><div class="w-v" id="gcWallet">30,000</div></div>
@@ -1156,6 +1162,51 @@
         <button class="btn2 danger" onclick="gcBuild()">リセット</button>
       </div>
       <div class="pull-log" id="gcLog"></div>
+    </div>
+
+    <!-- 口数固定ガチャ: 決まった口数の中から、元に戻さずに引く方式(オリパのデッキ抽選を流用) -->
+    <div class="card gc-fix" id="gcFix" style="display:none;">
+      <div class="card-title"><span class="step">STEP 1</span><h3>口数固定ガチャの設計</h3><span class="hint">総口数と封入枚数を入力</span></div>
+      <div class="fhelp" style="margin-bottom:10px;">総口数の中に当たりが決まった枚数だけ入っていて、<b>引いた分は減っていく</b>方式です(独立確率ガチャと違い、引くほど残りの確率が変わります)。</div>
+      <div class="fgrid" style="margin-bottom:12px;">
+        <div class="field">
+          <div class="flabel">総口数</div><div class="fhelp">ガチャ全体の口数</div>
+          <div class="igroup"><input type="number" id="gcFixTotal" value="1000" min="1" max="100000" step="100"><span class="unit">口</span></div>
+        </div>
+        <div class="field">
+          <div class="flabel">1回の消費</div><div class="fhelp">石・コインなど</div>
+          <div class="igroup"><input type="number" id="gcFixCost" value="300" min="0" step="10"><span class="unit">石</span></div>
+        </div>
+      </div>
+      <div class="tier-head" style="grid-template-columns:1fr .7fr .7fr 30px;"><span>レア度名</span><span>封入枚数</span><span>確率(1/n)</span><span></span></div>
+      <div id="gcFixTiers"></div>
+      <button class="add-row" onclick="addGcFixTier()">+ レア度を追加</button>
+      <div class="fhelp" style="margin-top:6px;">封入枚数か1/nのどちらか一方を入力すれば、もう一方は自動計算されます。</div>
+      <div style="height:10px"></div>
+      <button class="run" onclick="gcFixBuild()">この設計でガチャを作る(理論値も計算)</button>
+      <div id="gcFixOdds" style="margin-top:10px;"></div>
+    </div>
+    <div class="card gc-fix" id="gcFixPlay" style="display:none;">
+      <div class="card-title"><span class="step">STEP 2</span><h3>仮想の石で引いてみる</h3><span class="hint">引いた口は戻りません</span></div>
+      <div class="wallet">
+        <div><div class="w-l">所持石</div><div class="w-v" id="gcFixWallet">30,000</div></div>
+        <div class="w-diff" id="gcFixWalletDiff"></div>
+        <div class="w-edit">
+          <input type="number" id="gcFixWalletSet" value="30000" step="1000" oninput="gcFixSetWallet()">
+          <button class="btn2" onclick="gcFixSetWallet()">設定</button>
+        </div>
+      </div>
+      <div class="gc-big"><span class="l">累計消費</span><span class="v" id="gcFixSpentBig">0</span><span class="l">石</span><span class="l" style="margin-left:auto;">通算 <b id="gcFixCountBig" class="mono" style="font-size:16px;color:var(--ink);">0</b> 連</span></div>
+      <div class="remain" id="gcFixRemain"></div>
+      <div class="result-banner" id="gcFixResult"><div class="r-tier">↓ ボタンを押して引く</div><div class="r-coin">—</div></div>
+      <div class="pull-area">
+        <button class="btn2 accent" onclick="gcFixPull(1)">単発</button>
+        <button class="btn2 accent" onclick="gcFixPull(10)">10連</button>
+        <button class="btn2 accent" onclick="gcFixPull(100)">100連</button>
+        <button class="btn2 accent" id="gcFixMaxBtn" onclick="gcFixPullMax()">回せるMAX回数を引く(0連)</button>
+        <button class="btn2 danger" onclick="gcFixReshuffle()">リセット(再シャッフル)</button>
+      </div>
+      <div class="pull-log" id="gcFixLog"></div>
     </div>
     <div id="rsQuickHost-gc"></div>
   </div>
@@ -2029,6 +2080,203 @@ function addGcTier(name,rate){
 }
 function gcSetWallet(){gcWallet=parseFloat($('gcWalletSet').value)||0;gcStart=gcWallet;gcRender(null);}
 addGcTier('SSR',0.7);addGcTier('SR',6);addGcTier('R',20);
+
+/* ===================== 口数固定ガチャ =====================
+   総口数が決まっていて、その中の当たりを「元に戻さず」引いていく方式。
+   デッキを作ってシャッフルし、先頭から消費する — オリパ(opBuild/opPull)と同じ考え方で、
+   shuffle() と probHyper()(超幾何分布)をそのまま流用している。
+   独立確率ガチャ(gcBuild/gcPull)とは状態も関数も完全に分けてあり、互いに影響しない。 */
+let gcFixDeck=[],gcFixDrawn=0,gcFixDefs=[],gcFixHits=[],gcFixRank=[],
+    gcFixWallet=30000,gcFixStart=30000,gcFixSpent=0,gcFixCount=0,gcFixLogArr=[];
+
+function addGcFixTier(name,count,prob){
+  const div=document.createElement('div');div.className='tier-row';
+  div.style.gridTemplateColumns='1fr .7fr .7fr 30px';
+  div.innerHTML=`<input type="text" value="${escHtml(name??'')}" placeholder="SSR">
+    <input type="number" value="${count??''}" min="0" step="1" placeholder="枚数">
+    <input type="text" value="${escHtml(prob??'')}" placeholder="1/500">
+    <button class="rm" onclick="this.parentElement.remove()">×</button>`;
+  const ins=div.querySelectorAll('input');
+  /* 封入枚数 ↔ 1/n の相互補完(オリパの addOpTier と同じ挙動) */
+  ins[1].addEventListener('input',()=>{
+    if(!ins[1].value)return;
+    const T=vClamp('gcFixTotal',1,SIM_MAX),c=parseFloat(ins[1].value)||0;
+    ins[2].value=c>0?'1/'+num(T/c,0).replace(/,/g,''):'';
+  });
+  ins[2].addEventListener('input',()=>{
+    const m=(ins[2].value||'').match(/^1\s*\/\s*([0-9.]+)$/);
+    if(!m)return;
+    const T=vClamp('gcFixTotal',1,SIM_MAX),d=parseFloat(m[1]);
+    if(d>0)ins[1].value=Math.max(1,Math.round(T/d));
+  });
+  $('gcFixTiers').appendChild(div);
+}
+function gcFixGetTiers(total){
+  return [...document.querySelectorAll('#gcFixTiers .tier-row')].map(r=>{
+    const ins=r.querySelectorAll('input');
+    let cnt=Math.max(0,Math.round(parseFloat(ins[1].value)||0));
+    if(cnt===0&&ins[2])cnt=parseCount(ins[2].value,total);   // 1/n 表記からの復元も既存関数を流用
+    return{name:ins[0].value||'レア',count:cnt};
+  }).filter(t=>t.count>0);
+}
+function gcFixSetWallet(){
+  gcFixWallet=parseFloat($('gcFixWalletSet').value)||0;gcFixStart=gcFixWallet;gcFixRender(null);
+}
+function gcFixBuild(){
+  const T=vClamp('gcFixTotal',1,SIM_MAX);
+  const cost=V('gcFixCost');
+  const tiers=gcFixGetTiers(T);
+  const winSum=tiers.reduce((s,t)=>s+t.count,0);
+  const errs=validate([
+    {bad:V('gcFixTotal')<1,msg:'総口数は1以上の数値を入力してください。0口ではガチャが成立しません(例: 1000)'},
+    {bad:tiers.length===0,msg:'レア度を1つ以上、封入枚数または確率(1/n)とあわせて入力してください。当たりが1つもないと確率を計算できません'},
+    {bad:cost<=0,msg:'1回の消費は0より大きい数値を入力してください。0石だと無料で引けることになり、石あたりの期待値を計算できません(例: 300)'},
+    {bad:V('gcFixTotal')>=1&&winSum>T,msg:'封入枚数の合計('+cf(winSum)+'枚)が総口数('+cf(T)+'口)を超えています。総口数を増やすか、各レア度の枚数を減らしてください'}
+  ]);
+  if(errs){$('gcFixOdds').innerHTML=errs;$('gcFixPlay').style.display='none';return;}
+
+  gcFixDefs=tiers;
+  const order=tiers.map((t,i)=>({i,c:t.count})).sort((a,b)=>a.c-b.c);
+  gcFixRank=[];order.forEach((o,pos)=>gcFixRank[o.i]=Math.min(6,pos+1));
+  gcFixHits=tiers.map(()=>0);gcFixLogArr=[];
+  /* デッキを組んでシャッフル(当たりはtier番号、ハズレは-1) */
+  gcFixDeck=[];
+  tiers.forEach((t,ti)=>{for(let i=0;i<t.count;i++)gcFixDeck.push(ti);});
+  for(let i=0;i<T-winSum;i++)gcFixDeck.push(-1);
+  shuffle(gcFixDeck);
+  gcFixDrawn=0;gcFixSpent=0;gcFixCount=0;
+  gcFixWallet=parseFloat($('gcFixWalletSet').value)||30000;gcFixStart=gcFixWallet;
+
+  const affordable=cost>0?Math.min(T,Math.floor(gcFixWallet/cost)):0;
+  const COLS=['#E8B33C','#8E6BFF','#3DDC97','#FF3D68','#4FA3E0','#C4A788'];
+  const segs=gcFixDefs.map((t,i)=>({name:t.name,v:t.count,color:COLS[i%6],rainbow:gcFixRank[i]===1}));
+  if(T-winSum>0)segs.push({name:'ハズレ',v:T-winSum,color:'#3A3A50'});
+  $('gcFixOdds').innerHTML=
+    '<div class="pct-strip">'+gcFixDefs.slice(0,2).map((t,i)=>
+      '<span style="font-size:11px;color:'+(i===0?'var(--gold)':'var(--ink-2)')+';">'+escHtml(t.name)+'</span> '
+      +'<span class="'+(i===0?'pct-big':'mono')+'" style="'+(i===0?'':'font-size:16px;color:var(--ink);')+'">1/'+num(T/Math.max(1,t.count),0)+'</span>').join(' ')
+    +'</div>'
+    +gcFixDefs.map((t,i)=>'<div class="remain" style="margin-bottom:4px;"><span class="rc gold">'+escHtml(t.name)
+      +' <span class="rankb r'+gcFixRank[i]+'">'+gcFixRank[i]+'位</span>: <b>1/'+num(T/Math.max(1,t.count),0)+'</b> ('+cf(t.count)+'枚封入)</span></div>').join('')
+    +'<div class="flabel" style="margin-top:10px;">1回以上引ける確率(引いた分は減るため、独立確率より読みやすい)</div>'
+    +gcFixDefs.slice(0,3).map((t,i)=>'<div class="remain" style="margin-bottom:4px;">'
+      +'<span class="rc'+(gcFixRank[i]===1?' gold':'')+'">'+escHtml(t.name)+'</span>'
+      +'<span class="rc">10連: <b>'+pct(probHyper(T,t.count,Math.min(10,T))*100)+'</b></span>'
+      +'<span class="rc">100連: <b>'+pct(probHyper(T,t.count,Math.min(100,T))*100)+'</b></span>'
+      +'<span class="rc gold">所持石全額('+cf(affordable)+'連): <b>'+pct(probHyper(T,t.count,affordable)*100)+'</b></span>'
+      +'</div>').join('')
+    +'<div class="chart-card" style="margin-top:10px;"><div class="chart-head"><div class="c-title">封入内訳</div></div>'
+    +'<div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;"><canvas id="gcFixPie" style="width:150px;height:150px;flex:none;"></canvas>'
+    +'<div class="legend" id="gcFixPieLegend" style="flex-direction:column;gap:5px;align-items:flex-start;"></div></div></div>';
+  $('gcFixPlay').style.display='';
+  $('gcFixLog').innerHTML='';
+  gcFixRender(null);
+  requestAnimationFrame(()=>{
+    pieInto('gcFixPie',segs,'封入内訳',cf(T)+'口');
+    $('gcFixPieLegend').innerHTML=pieLegend(segs);
+  });
+}
+function gcFixRender(last){
+  $('gcFixWallet').textContent=cf(gcFixWallet);
+  const diff=gcFixWallet-gcFixStart;
+  const wd=$('gcFixWalletDiff');
+  wd.textContent=(diff>=0?'+':'−')+cf(Math.abs(diff));
+  wd.className='w-diff '+(diff>=0?'up':'down');
+  $('gcFixSpentBig').textContent=cf(gcFixSpent);
+  $('gcFixCountBig').textContent=cf(gcFixCount);
+  const left=gcFixDeck.length-gcFixDrawn;
+  $('gcFixRemain').innerHTML='<span class="rc">残り口数: <b>'+cf(left)+'</b>/'+cf(gcFixDeck.length)+'</span>'
+    +gcFixDefs.map((t,i)=>{
+      const rest=gcFixDeck.slice(gcFixDrawn).filter(x=>x===i).length;
+      return '<span class="rc'+(rest>0?' gold':'')+'">'+escHtml(t.name)+' 残り<b>'+cf(rest)+'</b>/'+cf(t.count)
+        +(rest>0&&left>0?' (1/'+num(left/rest,0)+')':'')+'</span>';
+    }).join('')
+    +gcFixDefs.map((t,i)=>'<span class="rc">'+escHtml(t.name)+' 獲得<b>'+cf(gcFixHits[i])+'</b></span>').join('');
+  const btn=$('gcFixMaxBtn');
+  if(btn)btn.textContent='回せるMAX回数を引く('+cf(gcFixMaxPulls())+'連)';
+  if(last===null){
+    const rb=$('gcFixResult');rb.className='result-banner';
+    rb.innerHTML='<div class="r-tier">↓ ボタンを押して引く</div><div class="r-coin">—</div>';
+  }
+}
+function gcFixMaxPulls(){
+  const cost=V('gcFixCost');
+  const left=Math.max(0,gcFixDeck.length-gcFixDrawn);
+  return cost>0?Math.max(0,Math.min(left,Math.floor(gcFixWallet/cost))):0;
+}
+function gcFixPullMax(){
+  const n=gcFixMaxPulls();
+  if(n<=0){
+    const rb=$('gcFixResult');rb.className='result-banner';
+    rb.innerHTML='<div class="r-tier">引ける回数がありません(石不足 or 完売)</div><div class="r-coin">—</div>';
+    return;
+  }
+  gcFixPull(n);
+}
+function gcFixPull(n){
+  if(gcFixDefs.length===0||gcFixHits.length!==gcFixDefs.length)return;
+  const cost=V('gcFixCost');
+  if(cost<=0)return;
+  let best=-1,pulled=0;const got=[];
+  for(let k=0;k<n;k++){
+    if(gcFixDrawn>=gcFixDeck.length)break;      // 完売
+    if(gcFixWallet<cost)break;                   // 石切れ
+    gcFixWallet-=cost;gcFixSpent+=cost;gcFixCount++;pulled++;
+    const tier=gcFixDeck[gcFixDrawn++];          // ★元に戻さず先頭から消費
+    got.push(tier);
+    if(tier>=0){
+      gcFixHits[tier]++;
+      if(best<0||gcFixRank[tier]<gcFixRank[best])best=tier;
+      gcFixLogArr.unshift({n:gcFixCount,name:gcFixDefs[tier].name,rank:gcFixRank[tier]});
+    }
+  }
+  if(pulled===0){
+    const rb=$('gcFixResult');rb.className='result-banner';
+    rb.innerHTML='<div class="r-tier">'+(gcFixDrawn>=gcFixDeck.length?'完売しました(残り0口)':'石が足りません')+'</div><div class="r-coin">—</div>';
+    gcFixRender(true);return;
+  }
+  const hit=best>=0;
+  const rank=hit?gcFixRank[best]:6;
+  const rb=$('gcFixResult');
+  rb.className='result-banner '+(hit?'fx-r'+rank:'')+' pop';
+  rb.innerHTML='<div class="r-tier">'+cf(pulled)+'連の結果 '+(hit?'— 最高: '+escHtml(gcFixDefs[best].name)+(rank===1?' 🌈':''):'— 全部ハズレ')+'</div>'
+    +'<div class="r-coin">−'+cf(cost*pulled)+' 石消費</div>'
+    +(pulled<n?'<div class="r-tier" style="color:var(--neg);font-size:12.5px;margin-top:4px;">⚠ '+cf(n)+'連を希望しましたが、'+(gcFixDrawn>=gcFixDeck.length?'完売':'石不足')+'のため'+cf(pulled)+'連で打ち切りました</div>':'');
+  if(hit&&rank===1){confettiBurst(rb);SFX.jackpot();}
+  else if(hit&&rank<=2)SFX.win();
+  const draw=got.slice(0,200);
+  $('gcFixLog').innerHTML=foldBlock('引いた履歴('+cf(pulled)+'連 / 先頭200件)',
+    '<div style="display:flex;flex-wrap:wrap;gap:4px;padding-top:6px;">'
+    +draw.map(t=>'<span class="pl '+(t<0?'tx':(gcFixRank[t]===1?'t0':gcFixRank[t]===2?'t1':'t2'))+'">'
+      +(t>=0?escHtml(gcFixDefs[t].name.slice(0,2)):'—')+'</span>').join('')+'</div>',true)
+    +(gcFixLogArr.length?foldBlock('当選履歴(通算'+cf(gcFixCount)+'連中'+cf(gcFixLogArr.length)+'件 / 先頭200件)',
+      '<div class="remain" style="padding-top:6px;">'+gcFixLogArr.slice(0,200).map(h=>'<span class="rc'+(h.rank===1?' gold':'')+'">'
+      +'<span class="rankb r'+h.rank+'" style="margin-right:4px;">'+h.rank+'位</span>'+cf(h.n)+'連目 / '+escHtml(h.name)+'</span>').join('')+'</div>',false):'');
+  gcFixRender(true);
+  statAdd('ガチャ(口数固定)',-cost*pulled,cost*pulled);
+}
+function gcFixReshuffle(){
+  if(gcFixDrawn>0){
+    confirmBox('これまでに引いた'+cf(gcFixDrawn)+'口の履歴・獲得記録をすべて破棄して、新しくシャッフルし直します。<br>この操作は元に戻せません。',true,gcFixBuild);
+  }else gcFixBuild();
+}
+/* モード切替。既存の独立確率ガチャ(.gc-prob)と口数固定(.gc-fix)を出し分ける */
+let gcMode='p';
+function gcSetMode(m){
+  gcMode=m==='f'?'f':'p';
+  $('gcModeP').classList.toggle('on',gcMode==='p');
+  $('gcModeF').classList.toggle('on',gcMode==='f');
+  document.querySelectorAll('#panel-gc .gc-prob').forEach(el=>{
+    /* gcPlay は「作る」を押すまで隠れているので、その状態を壊さない */
+    if(el.id==='gcPlay'){el.style.display=(gcMode==='p'&&gcTiersDef.length>0)?'':'none';return;}
+    el.style.display=gcMode==='p'?'':'none';
+  });
+  document.querySelectorAll('#panel-gc .gc-fix').forEach(el=>{
+    if(el.id==='gcFixPlay'){el.style.display=(gcMode==='f'&&gcFixDefs.length>0)?'':'none';return;}
+    el.style.display=gcMode==='f'?'':'none';
+  });
+}
+addGcFixTier('SSR',2);addGcFixTier('SR',20);addGcFixTier('R',100);
 
 /* ===================== ルーレット ===================== */
 const RU_ORDER_EU=[0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
@@ -3137,7 +3385,9 @@ function ruSetWallet(){
 const PROWS={
   pk:[{box:'pkDistRows',add:()=>addPkDist()},{box:'pkLtDistRows',add:()=>addPkLtDist()},{box:'pkJtDistRows',add:()=>addPkJtDist()},{box:'pkRushDistRows',add:()=>addPkRushDist()}],
   op:[{box:'opTiers',add:()=>addOpTier()}],
-  gc:[{box:'gcTiers',add:()=>addGcTier()}],
+  /* 口数固定ガチャの行も保存対象にする。古いプリセットには rows.gcFixTiers が
+     無いが、presetRestore は存在しないboxをスキップするため後方互換は保たれる */
+  gc:[{box:'gcTiers',add:()=>addGcTier()},{box:'gcFixTiers',add:()=>addGcFixTier()}],
   lt:[{box:'ltRows',add:()=>addLtRow()}]
 };
 const TEMPLATES={
@@ -4708,6 +4958,7 @@ function rbSpin(){
 }
 
 pkPie();
+gcSetMode('p');   // ガチャは独立確率モードで開始(既存の挙動)
 hkInit();
 if($('rsDate')){const today=new Date().toISOString().slice(0,10);$('rsDate').value=today;}
 rsRender();

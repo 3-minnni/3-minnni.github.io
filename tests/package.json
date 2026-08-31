@@ -11,6 +11,7 @@
     "injection": "node run-all.js injection",
     "ui": "node run-all.js ui",
     "pkvr": "node run-all.js pkvr",
+    "gcfix": "node run-all.js gcfix",
     "perf": "node run-all.js perf",
     "fuzz": "node run-all.js fuzz"
   },

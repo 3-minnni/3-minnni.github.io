@@ -32,10 +32,20 @@
        各OSの標準日本語/等幅フォントへ段階的に落ちるようスタックを明示する */
     --font-sans:'Zen Kaku Gothic New','Hiragino Sans','Hiragino Kaku Gothic ProN','Yu Gothic Medium','Yu Gothic','Noto Sans JP',Meiryo,system-ui,sans-serif;
     --font-mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,'Noto Sans Mono','Courier New',monospace;
-    /* 文字スケール: 補助xs / 本文小sm / 本文md / 見出し・主要lg */
+    /* 文字スケール。以前は生のpx指定が23種類あり、9〜12px帯だけで6種類が
+       密集していた。1pxずつ違う値は差として読み取れず「雑さ」になるため
+       10段に集約した。丸め先は必ず同じか大きい値(文字を小さくしない方針)。 */
     --fs-xs:10.5px; --fs-sm:12px; --fs-md:13px; --fs-lg:14.5px;
-    /* 余白スケール */
-    --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:18px; --sp-5:24px;
+    --fs-xl:16px; --fs-2xl:18px; --fs-3xl:22px;
+    --fs-4xl:26px; --fs-5xl:29px; --fs-6xl:34px;
+    /* 角丸。17種類あったものを4段+ピル形に集約した */
+    --r-xs:4px; --r-sm:8px; --r-md:12px; --r-lg:16px; --r-full:999px;
+    /* 余白スケール。既存の4/8/12/18/24だけでは実際のリズム(6/10/14)を表せず、
+       324箇所中19箇所でしか使われていなかった。半段を足して実態に合わせ、
+       ずれが最大2pxに収まる形で全面的に適用する(見た目は変えずに揃える)。
+       1〜3pxの微調整だけは意味が違うので生の値のまま残している。 */
+    --sp-1:4px;  --sp-1h:6px;  --sp-2:8px;  --sp-2h:10px;
+    --sp-3:12px; --sp-3h:16px; --sp-4:18px; --sp-4h:20px; --sp-5:24px;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;}
@@ -44,16 +54,16 @@
   @media (prefers-reduced-motion: reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;}}
   .tab:focus-visible,.chip:focus-visible,.icon-btn:focus-visible,.fx-toggle:focus-visible,.rt-cell:focus-visible,.rt-chip:focus-visible,.fold-head:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--gold-hi);outline-offset:2px;}
   .mono{font-family:var(--font-mono);}
-  .wrap{max-width:760px;margin:0 auto;padding:26px 16px 100px;position:relative;z-index:1;}
+  .wrap{max-width:760px;margin:0 auto;padding:var(--sp-5) var(--sp-3h) 100px;position:relative;z-index:1;}
 
-  .brand{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
-  .brand .mark{width:36px;height:36px;border-radius:10px;background:var(--gold-grad);color:#241A02;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-weight:700;font-size:15px;box-shadow:0 2px 8px rgba(0,0,0,.4);}
-  .brand .name{font-weight:900;font-size:18px;letter-spacing:.02em;background:linear-gradient(180deg,#FFE9A8,#E8B33C);-webkit-background-clip:text;background-clip:text;color:transparent;}
-  .brand .tag{font-size:var(--fs-xs);color:var(--gold);border:1px solid var(--gold-deep);border-radius:999px;padding:3px 11px;}
-  .fx-toggle{margin-left:auto;display:flex;align-items:center;gap:7px;font-size:var(--fs-sm);color:var(--ink-2);cursor:pointer;user-select:none;border:1px solid var(--line);border-radius:999px;padding:5px 12px;background:var(--card);}
+  .brand{display:flex;align-items:center;gap:var(--sp-2h);margin-bottom:var(--sp-3h);flex-wrap:wrap;}
+  .brand .mark{width:36px;height:36px;border-radius:var(--r-md);background:var(--gold-grad);color:#241A02;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-weight:700;font-size:var(--fs-xl);box-shadow:0 2px 8px rgba(0,0,0,.4);}
+  .brand .name{font-weight:900;font-size:var(--fs-2xl);letter-spacing:.02em;background:linear-gradient(180deg,#FFE9A8,#E8B33C);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .brand .tag{font-size:var(--fs-xs);color:var(--gold);border:1px solid var(--gold-deep);border-radius:var(--r-full);padding:3px var(--sp-2h);}
+  .fx-toggle{margin-left:auto;display:flex;align-items:center;gap:var(--sp-1h);font-size:var(--fs-sm);color:var(--ink-2);cursor:pointer;user-select:none;border:1px solid var(--line);border-radius:var(--r-full);padding:var(--sp-1h) var(--sp-3);background:var(--card);}
   .fx-toggle .dot{width:9px;height:9px;border-radius:50%;background:var(--pos);box-shadow:0 0 8px var(--pos);}
   .fx-toggle.off .dot{background:var(--ink-3);box-shadow:none;}
-  h1{font-size:24px;font-weight:900;margin:0 0 4px;letter-spacing:.01em;}
+  h1{font-size:var(--fs-4xl);font-weight:900;margin:0 0 var(--sp-1);letter-spacing:.01em;}
   h1 .g{background:linear-gradient(180deg,#FFE9A8 10%,#E8B33C 60%,#C08A18);-webkit-background-clip:text;background-clip:text;color:transparent;}
   .lede{color:var(--ink-2);font-size:var(--fs-md);margin:0 0 var(--sp-4);}
 
@@ -63,7 +73,7 @@
      2個だけ特別扱いに見える)。4×2の均等グリッドにして解消する。
      さらに sticky にして、下までスクロールしてもタブ切替に戻れるようにした。 */
   .tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--sp-2);
-    margin:0 -16px 20px;padding:10px 16px;position:sticky;top:0;z-index:20;
+    margin:0 -16px var(--sp-4h);padding:var(--sp-2h) var(--sp-3h);position:sticky;top:0;z-index:20;
     background:var(--bg);transition:box-shadow .2s ease,padding .2s ease;}
   @supports (backdrop-filter:blur(1px)){
     /* 本体の背景はグラデーションなので、単色で塗るとスクロール時に境目が出る。
@@ -72,14 +82,14 @@
   }
   /* 上端に貼り付いたら1行に畳む。常時2行だと画面を取りすぎるため、
      先頭では一覧として、スクロール中は移動手段として振る舞わせる。 */
-  .tabs.stuck{grid-template-columns:repeat(8,1fr);gap:5px;
-    box-shadow:0 8px 22px rgba(0,0,0,.34);padding-top:7px;padding-bottom:7px;}
+  .tabs.stuck{grid-template-columns:repeat(8,1fr);gap:var(--sp-1h);
+    box-shadow:0 8px 22px rgba(0,0,0,.34);padding-top:var(--sp-1h);padding-bottom:var(--sp-1h);}
   body.light .tabs.stuck{box-shadow:0 6px 16px rgba(27,28,25,.10);}
   .tabs.stuck .t-sub{display:none;}
-  .tabs.stuck .tab{padding:7px 2px;border-radius:9px;}
-  .tabs.stuck .t-name{font-size:11.5px;}
-  .tab{border:1px solid var(--line);border-radius:12px;background:var(--card);
-    padding:10px 6px;text-align:center;cursor:pointer;user-select:none;
+  .tabs.stuck .tab{padding:var(--sp-1h) 2px;border-radius:var(--r-md);}
+  .tabs.stuck .t-name{font-size:var(--fs-sm);}
+  .tab{border:1px solid var(--line);border-radius:var(--r-md);background:var(--card);
+    padding:var(--sp-2h) var(--sp-1h);text-align:center;cursor:pointer;user-select:none;
     transition:transform .14s cubic-bezier(.2,.8,.3,1),border-color .14s,background .14s;}
   .tab .t-name{font-size:var(--fs-md);font-weight:700;}
   .tab .t-sub{font-size:var(--fs-xs);color:var(--ink-3);}
@@ -93,17 +103,17 @@
   @media(max-width:620px){
     .tabs{display:flex;flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;
       scroll-snap-type:x proximity;scrollbar-width:none;-ms-overflow-style:none;
-      padding:9px 16px;gap:6px;}
+      padding:var(--sp-2) var(--sp-3h);gap:var(--sp-1h);}
     .tabs::-webkit-scrollbar{display:none;}
-    .tab{flex:0 0 auto;border-radius:999px;padding:8px 16px;scroll-snap-align:start;}
+    .tab{flex:0 0 auto;border-radius:var(--r-full);padding:var(--sp-2) var(--sp-3h);scroll-snap-align:start;}
     .tab .t-sub{display:none;}
     .tab:hover{transform:none;}
   }
 
   .panel{display:none;} .panel.active{display:block;}
 
-  .card{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:var(--sp-4);margin-bottom:var(--sp-3);}
-  .card-title{display:flex;align-items:baseline;gap:8px;margin-bottom:var(--sp-3);flex-wrap:wrap;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:var(--sp-4);margin-bottom:var(--sp-3);}
+  .card-title{display:flex;align-items:baseline;gap:var(--sp-2);margin-bottom:var(--sp-3);flex-wrap:wrap;}
   .card-title .step{font-family:var(--font-mono);font-size:var(--fs-xs);color:var(--gold);font-weight:600;letter-spacing:.1em;}
   .card-title h3{font-size:var(--fs-lg);font-weight:700;margin:0;}
   .card-title .hint{font-size:var(--fs-xs);color:var(--ink-3);margin-left:auto;}
@@ -113,38 +123,38 @@
   .field{display:flex;flex-direction:column;}
   .field.full{grid-column:1/-1;}
   .flabel{font-size:var(--fs-md);font-weight:500;margin-bottom:1px;}
-  .fhelp{font-size:var(--fs-xs);color:var(--ink-3);margin-bottom:5px;min-height:14px;}
-  .igroup{display:flex;align-items:stretch;border:1px solid var(--line2);border-radius:10px;overflow:hidden;background:var(--bg2);}
+  .fhelp{font-size:var(--fs-xs);color:var(--ink-3);margin-bottom:var(--sp-1h);min-height:14px;}
+  .igroup{display:flex;align-items:stretch;border:1px solid var(--line2);border-radius:var(--r-md);overflow:hidden;background:var(--bg2);}
   .igroup:focus-within{border-color:var(--gold);box-shadow:0 0 0 2px rgba(232,179,60,.18);}
-  .igroup .pre{display:flex;align-items:center;padding:0 10px;background:var(--card2);color:var(--ink-2);font-family:var(--font-mono);font-size:13px;border-right:1px solid var(--line);}
-  .igroup input{flex:1;border:none;outline:none;padding:9px 11px;min-width:0;font-family:var(--font-mono);font-size:var(--fs-lg);color:var(--ink);background:transparent;}
-  .igroup .unit{display:flex;align-items:center;padding:0 11px;background:var(--card2);color:var(--ink-2);font-size:11.5px;border-left:1px solid var(--line);white-space:nowrap;}
+  .igroup .pre{display:flex;align-items:center;padding:0 var(--sp-2h);background:var(--card2);color:var(--ink-2);font-family:var(--font-mono);font-size:var(--fs-md);border-right:1px solid var(--line);}
+  .igroup input{flex:1;border:none;outline:none;padding:var(--sp-2) var(--sp-2h);min-width:0;font-family:var(--font-mono);font-size:var(--fs-lg);color:var(--ink);background:transparent;}
+  .igroup .unit{display:flex;align-items:center;padding:0 var(--sp-2h);background:var(--card2);color:var(--ink-2);font-size:var(--fs-sm);border-left:1px solid var(--line);white-space:nowrap;}
 
   .chips{display:flex;flex-wrap:wrap;gap:var(--sp-2);}
-  .chip{border:1px solid var(--line2);border-radius:999px;padding:6px 14px;font-size:var(--fs-md);cursor:pointer;user-select:none;background:var(--card2);font-weight:500;transition:.12s;color:var(--ink);}
-  .chip small{color:var(--ink-3);font-size:var(--fs-xs);margin-left:4px;font-weight:400;}
+  .chip{border:1px solid var(--line2);border-radius:var(--r-full);padding:var(--sp-1h) var(--sp-3h);font-size:var(--fs-md);cursor:pointer;user-select:none;background:var(--card2);font-weight:500;transition:.12s;color:var(--ink);}
+  .chip small{color:var(--ink-3);font-size:var(--fs-xs);margin-left:var(--sp-1);font-weight:400;}
   .chip:hover{border-color:var(--gold-deep);}
   .chip.on{background:var(--gold-grad);border-color:var(--gold);color:#241A02;font-weight:700;}
   .chip.on small{color:#5C4508;}
 
-  .run{width:100%;background:var(--gold-grad);color:#241A02;border:none;border-radius:12px;padding:13px;font-family:inherit;font-weight:900;font-size:var(--fs-lg);cursor:pointer;letter-spacing:.06em;margin-top:2px;box-shadow:0 3px 0 #7A5A0C;}
+  .run{width:100%;background:var(--gold-grad);color:#241A02;border:none;border-radius:var(--r-md);padding:var(--sp-3);font-family:inherit;font-weight:900;font-size:var(--fs-lg);cursor:pointer;letter-spacing:.06em;margin-top:2px;box-shadow:0 3px 0 #7A5A0C;}
   .run:hover{filter:brightness(1.06);}
   .run:active{transform:translateY(2px);box-shadow:0 1px 0 #7A5A0C;}
-  .btn2{background:var(--card2);border:1px solid var(--line2);border-radius:10px;padding:9px 16px;font-family:inherit;font-weight:700;font-size:var(--fs-md);cursor:pointer;color:var(--ink);}
+  .btn2{background:var(--card2);border:1px solid var(--line2);border-radius:var(--r-md);padding:var(--sp-2) var(--sp-3h);font-family:inherit;font-weight:700;font-size:var(--fs-md);cursor:pointer;color:var(--ink);}
   .btn2:hover{border-color:var(--gold-deep);}
   .btn2.accent{background:var(--gold-grad);border-color:var(--gold);color:#241A02;box-shadow:0 2px 0 #7A5A0C;}
   .btn2.accent:active{transform:translateY(1px);box-shadow:none;}
   .btn2.danger{color:var(--neg);}
 
-  .verdict{border-radius:15px;padding:var(--sp-4);margin-bottom:var(--sp-3);border:1px solid;position:relative;overflow:hidden;box-shadow:0 10px 28px rgba(0,0,0,.35);}
+  .verdict{border-radius:var(--r-lg);padding:var(--sp-4);margin-bottom:var(--sp-3);border:1px solid;position:relative;overflow:hidden;box-shadow:0 10px 28px rgba(0,0,0,.35);}
   body.light .verdict{box-shadow:0 8px 20px rgba(27,28,25,.10);}
   .verdict.win{background:var(--pos-soft);border-color:rgba(61,220,151,.4);}
   .verdict.lose{background:var(--neg-soft);border-color:rgba(230,57,70,.4);}
-  .verdict .v-badge{display:inline-flex;align-items:center;gap:4px;font-size:var(--fs-sm);font-weight:700;border-radius:999px;padding:3px 12px;margin-bottom:4px;border:1px solid;}
+  .verdict .v-badge{display:inline-flex;align-items:center;gap:var(--sp-1);font-size:var(--fs-sm);font-weight:700;border-radius:var(--r-full);padding:3px var(--sp-3);margin-bottom:var(--sp-1);border:1px solid;}
   .verdict.win .v-badge{background:var(--pos-soft);border-color:rgba(61,220,151,.45);color:var(--pos);}
   .verdict.lose .v-badge{background:var(--neg-soft);border-color:rgba(230,57,70,.45);color:var(--neg);}
   .verdict .v-label{font-size:var(--fs-xs);font-weight:500;color:var(--ink-3);margin-bottom:2px;}
-  .verdict .v-num{font-family:var(--font-mono);font-size:34px;font-weight:700;line-height:1.25;margin:2px 0;}
+  .verdict .v-num{font-family:var(--font-mono);font-size:var(--fs-6xl);font-weight:700;line-height:1.25;margin:2px 0;}
   .verdict.win .v-num{color:var(--pos);text-shadow:0 0 24px rgba(61,220,151,.5);}
   .verdict.lose .v-num{color:var(--neg);text-shadow:0 0 24px rgba(255,92,92,.4);}
   .verdict .v-note{font-size:var(--fs-sm);color:var(--ink-2);}
@@ -152,34 +162,34 @@
   @keyframes shine{0%{left:-70%;}60%{left:130%;}100%{left:130%;}}
 
   .stats{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-2);margin-bottom:var(--sp-3);}
-  .stat{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:11px 13px;position:relative;overflow:hidden;}
+  .stat{background:var(--card2);border:1px solid var(--line);border-radius:var(--r-md);padding:var(--sp-2h) var(--sp-3);position:relative;overflow:hidden;}
   .stat::before{content:'';position:absolute;top:0;left:13px;width:26px;height:2px;background:var(--gold-grad);border-radius:0 0 2px 2px;}
   .stat .s-l{font-size:var(--fs-xs);color:var(--ink-2);letter-spacing:.05em;}
-  .stat .s-v{font-family:var(--font-mono);font-size:16px;font-weight:600;margin-top:2px;color:var(--ink);}
+  .stat .s-v{font-family:var(--font-mono);font-size:var(--fs-xl);font-weight:600;margin-top:2px;color:var(--ink);}
   .stat .s-sub{font-size:var(--fs-xs);color:var(--ink-3);margin-top:1px;}
   /* 主役の1枚。6枚が同じ大きさだと「最初に見るべき数字」が伝わらないため、
      タブごとに結論にあたる数値だけを大きく扱う(並び順は変えていない)。 */
-  .stat.lead{grid-column:1/-1;background:var(--card3);border-color:var(--gold-deep);padding:13px 15px;}
+  .stat.lead{grid-column:1/-1;background:var(--card3);border-color:var(--gold-deep);padding:var(--sp-3) var(--sp-3h);}
   .stat.lead::before{width:34px;height:3px;}
-  .stat.lead .s-v{font-size:29px;color:var(--gold-hi);line-height:1.25;margin-top:3px;}
+  .stat.lead .s-v{font-size:var(--fs-5xl);color:var(--gold-hi);line-height:1.25;margin-top:3px;}
   .stat.lead .s-l{font-size:var(--fs-sm);color:var(--ink-2);}
 
-  .chart-card{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:14px 14px 8px;margin-bottom:var(--sp-3);box-shadow:0 6px 18px rgba(0,0,0,.28);}
+  .chart-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:var(--sp-3h) var(--sp-3h) var(--sp-2);margin-bottom:var(--sp-3);box-shadow:0 6px 18px rgba(0,0,0,.28);}
   body.light .chart-card{box-shadow:0 5px 14px rgba(27,28,25,.08);}
-  .chart-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:6px;}
+  .chart-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp-1h);flex-wrap:wrap;gap:var(--sp-1h);}
   .chart-head .c-title{font-size:var(--fs-sm);font-weight:700;}
-  .legend{display:flex;gap:12px;font-size:var(--fs-xs);color:var(--ink-2);flex-wrap:wrap;}
-  .legend .li{display:flex;align-items:center;gap:5px;}
+  .legend{display:flex;gap:var(--sp-3);font-size:var(--fs-xs);color:var(--ink-2);flex-wrap:wrap;}
+  .legend .li{display:flex;align-items:center;gap:var(--sp-1h);}
   .legend .sw{width:15px;height:0;border-top:2.5px solid;}
   canvas{width:100%;display:block;}
 
-  .tier-row{display:grid;grid-template-columns:1fr 1fr .9fr 30px;gap:7px;align-items:center;margin-bottom:7px;}
-  .tier-row input{border:1px solid var(--line2);border-radius:9px;padding:8px 10px;font-family:var(--font-mono);font-size:13px;width:100%;color:var(--ink);background:var(--bg2);}
+  .tier-row{display:grid;grid-template-columns:1fr 1fr .9fr 30px;gap:var(--sp-1h);align-items:center;margin-bottom:var(--sp-1h);}
+  .tier-row input{border:1px solid var(--line2);border-radius:var(--r-md);padding:var(--sp-2) var(--sp-2h);font-family:var(--font-mono);font-size:var(--fs-md);width:100%;color:var(--ink);background:var(--bg2);}
   .tier-row input:focus{outline:none;border-color:var(--gold);}
-  .tier-row .rm{background:none;border:1px solid var(--line);border-radius:7px;color:var(--ink-3);cursor:pointer;height:32px;font-size:13px;}
+  .tier-row .rm{background:none;border:1px solid var(--line);border-radius:var(--r-sm);color:var(--ink-3);cursor:pointer;height:32px;font-size:var(--fs-md);}
   .tier-row .rm:hover{color:var(--neg);border-color:var(--neg);}
-  .tier-head{display:grid;grid-template-columns:1fr 1fr .9fr 30px;gap:7px;font-size:var(--fs-xs);color:var(--ink-3);margin-bottom:4px;}
-  .add-row{margin-top:4px;background:none;border:1.5px dashed var(--line2);border-radius:9px;color:var(--ink-2);padding:8px;font-size:12px;cursor:pointer;width:100%;font-family:inherit;}
+  .tier-head{display:grid;grid-template-columns:1fr 1fr .9fr 30px;gap:var(--sp-1h);font-size:var(--fs-xs);color:var(--ink-3);margin-bottom:var(--sp-1);}
+  .add-row{margin-top:var(--sp-1);background:none;border:1.5px dashed var(--line2);border-radius:var(--r-md);color:var(--ink-2);padding:var(--sp-2);font-size:var(--fs-sm);cursor:pointer;width:100%;font-family:inherit;}
   .add-row:hover{border-color:var(--gold);color:var(--gold);}
   .tier-row-pk{grid-template-columns:1fr 1fr auto auto 30px;}
   .tier-row-pk3{grid-template-columns:1fr 1fr auto auto auto 30px;}
@@ -187,55 +197,55 @@
      「1500」が1桁しか読めない状態だった。数値入力を1行目、フラグを2行目に分ける。
      6等分の土台にしてフラグを均等に並べる(3列だと最後のフラグがはみ出す)。 */
   @media(max-width:620px){
-    .tier-row-pk{grid-template-columns:repeat(6,1fr);row-gap:6px;
-      padding-bottom:9px;border-bottom:1px solid var(--line);}
+    .tier-row-pk{grid-template-columns:repeat(6,1fr);row-gap:var(--sp-1h);
+      padding-bottom:var(--sp-2);border-bottom:1px solid var(--line);}
     .tier-row-pk>input:nth-of-type(1){grid-column:1/4;}
     .tier-row-pk>input:nth-of-type(2){grid-column:4/6;}
     .tier-row-pk>.rm{grid-row:1;grid-column:6/7;}
     .tier-row-pk>.rowflag{grid-row:2;grid-column:span 3;}      /* 2フラグ */
     .tier-row-pk3>.rowflag{grid-column:span 2;}                /* 3フラグ */
   }
-  .lt-item-block{margin-bottom:7px;}
+  .lt-item-block{margin-bottom:var(--sp-1h);}
   .lt-item-block .tier-row{margin-bottom:0;}
-  .lt-children{margin:6px 0 4px 14px;padding-left:10px;border-left:2px solid var(--line2);}
-  .lt-child-row{display:grid;grid-template-columns:1.3fr .8fr 40px 30px;gap:7px;align-items:center;margin-bottom:6px;}
+  .lt-children{margin:var(--sp-1h) 0 var(--sp-1) var(--sp-3h);padding-left:var(--sp-2h);border-left:2px solid var(--line2);}
+  .lt-child-row{display:grid;grid-template-columns:1.3fr .8fr 40px 30px;gap:var(--sp-1h);align-items:center;margin-bottom:var(--sp-1h);}
   /* グリッド項目は既定で内容幅より縮まないため min-width:0 を明示する。
      これが無いと input[type=color] が固有幅(約50px)のまま枠をはみ出し、
      隣の「×」ボタンに重なる */
   .lt-child-row > *{min-width:0;}
-  .lt-child-row input[type="text"],.lt-child-row input[type="number"]{border:1px solid var(--line2);border-radius:8px;padding:6px 9px;font-family:var(--font-mono);font-size:12px;width:100%;color:var(--ink);background:var(--bg2);}
-  .lt-child-row input[type="color"]{width:100%;height:30px;padding:2px;border:1px solid var(--line2);border-radius:7px;background:var(--bg2);cursor:pointer;}
-  .lt-child-bar{margin:2px 0 8px;}
-  .lt-child-bar-track{display:flex;width:100%;height:8px;border-radius:5px;overflow:hidden;background:var(--bg2);}
+  .lt-child-row input[type="text"],.lt-child-row input[type="number"]{border:1px solid var(--line2);border-radius:var(--r-sm);padding:var(--sp-1h) var(--sp-2);font-family:var(--font-mono);font-size:var(--fs-sm);width:100%;color:var(--ink);background:var(--bg2);}
+  .lt-child-row input[type="color"]{width:100%;height:30px;padding:2px;border:1px solid var(--line2);border-radius:var(--r-sm);background:var(--bg2);cursor:pointer;}
+  .lt-child-bar{margin:2px 0 var(--sp-2);}
+  .lt-child-bar-track{display:flex;width:100%;height:8px;border-radius:var(--r-sm);overflow:hidden;background:var(--bg2);}
   .lt-child-bar-track span{height:100%;}
-  .lt-child-bar-legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:5px;font-size:10px;color:var(--ink-2);}
-  .lt-cbl-item{display:flex;align-items:center;gap:4px;}
-  .lt-cbl-item i{width:8px;height:8px;border-radius:2px;display:inline-block;}
-  .lt-child-add{background:none;border:1.5px dashed var(--line2);border-radius:8px;color:var(--ink-3);padding:5px;font-size:11px;cursor:pointer;width:100%;font-family:inherit;margin-bottom:2px;}
+  .lt-child-bar-legend{display:flex;flex-wrap:wrap;gap:var(--sp-2);margin-top:var(--sp-1h);font-size:var(--fs-xs);color:var(--ink-2);}
+  .lt-cbl-item{display:flex;align-items:center;gap:var(--sp-1);}
+  .lt-cbl-item i{width:8px;height:8px;border-radius:var(--r-xs);display:inline-block;}
+  .lt-child-add{background:none;border:1.5px dashed var(--line2);border-radius:var(--r-sm);color:var(--ink-3);padding:var(--sp-1h);font-size:var(--fs-sm);cursor:pointer;width:100%;font-family:inherit;margin-bottom:2px;}
   .lt-child-add:hover{border-color:var(--gold);color:var(--gold);}
-  .lt-toggle{background:none;border:1px solid var(--line);border-radius:7px;color:var(--ink-3);cursor:pointer;height:32px;font-size:11px;padding:0 2px;white-space:nowrap;overflow:hidden;}
+  .lt-toggle{background:none;border:1px solid var(--line);border-radius:var(--r-sm);color:var(--ink-3);cursor:pointer;height:32px;font-size:var(--fs-sm);padding:0 2px;white-space:nowrap;overflow:hidden;}
   .lt-toggle.on{border-color:var(--gold);color:var(--gold);}
-  .rowflag{border:1px solid var(--line2);border-radius:7px;padding:7px 8px;font-size:10px;cursor:pointer;user-select:none;background:var(--card2);color:var(--ink-3);white-space:nowrap;transition:.12s;text-align:center;}
+  .rowflag{border:1px solid var(--line2);border-radius:var(--r-sm);padding:var(--sp-1h) var(--sp-2);font-size:var(--fs-xs);cursor:pointer;user-select:none;background:var(--card2);color:var(--ink-3);white-space:nowrap;transition:.12s;text-align:center;}
   .rowflag.on{background:var(--gold-grad);border-color:var(--gold);color:#241A02;font-weight:700;}
 
-  .wallet{display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#1A1F2E,#12151E);border:1px solid var(--gold-deep);border-radius:14px;padding:13px 16px;margin-bottom:12px;flex-wrap:wrap;box-shadow:inset 0 0 30px rgba(232,179,60,.05);}
-  .wallet .w-l{font-size:10.5px;color:var(--gold);letter-spacing:.08em;}
-  .wallet .w-v{font-family:var(--font-mono);font-size:24px;font-weight:700;color:var(--gold-hi);}
-  .wallet .w-diff{font-family:var(--font-mono);font-size:13px;}
+  .wallet{display:flex;align-items:center;gap:var(--sp-3);background:linear-gradient(135deg,#1A1F2E,#12151E);border:1px solid var(--gold-deep);border-radius:var(--r-lg);padding:var(--sp-3) var(--sp-3h);margin-bottom:var(--sp-3);flex-wrap:wrap;box-shadow:inset 0 0 30px rgba(232,179,60,.05);}
+  .wallet .w-l{font-size:var(--fs-xs);color:var(--gold);letter-spacing:.08em;}
+  .wallet .w-v{font-family:var(--font-mono);font-size:var(--fs-4xl);font-weight:700;color:var(--gold-hi);}
+  .wallet .w-diff{font-family:var(--font-mono);font-size:var(--fs-md);}
   .wallet .w-diff.up{color:var(--pos);} .wallet .w-diff.down{color:var(--neg);}
-  .wallet .w-edit{margin-left:auto;display:flex;gap:6px;align-items:center;}
-  .wallet input{width:105px;background:var(--bg2);border:1px solid var(--line2);border-radius:8px;color:var(--ink);padding:6px 9px;font-family:var(--font-mono);font-size:13px;}
+  .wallet .w-edit{margin-left:auto;display:flex;gap:var(--sp-1h);align-items:center;}
+  .wallet input{width:105px;background:var(--bg2);border:1px solid var(--line2);border-radius:var(--r-sm);color:var(--ink);padding:var(--sp-1h) var(--sp-2);font-family:var(--font-mono);font-size:var(--fs-md);}
 
-  .pull-area{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
-  .pull-area .btn2{flex:1;min-width:105px;padding:12px;font-size:14px;}
+  .pull-area{display:flex;gap:var(--sp-2);flex-wrap:wrap;margin-bottom:var(--sp-3);}
+  .pull-area .btn2{flex:1;min-width:105px;padding:var(--sp-3);font-size:var(--fs-lg);}
 
-  .result-banner{border-radius:14px;padding:16px;text-align:center;margin-bottom:12px;border:1px solid var(--line);background:var(--card2);position:relative;overflow:hidden;}
+  .result-banner{border-radius:var(--r-lg);padding:var(--sp-3h);text-align:center;margin-bottom:var(--sp-3);border:1px solid var(--line);background:var(--card2);position:relative;overflow:hidden;}
   .result-banner.hit{background:linear-gradient(135deg,rgba(232,179,60,.2),rgba(232,179,60,.06));border-color:var(--gold);box-shadow:0 0 26px rgba(232,179,60,.3),0 10px 24px rgba(0,0,0,.35);}
   .result-banner.hit::after{content:'';position:absolute;top:0;left:-70%;width:45%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.10),transparent);animation:shine 2.4s infinite;pointer-events:none;}
   body.light .result-banner.hit{box-shadow:0 0 18px rgba(169,128,61,.18),0 8px 18px rgba(27,28,25,.10);}
   .result-banner .r-tier{font-size:var(--fs-md);font-weight:700;}
   .result-banner.hit .r-tier{color:var(--gold-hi);}
-  .result-banner .r-coin{font-family:var(--font-mono);font-size:26px;font-weight:700;margin-top:2px;}
+  .result-banner .r-coin{font-family:var(--font-mono);font-size:var(--fs-4xl);font-weight:700;margin-top:2px;}
   .result-banner.hit .r-coin{color:var(--gold-hi);text-shadow:0 0 20px rgba(232,179,60,.6);}
   .pop{animation:pop .4s cubic-bezier(.2,1.7,.4,1);}
   @keyframes pop{0%{transform:scale(.82);opacity:.3;}100%{transform:scale(1);opacity:1;}}
@@ -263,8 +273,8 @@
   .fold-head{transition:border-color .15s;}
   .fold-head:hover{border-color:var(--gold-deep);}
 
-  .remain{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
-  .remain .rc{font-size:var(--fs-sm);background:var(--card2);border:1px solid var(--line);border-radius:999px;padding:5px 12px;color:var(--ink-2);}
+  .remain{display:flex;gap:var(--sp-1h);flex-wrap:wrap;margin-bottom:var(--sp-3);}
+  .remain .rc{font-size:var(--fs-sm);background:var(--card2);border:1px solid var(--line);border-radius:var(--r-full);padding:var(--sp-1h) var(--sp-3);color:var(--ink-2);}
   .remain .rc b{font-family:var(--font-mono);font-weight:600;color:var(--ink);}
   .remain .rc.gold{background:var(--gold-soft);border-color:var(--gold-deep);color:var(--gold);}
   .remain .rc.gold b{color:var(--gold-hi);}
@@ -274,16 +284,16 @@
   .remain .rc.neg{background:var(--neg-soft);border-color:var(--neg);color:var(--neg);}
   .remain .rc.neg b{color:var(--neg);}
   /* 大当り履歴(データカウンター風の一覧) */
-  .pkh-head,.pkh-row{display:grid;grid-template-columns:2.2em 3.6em 1fr 1fr 1fr 1.3fr;gap:6px;align-items:center;}
-  .pkh-head{font-size:var(--fs-xs);color:var(--ink-3);padding:0 8px 4px;text-align:right;}
+  .pkh-head,.pkh-row{display:grid;grid-template-columns:2.2em 3.6em 1fr 1fr 1fr 1.3fr;gap:var(--sp-1h);align-items:center;}
+  .pkh-head{font-size:var(--fs-xs);color:var(--ink-3);padding:0 var(--sp-2) var(--sp-1);text-align:right;}
   .pkh-head span:first-child,.pkh-head span:nth-child(2){text-align:left;}
   .pkh-list{max-height:280px;overflow-y:auto;}
-  .pkh-row{padding:6px 8px;border-bottom:1px solid var(--line);font-family:var(--font-mono);
+  .pkh-row{padding:var(--sp-1h) var(--sp-2);border-bottom:1px solid var(--line);font-family:var(--font-mono);
     font-size:var(--fs-sm);text-align:right;font-variant-numeric:tabular-nums;}
   .pkh-row:last-child{border-bottom:0;}
-  .pkh-row small{font-size:9px;color:var(--ink-3);margin-left:2px;font-family:var(--font-sans);}
+  .pkh-row small{font-size:var(--fs-xs);color:var(--ink-3);margin-left:2px;font-family:var(--font-sans);}
   .pkh-no{color:var(--ink-3);text-align:left;}
-  .pkh-badge{text-align:center;border-radius:4px;padding:1px 0;font-size:9px;font-weight:700;
+  .pkh-badge{text-align:center;border-radius:var(--r-xs);padding:1px 0;font-size:var(--fs-xs);font-weight:700;
     font-family:var(--font-sans);}
   .pkh-badge.single{background:var(--card2);color:var(--ink-3);}
   .pkh-badge.rush{background:var(--gold-soft);color:var(--gold-hi);}
@@ -292,36 +302,36 @@
   .pkh-row.rush .pkh-chain{color:var(--gold-hi);}
   .pkh-balls{color:var(--ink);}
   /* グラフの丸印の凡例。色は丸印が持ち、文字は通常色にして明るいテーマでも読めるようにする */
-  .pkh-key{display:inline-flex;align-items:center;gap:4px;margin-right:10px;}
+  .pkh-key{display:inline-flex;align-items:center;gap:var(--sp-1);margin-right:var(--sp-2h);}
   .pkh-key i{width:9px;height:9px;border-radius:50%;flex:0 0 auto;}
 
-  .pull-log{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px;max-height:118px;overflow-y:auto;}
-  .pl{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-family:var(--font-mono);}
+  .pull-log{display:flex;flex-wrap:wrap;gap:var(--sp-1);margin-bottom:var(--sp-3);max-height:118px;overflow-y:auto;}
+  .pl{width:26px;height:26px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;font-size:var(--fs-xs);font-weight:700;font-family:var(--font-mono);}
   .pl.t0{background:var(--gold-grad);color:#241A02;}
   .pl.t1{background:#5A6C86;color:#fff;} .pl.t2{background:#7A5F45;color:#fff;}
   .pl.tx{background:#20242E;color:var(--ink-3);}
 
-  .warn{background:var(--gold-soft);border:1px solid var(--gold-deep);border-radius:12px;padding:11px 14px;font-size:var(--fs-sm);color:var(--gold);margin-bottom:var(--sp-3);line-height:1.7;}
+  .warn{background:var(--gold-soft);border:1px solid var(--gold-deep);border-radius:var(--r-md);padding:var(--sp-2h) var(--sp-3h);font-size:var(--fs-sm);color:var(--gold);margin-bottom:var(--sp-3);line-height:1.7;}
   .warn b{color:var(--gold-hi);}
 
-  .roulette-stage{display:flex;flex-direction:column;align-items:center;margin-bottom:12px;}
+  .roulette-stage{display:flex;flex-direction:column;align-items:center;margin-bottom:var(--sp-3);}
   #rouWheel,#lotWheel,#rbWheel{width:min(320px,82vw);height:auto;}
   .rou-pointer{width:0;height:0;border-left:11px solid transparent;border-right:11px solid transparent;border-top:17px solid var(--gold);margin-bottom:-5px;z-index:2;filter:drop-shadow(0 1px 3px rgba(0,0,0,.5));}
 
-  .reel-stage{display:flex;gap:10px;justify-content:center;margin:6px 0 14px;}
-  .reel{width:78px;height:92px;background:linear-gradient(180deg,#0D0F15,#1A1F2C 50%,#0D0F15);border:2px solid var(--gold-deep);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:900;font-family:var(--font-mono);color:var(--gold-hi);text-shadow:0 0 14px rgba(232,179,60,.6);overflow:hidden;}
+  .reel-stage{display:flex;gap:var(--sp-2h);justify-content:center;margin:var(--sp-1h) 0 var(--sp-3h);}
+  .reel{width:78px;height:92px;background:linear-gradient(180deg,#0D0F15,#1A1F2C 50%,#0D0F15);border:2px solid var(--gold-deep);border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:900;font-family:var(--font-mono);color:var(--gold-hi);text-shadow:0 0 14px rgba(232,179,60,.6);overflow:hidden;}
   .reel.spin{color:var(--ink-2);text-shadow:none;}
 
-  .kk-device{background:linear-gradient(160deg,#1C202C,#10121A);border:1px solid var(--line2);border-radius:18px;padding:14px;margin-bottom:12px;box-shadow:inset 0 0 26px rgba(0,0,0,.4);}
-  .kk-lcd{background:#0B1B12;border:1px solid #1F3D28;border-radius:10px;padding:8px 12px;margin-bottom:12px;box-shadow:inset 0 0 12px rgba(0,0,0,.6);display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px;}
-  .kk-lcd .kk-lcd-l{font-size:10px;letter-spacing:.08em;color:#6FCF97;opacity:.8;}
-  .kk-lcd .kk-lcd-v{font-family:var(--font-mono);font-size:24px;font-weight:700;color:#8FE8A8;text-shadow:0 0 8px rgba(143,232,168,.5);}
-  .kk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:10px;}
-  .kk-btn{border-radius:16px;padding:14px 6px;text-align:center;cursor:pointer;user-select:none;transition:.08s;border:none;box-shadow:0 3px 0 rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.18);}
+  .kk-device{background:linear-gradient(160deg,#1C202C,#10121A);border:1px solid var(--line2);border-radius:var(--r-lg);padding:var(--sp-3h);margin-bottom:var(--sp-3);box-shadow:inset 0 0 26px rgba(0,0,0,.4);}
+  .kk-lcd{background:#0B1B12;border:1px solid #1F3D28;border-radius:var(--r-md);padding:var(--sp-2) var(--sp-3);margin-bottom:var(--sp-3);box-shadow:inset 0 0 12px rgba(0,0,0,.6);display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:var(--sp-1h);}
+  .kk-lcd .kk-lcd-l{font-size:var(--fs-xs);letter-spacing:.08em;color:#6FCF97;opacity:.8;}
+  .kk-lcd .kk-lcd-v{font-family:var(--font-mono);font-size:var(--fs-4xl);font-weight:700;color:#8FE8A8;text-shadow:0 0 8px rgba(143,232,168,.5);}
+  .kk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-2);margin-bottom:var(--sp-2h);}
+  .kk-btn{border-radius:var(--r-lg);padding:var(--sp-3h) var(--sp-1h);text-align:center;cursor:pointer;user-select:none;transition:.08s;border:none;box-shadow:0 3px 0 rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.18);}
   .kk-btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.1);}
-  .kk-btn .k-name{font-size:11px;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,.35);}
-  .kk-btn .k-count{font-family:var(--font-mono);font-size:22px;font-weight:800;text-shadow:0 1px 2px rgba(0,0,0,.25);}
-  .kk-btn .k-rate{font-family:var(--font-mono);font-size:10px;opacity:.85;}
+  .kk-btn .k-name{font-size:var(--fs-sm);font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,.35);}
+  .kk-btn .k-count{font-family:var(--font-mono);font-size:var(--fs-3xl);font-weight:800;text-shadow:0 1px 2px rgba(0,0,0,.25);}
+  .kk-btn .k-rate{font-family:var(--font-mono);font-size:var(--fs-xs);opacity:.85;}
   .kk-btn.kk-c-gold{background:linear-gradient(160deg,#F3CF6E,#B8892C);color:#241A02;}
   .kk-btn.kk-c-silver{background:linear-gradient(160deg,#D8DCE4,#9AA3B0);color:#1A1D22;}
   .kk-btn.kk-c-white{background:linear-gradient(160deg,#FBFBFB,#CFCFCF);color:#1A1A1A;}
@@ -330,23 +340,23 @@
   .kk-btn.kk-c-yellow{background:linear-gradient(160deg,#FFE27A,#E0B23C);color:#3A2A00;}
   @media (orientation:landscape) and (max-height:520px){
     #panel-hk .kk-grid{grid-template-columns:repeat(6,1fr);}
-    #panel-hk .kk-btn{padding:20px 4px;}
-    #panel-hk .kk-btn .k-count{font-size:27px;}
+    #panel-hk .kk-btn{padding:var(--sp-4h) var(--sp-1);}
+    #panel-hk .kk-btn .k-count{font-size:var(--fs-5xl);}
   }
 
-  .calc-fab{position:fixed;right:16px;bottom:16px;width:52px;height:52px;border-radius:50%;background:var(--gold-grad);color:#241A02;border:none;font-size:20px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.45);z-index:50;}
-  .calc-panel{position:fixed;right:16px;bottom:78px;width:232px;background:var(--card);border:1px solid var(--line2);border-radius:14px;padding:12px;box-shadow:0 10px 34px rgba(0,0,0,.55);z-index:50;display:none;}
+  .calc-fab{position:fixed;right:16px;bottom:16px;width:52px;height:52px;border-radius:50%;background:var(--gold-grad);color:#241A02;border:none;font-size:var(--fs-3xl);font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.45);z-index:50;}
+  .calc-panel{position:fixed;right:16px;bottom:78px;width:232px;background:var(--card);border:1px solid var(--line2);border-radius:var(--r-lg);padding:var(--sp-3);box-shadow:0 10px 34px rgba(0,0,0,.55);z-index:50;display:none;}
   .calc-panel.open{display:block;}
-  .calc-panel .c-out{font-family:var(--font-mono);font-size:11.5px;color:var(--ink-3);text-align:right;min-height:16px;}
-  .calc-panel input{width:100%;border:1px solid var(--line2);border-radius:9px;padding:8px 10px;font-family:var(--font-mono);font-size:16px;text-align:right;margin:4px 0 8px;color:var(--ink);background:var(--bg2);}
+  .calc-panel .c-out{font-family:var(--font-mono);font-size:var(--fs-sm);color:var(--ink-3);text-align:right;min-height:16px;}
+  .calc-panel input{width:100%;border:1px solid var(--line2);border-radius:var(--r-md);padding:var(--sp-2) var(--sp-2h);font-family:var(--font-mono);font-size:var(--fs-xl);text-align:right;margin:var(--sp-1) 0 var(--sp-2);color:var(--ink);background:var(--bg2);}
   .calc-panel input:focus{outline:none;border-color:var(--gold);}
-  .calc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;}
-  .calc-grid button{border:1px solid var(--line);background:var(--card2);border-radius:8px;padding:9px 0;font-family:var(--font-mono);font-size:14px;cursor:pointer;color:var(--ink);}
+  .calc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--sp-1h);}
+  .calc-grid button{border:1px solid var(--line);background:var(--card2);border-radius:var(--r-sm);padding:var(--sp-2) 0;font-family:var(--font-mono);font-size:var(--fs-lg);cursor:pointer;color:var(--ink);}
   .calc-grid button:hover{background:var(--card3);}
   .calc-grid button.op{color:var(--gold);font-weight:600;}
   .calc-grid button.eq{background:var(--gold-grad);color:#241A02;border-color:var(--gold);grid-column:span 2;font-weight:700;}
 
-  .foot{font-size:11px;color:var(--ink-3);line-height:1.8;margin-top:26px;padding-top:14px;border-top:1px solid var(--line);}
+  .foot{font-size:var(--fs-sm);color:var(--ink-3);line-height:1.8;margin-top:var(--sp-5);padding-top:var(--sp-3h);border-top:1px solid var(--line);}
 
   #fxP{position:fixed;inset:0;z-index:0;pointer-events:none;}
   /* ---- 起動画面「収束」 ----
@@ -356,24 +366,24 @@
     background:radial-gradient(700px 420px at 50% 46%,#1A1712,#0B0B10 74%);transition:opacity .42s ease;}
   body.light #splash{background:radial-gradient(700px 420px at 50% 46%,#FFFFFF,#F0EFEA 74%);}
   #splash canvas{position:absolute;inset:0;width:100%;height:100%;display:block;}
-  #splash .sp-stage{position:relative;display:flex;flex-direction:column;align-items:center;gap:9px;
+  #splash .sp-stage{position:relative;display:flex;flex-direction:column;align-items:center;gap:var(--sp-2);
     margin-top:13vh;}
   /* 軌跡がロゴに重なると読めなくなるため、背後だけ地色に沈める */
   #splash .sp-stage::before{content:"";position:absolute;inset:-34px -56px;z-index:-1;
     background:radial-gradient(ellipse at center,rgba(11,11,16,.92) 38%,rgba(11,11,16,0) 72%);}
   body.light #splash .sp-stage::before{
     background:radial-gradient(ellipse at center,rgba(245,244,241,.94) 38%,rgba(245,244,241,0) 72%);}
-  #splash .sp-mark{width:46px;height:46px;border-radius:13px;background:var(--gold-grad);color:#241A02;
+  #splash .sp-mark{width:46px;height:46px;border-radius:var(--r-lg);background:var(--gold-grad);color:#241A02;
     display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-weight:700;
-    font-size:18px;opacity:0;transform:scale(.72) rotate(-8deg);}
+    font-size:var(--fs-2xl);opacity:0;transform:scale(.72) rotate(-8deg);}
   #splash .sp-title{font-size:clamp(28px,9vw,40px);font-weight:900;letter-spacing:.02em;
     background:linear-gradient(180deg,#FFF0C0,#E8C879 55%,#B08A3A);
     -webkit-background-clip:text;background-clip:text;color:transparent;
     opacity:0;transform:translateY(10px);}
   body.light #splash .sp-title{background:linear-gradient(180deg,#C8A25B,#A9803D 55%,#6B5222);
     -webkit-background-clip:text;background-clip:text;}
-  #splash .sp-sub{font-family:var(--font-mono);font-size:11px;color:var(--ink-3);letter-spacing:.32em;opacity:0;}
-  #splash .sp-num{position:absolute;top:16px;right:18px;font-family:var(--font-mono);font-size:12px;
+  #splash .sp-sub{font-family:var(--font-mono);font-size:var(--fs-sm);color:var(--ink-3);letter-spacing:.32em;opacity:0;}
+  #splash .sp-num{position:absolute;top:16px;right:18px;font-family:var(--font-mono);font-size:var(--fs-sm);
     color:var(--gold);opacity:.85;font-variant-numeric:tabular-nums;letter-spacing:.04em;}
   #splash.sp-run .sp-mark{animation:spMark .5s cubic-bezier(.2,1.5,.4,1) 1.02s forwards;}
   #splash.sp-run .sp-title{animation:spRise .52s cubic-bezier(.2,.8,.3,1) 1.16s forwards;}
@@ -386,8 +396,8 @@
   @keyframes spRise{to{opacity:1;transform:translateY(0);}}
   @keyframes spFade{to{opacity:1;}}
 
-  .danger{border-radius:11px;padding:10px 14px;font-size:var(--fs-md);font-weight:700;margin-bottom:var(--sp-2);display:flex;align-items:center;gap:10px;}
-  .danger .d-k{font-family:var(--font-mono);font-size:17px;}
+  .danger{border-radius:var(--r-md);padding:var(--sp-2h) var(--sp-3h);font-size:var(--fs-md);font-weight:700;margin-bottom:var(--sp-2);display:flex;align-items:center;gap:var(--sp-2h);}
+  .danger .d-k{font-family:var(--font-mono);font-size:var(--fs-2xl);}
   .danger.bad{background:rgba(230,57,70,.14);border:1px solid rgba(230,57,70,.5);color:var(--neg);}
   .danger.mid{background:rgba(200,162,91,.12);border:1px solid var(--gold-deep);color:var(--gold-hi);}
   .danger.ok{background:var(--pos-soft);border:1px solid rgba(61,220,151,.45);color:var(--pos);}
@@ -395,15 +405,15 @@
   .danger.rainbow .d-k{text-shadow:0 1px 2px rgba(0,0,0,.25);}
   @keyframes rb{to{background-position:300% 0;}}
 
-  .preset-bar{display:flex;gap:var(--sp-2);align-items:center;flex-wrap:wrap;margin-bottom:10px;}
-  .preset-bar input.pname{border:1px solid var(--line2);border-radius:9px;padding:8px 10px;font-family:var(--font-mono);font-size:12px;color:var(--ink);background:var(--bg2);width:110px;}
-  .preset-bar select{background:var(--bg2);border:1px solid var(--line2);border-radius:9px;color:var(--ink);padding:8px;font-size:12px;font-family:inherit;max-width:150px;}
-  .preset-bar .btn2{padding:8px 12px;font-size:12px;}
+  .preset-bar{display:flex;gap:var(--sp-2);align-items:center;flex-wrap:wrap;margin-bottom:var(--sp-2h);}
+  .preset-bar input.pname{border:1px solid var(--line2);border-radius:var(--r-md);padding:var(--sp-2) var(--sp-2h);font-family:var(--font-mono);font-size:var(--fs-sm);color:var(--ink);background:var(--bg2);width:110px;}
+  .preset-bar select{background:var(--bg2);border:1px solid var(--line2);border-radius:var(--r-md);color:var(--ink);padding:var(--sp-2);font-size:var(--fs-sm);font-family:inherit;max-width:150px;}
+  .preset-bar .btn2{padding:var(--sp-2) var(--sp-3);font-size:var(--fs-sm);}
 
-  .cclog-line{font-size:11.5px;padding:2px 0;width:100%;}
+  .cclog-line{font-size:var(--fs-sm);padding:2px 0;width:100%;}
 
-  .ball-stage{position:relative;height:112px;overflow:hidden;margin-bottom:10px;background:linear-gradient(180deg,#14141D,#1B1B28);border:1px solid var(--gold-deep);border-radius:14px;}
-  .ball-rail{position:absolute;left:6%;right:6%;top:60px;height:3px;background:var(--gold-deep);transform:rotate(4deg);border-radius:2px;box-shadow:0 0 8px rgba(200,162,91,.35);}
+  .ball-stage{position:relative;height:112px;overflow:hidden;margin-bottom:var(--sp-2h);background:linear-gradient(180deg,#14141D,#1B1B28);border:1px solid var(--gold-deep);border-radius:var(--r-lg);}
+  .ball-rail{position:absolute;left:6%;right:6%;top:60px;height:3px;background:var(--gold-deep);transform:rotate(4deg);border-radius:var(--r-xs);box-shadow:0 0 8px rgba(200,162,91,.35);}
   .ball{position:absolute;width:22px;height:22px;border-radius:50%;top:-26px;left:10%;}
   .ball.gold{background:radial-gradient(circle at 35% 30%,#FFF2C4,#E8C879 45%,#8A6A2F);box-shadow:0 0 16px rgba(232,200,121,.85);}
   .ball.red{background:radial-gradient(circle at 35% 30%,#FFC2C6,#E63946 50%,#7A1420);box-shadow:0 0 14px rgba(230,57,70,.7);}
@@ -411,19 +421,19 @@
   .ball.roll{animation:ballRoll 1.3s cubic-bezier(.35,.55,.55,1) forwards;}
   @keyframes ballRoll{0%{transform:translate(0,-8px) rotate(0);}22%{transform:translate(28px,66px) rotate(200deg);}72%{transform:translate(210px,80px) rotate(760deg);}100%{transform:translate(255px,130px) rotate(1080deg);opacity:.85;}}
 
-  .kj-grid{display:grid;grid-template-columns:52px repeat(6,72px);gap:5px;align-items:center;margin-top:6px;width:max-content;min-width:100%;}
+  .kj-grid{display:grid;grid-template-columns:52px repeat(6,72px);gap:var(--sp-1h);align-items:center;margin-top:var(--sp-1h);width:max-content;min-width:100%;}
   .kj-grid-wrap{overflow-x:auto;}
-  .kj-grid .kj-h{font-size:10.5px;color:var(--ink-3);}
-  .kj-grid input{border:1px solid var(--line2);border-radius:8px;padding:7px 8px;font-family:var(--font-mono);font-size:12.5px;width:100%;color:var(--ink);background:var(--bg2);}
+  .kj-grid .kj-h{font-size:var(--fs-xs);color:var(--ink-3);}
+  .kj-grid input{border:1px solid var(--line2);border-radius:var(--r-sm);padding:var(--sp-1h) var(--sp-2);font-family:var(--font-mono);font-size:var(--fs-md);width:100%;color:var(--ink);background:var(--bg2);}
   .kj-grid input:focus{outline:none;border-color:var(--gold);}
-  .kj-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
-  .kj-row .kj-l{font-size:11.5px;width:44px;color:var(--ink-2);}
-  .kj-row .kj-track{flex:1;height:9px;background:var(--card2);border-radius:5px;overflow:hidden;}
-  .kj-row .kj-fill{height:100%;background:var(--gold-grad);border-radius:5px;}
-  .kj-row .kj-v{font-family:var(--font-mono);font-size:12px;width:52px;text-align:right;color:var(--gold-hi);}
+  .kj-row{display:flex;align-items:center;gap:var(--sp-2);margin-bottom:var(--sp-1h);}
+  .kj-row .kj-l{font-size:var(--fs-sm);width:44px;color:var(--ink-2);}
+  .kj-row .kj-track{flex:1;height:9px;background:var(--card2);border-radius:var(--r-sm);overflow:hidden;}
+  .kj-row .kj-fill{height:100%;background:var(--gold-grad);border-radius:var(--r-sm);}
+  .kj-row .kj-v{font-family:var(--font-mono);font-size:var(--fs-sm);width:52px;text-align:right;color:var(--gold-hi);}
 
   body.light{--bg:#F5F4F1;--bg2:#FFFFFF;--card:#FFFFFF;--card2:#F0EFEA;--card3:#E7E5DE;--line:#E2E0D8;--line2:#CBC8BE;--ink:#1B1C19;--ink-2:#5C615B;--ink-3:#989C92;--pos:#0E8A5F;--neg:#CE3B3B;--pos-soft:rgba(14,138,95,.10);--neg-soft:rgba(206,59,59,.10);--gold:#A9803D;--gold-hi:#8A6A2F;--gold-deep:#6B5222;--gold-grad:linear-gradient(180deg,#C8A25B 0%,#A9803D 45%,#6B5222 100%);--gold-soft:rgba(169,128,61,.14);--violet:#7A4FD1;--info:#2E6FA3;--info-soft:rgba(46,111,163,.12);background:#F5F4F1;}
-  .icon-btn{display:flex;align-items:center;gap:6px;font-size:var(--fs-sm);color:var(--ink-2);cursor:pointer;user-select:none;border:1px solid var(--line);border-radius:999px;padding:5px 12px;background:var(--card);}
+  .icon-btn{display:flex;align-items:center;gap:var(--sp-1h);font-size:var(--fs-sm);color:var(--ink-2);cursor:pointer;user-select:none;border:1px solid var(--line);border-radius:var(--r-full);padding:var(--sp-1h) var(--sp-3);background:var(--card);}
   .fxw{position:relative;overflow:hidden;}
   .fx-r1{background:linear-gradient(90deg,rgba(230,57,70,.32),rgba(232,200,121,.32),rgba(57,255,136,.32),rgba(79,163,224,.32),rgba(160,32,240,.32),rgba(230,57,70,.32));background-size:300% 100%;animation:rb 2.2s linear infinite;border-color:#fff!important;}
   .fx-r2{background:linear-gradient(135deg,rgba(232,200,121,.35),rgba(200,162,91,.12));border-color:var(--gold)!important;box-shadow:0 0 30px rgba(232,200,121,.45);}
@@ -431,9 +441,9 @@
   .fx-r4{background:rgba(61,220,151,.16);border-color:var(--pos)!important;}
   .fx-r5{background:var(--info-soft);border-color:var(--info)!important;}
   .fx-r6{background:rgba(255,255,255,.08);border-color:var(--line2)!important;}
-  .confetti{position:absolute;top:-10px;width:8px;height:8px;border-radius:2px;animation:cfall linear forwards;pointer-events:none;}
+  .confetti{position:absolute;top:-10px;width:8px;height:8px;border-radius:var(--r-xs);animation:cfall linear forwards;pointer-events:none;}
   @keyframes cfall{to{transform:translateY(170px) rotate(560deg);opacity:0;}}
-  .rankb{font-family:var(--font-mono);font-size:10px;border-radius:6px;padding:1px 6px;font-weight:700;white-space:nowrap;}
+  .rankb{font-family:var(--font-mono);font-size:var(--fs-xs);border-radius:var(--r-sm);padding:1px var(--sp-1h);font-weight:700;white-space:nowrap;}
   .rankb.r1{background:linear-gradient(90deg,#E63946,#E8C879,#39FF88,#4FA3E0,#A020F0);color:#14100A;}
   .rankb.r2{background:var(--gold-grad);color:#241A02;}
   .rankb.r3{background:#E63946;color:#fff;}
@@ -441,45 +451,45 @@
   .rankb.r5{background:var(--info);color:#fff;}
   .rankb.r6{background:#C9CCD8;color:#333;}
 
-  .rt-chips{display:flex;gap:7px;margin-bottom:10px;flex-wrap:wrap;align-items:center;}
-  .rt-chip{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:11px;font-weight:700;cursor:pointer;border:3px dashed rgba(255,255,255,.55);color:#fff;opacity:.55;}
+  .rt-chips{display:flex;gap:var(--sp-1h);margin-bottom:var(--sp-2h);flex-wrap:wrap;align-items:center;}
+  .rt-chip{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:var(--fs-sm);font-weight:700;cursor:pointer;border:3px dashed rgba(255,255,255,.55);color:#fff;opacity:.55;}
   .rt-chip.on{opacity:1;box-shadow:0 0 0 2.5px var(--gold);transform:scale(1.08);}
   .c100{background:#3B6FB5;} .c500{background:#B53B4C;} .c1000{background:#2FA36B;} .c5000{background:#8A5FC0;}
-  .rt-scroll{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;margin:0 -4px 2px;padding:0 4px 6px;}
+  .rt-scroll{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;margin:0 -4px 2px;padding:0 var(--sp-1) var(--sp-1h);}
   .rt-scroll::-webkit-scrollbar{height:6px;}
-  .rt-scroll::-webkit-scrollbar-thumb{background:var(--line2);border-radius:3px;}
+  .rt-scroll::-webkit-scrollbar-thumb{background:var(--line2);border-radius:var(--r-xs);}
   .rt-table{display:grid;grid-template-columns:34px repeat(12,44px) 46px;gap:2px;user-select:none;width:max-content;}
-  .rt-hint{display:none;font-size:10.5px;color:var(--ink-3);margin:-4px 0 8px;}
+  .rt-hint{display:none;font-size:var(--fs-xs);color:var(--ink-3);margin:-4px 0 var(--sp-2);}
   @media(max-width:640px){.rt-hint{display:block;}}
-  .rt-cell{position:relative;background:#0E4D33;border:1px solid rgba(255,255,255,.35);border-radius:4px;min-height:34px;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:12px;font-weight:600;color:#fff;cursor:pointer;}
+  .rt-cell{position:relative;background:#0E4D33;border:1px solid rgba(255,255,255,.35);border-radius:var(--r-xs);min-height:34px;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:var(--fs-sm);font-weight:600;color:#fff;cursor:pointer;}
   .rt-cell.red{background:#B22A38;}
   .rt-cell.zero{background:#0E6B4F;grid-row:span 3;}
   .rt-cell.zero00{background:#0E6B4F;grid-row:span 3;}
   .rt-table.american{grid-template-columns:34px 34px repeat(12,44px) 46px;}
-  .rt-cell.out{background:#123A2A;font-size:10px;}
+  .rt-cell.out{background:#123A2A;font-size:var(--fs-xs);}
   .rt-cell:hover{filter:brightness(1.25);}
-  .rt-bet{position:absolute;right:1px;bottom:1px;background:#E8C879;color:#241A02;border-radius:999px;font-size:9px;padding:1px 5px;font-weight:700;}
+  .rt-bet{position:absolute;right:1px;bottom:1px;background:#E8C879;color:#241A02;border-radius:var(--r-full);font-size:var(--fs-xs);padding:1px var(--sp-1h);font-weight:700;}
   /* 友達対戦: プレイヤーごとの賭け金をその人の色で並べる。
      マスが狭いため小さく折り返し、自分の分は白縁で見分けられるようにする */
   .rt-bets{position:absolute;left:1px;right:1px;bottom:1px;display:flex;flex-wrap:wrap;
     gap:1px;justify-content:flex-end;align-items:flex-end;pointer-events:none;}
-  .rt-bets .rt-b{font-family:var(--font-mono);font-size:8.5px;font-weight:700;font-style:normal;
-    line-height:1.35;color:#14100A;border-radius:3px;padding:0 3px;white-space:nowrap;
+  .rt-bets .rt-b{font-family:var(--font-mono);font-size:var(--fs-xs);font-weight:700;font-style:normal;
+    line-height:1.35;color:#14100A;border-radius:var(--r-xs);padding:0 3px;white-space:nowrap;
     box-shadow:0 0 0 1px rgba(0,0,0,.55);}
   .rt-bets .rt-b.self{box-shadow:0 0 0 1.5px #fff,0 0 0 2.5px rgba(0,0,0,.55);}
   .rt-dots{position:absolute;left:2px;top:2px;display:flex;gap:2px;flex-wrap:wrap;max-width:28px;}
   .rt-dots i{width:8px;height:8px;border-radius:50%;display:block;border:1.5px solid rgba(255,255,255,.85);box-shadow:0 0 0 1px rgba(0,0,0,.5);}
-  .player-dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:4px;border:1.5px solid rgba(255,255,255,.65);vertical-align:middle;box-shadow:0 0 0 1px rgba(0,0,0,.35);}
+  .player-dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:var(--sp-1);border:1.5px solid rgba(255,255,255,.65);vertical-align:middle;box-shadow:0 0 0 1px rgba(0,0,0,.35);}
   .rt-out2{display:grid;grid-template-columns:34px repeat(3,176px) 46px;gap:2px;margin-top:2px;width:max-content;}
   .rt-out3{display:grid;grid-template-columns:34px repeat(6,88px) 46px;gap:2px;margin-top:2px;width:max-content;}
 
-  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;}
-  .modal{background:var(--card);border:1px solid var(--line2);border-radius:16px;padding:20px;max-width:430px;width:100%;max-height:80vh;overflow-y:auto;}
-  .modal h4{margin:0 0 10px;font-size:var(--fs-lg);}
-  .modal p{font-size:var(--fs-md);color:var(--ink-2);line-height:1.8;margin:0 0 12px;}
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:200;display:flex;align-items:center;justify-content:center;padding:var(--sp-4h);}
+  .modal{background:var(--card);border:1px solid var(--line2);border-radius:var(--r-lg);padding:var(--sp-4h);max-width:430px;width:100%;max-height:80vh;overflow-y:auto;}
+  .modal h4{margin:0 0 var(--sp-2h);font-size:var(--fs-lg);}
+  .modal p{font-size:var(--fs-md);color:var(--ink-2);line-height:1.8;margin:0 0 var(--sp-3);}
   /* 取り消しスナックバー(削除直後に一定時間だけ出す) */
-  .undo-bar{position:fixed;left:50%;bottom:18px;transform:translate(-50%,180%);display:flex;align-items:center;gap:12px;
-    background:var(--card);border:1px solid var(--line2);border-radius:12px;padding:10px 14px;
+  .undo-bar{position:fixed;left:50%;bottom:18px;transform:translate(-50%,180%);display:flex;align-items:center;gap:var(--sp-3);
+    background:var(--card);border:1px solid var(--line2);border-radius:var(--r-md);padding:var(--sp-2h) var(--sp-3h);
     box-shadow:0 10px 30px rgba(0,0,0,.5);z-index:120;transition:transform .28s cubic-bezier(.2,.8,.3,1);
     font-size:var(--fs-sm);max-width:calc(100vw - 28px);}
   .undo-bar.show{transform:translate(-50%,0);}
@@ -490,27 +500,27 @@
   .toast-bar .t-msg{color:var(--ink-2);}
   .toast-bar.bad{border-color:rgba(230,57,70,.5);}
   .toast-bar.bad .t-msg{color:var(--neg);}
-  .undo-bar .btn2{padding:6px 12px;font-size:var(--fs-sm);white-space:nowrap;}
+  .undo-bar .btn2{padding:var(--sp-1h) var(--sp-3);font-size:var(--fs-sm);white-space:nowrap;}
   body.light .undo-bar{box-shadow:0 8px 22px rgba(27,28,25,.18);}
-  .modal .m-btns{display:flex;gap:8px;}
-  .modal .m-btns .btn2{flex:1;padding:11px;}
+  .modal .m-btns{display:flex;gap:var(--sp-2);}
+  .modal .m-btns .btn2{flex:1;padding:var(--sp-2h);}
   .btn2.yes-danger{background:#E63946;border-color:#E63946;color:#fff;}
 
-  .st-row{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);}
+  .st-row{display:flex;align-items:center;gap:var(--sp-2h);padding:var(--sp-3) 0;border-bottom:1px solid var(--line);}
   .st-row .st-n{font-size:var(--fs-md);font-weight:700;width:130px;}
   .st-row .st-c{font-size:var(--fs-sm);color:var(--ink-3);}
-  .st-row .st-v{font-family:var(--font-mono);font-size:16px;font-weight:600;margin-left:auto;}
-  .st-row .st-del{cursor:pointer;color:var(--ink-3);font-size:15px;padding:0 2px;}
+  .st-row .st-v{font-family:var(--font-mono);font-size:var(--fs-xl);font-weight:600;margin-left:auto;}
+  .st-row .st-del{cursor:pointer;color:var(--ink-3);font-size:var(--fs-xl);padding:0 2px;}
   .st-row .st-del:hover{color:var(--neg);}
-  .st-genre{margin-bottom:6px;}
-  .st-genre-h{font-size:11px;color:var(--gold);letter-spacing:.05em;margin-top:10px;font-weight:700;}
+  .st-genre{margin-bottom:var(--sp-1h);}
+  .st-genre-h{font-size:var(--fs-sm);color:var(--gold);letter-spacing:.05em;margin-top:var(--sp-2h);font-weight:700;}
 
-  .gc-big{display:flex;align-items:baseline;gap:10px;background:var(--card2);border:1px solid var(--gold-deep);border-radius:13px;padding:12px 16px;margin-bottom:10px;flex-wrap:wrap;}
-  .gc-big .l{font-size:11px;color:var(--gold);}
-  .gc-big .v{font-family:var(--font-mono);font-size:28px;font-weight:700;color:var(--gold-hi);}
+  .gc-big{display:flex;align-items:baseline;gap:var(--sp-2h);background:var(--card2);border:1px solid var(--gold-deep);border-radius:var(--r-lg);padding:var(--sp-3) var(--sp-3h);margin-bottom:var(--sp-2h);flex-wrap:wrap;}
+  .gc-big .l{font-size:var(--fs-sm);color:var(--gold);}
+  .gc-big .v{font-family:var(--font-mono);font-size:var(--fs-5xl);font-weight:700;color:var(--gold-hi);}
   #opLog,#gcLog{max-height:none;}
 
-  .fold-head{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;font-size:var(--fs-sm);font-weight:700;color:var(--ink-2);padding:8px 12px;background:var(--card2);border:1px solid var(--line);border-radius:10px;margin-bottom:var(--sp-2);}
+  .fold-head{display:flex;align-items:center;gap:var(--sp-2);cursor:pointer;user-select:none;font-size:var(--fs-sm);font-weight:700;color:var(--ink-2);padding:var(--sp-2) var(--sp-3);background:var(--card2);border:1px solid var(--line);border-radius:var(--r-md);margin-bottom:var(--sp-2);}
   .fold-head .step{font-family:var(--font-mono);font-size:var(--fs-xs);color:var(--gold);font-weight:600;letter-spacing:.1em;}
   .fold-head h3{font-size:var(--fs-lg);color:var(--ink);}
   .fold-head .fold-ar{transition:transform .2s;}
@@ -519,101 +529,101 @@
   .fold-body.closed{max-height:0!important;}
 
   /* 仮想ラッシュモード: 1試行ぶんの連チャン内訳 */
-  .vr-trial{background:var(--card2);border:1px solid var(--line);border-radius:11px;padding:11px 14px;margin-bottom:8px;}
-  .vr-trial .vr-head{font-size:var(--fs-md);font-weight:700;margin-bottom:6px;}
+  .vr-trial{background:var(--card2);border:1px solid var(--line);border-radius:var(--r-md);padding:var(--sp-2h) var(--sp-3h);margin-bottom:var(--sp-2);}
+  .vr-trial .vr-head{font-size:var(--fs-md);font-weight:700;margin-bottom:var(--sp-1h);}
   .vr-trial .vr-head b{font-family:var(--font-mono);color:var(--gold-hi);}
-  .vr-row{display:grid;grid-template-columns:64px 1fr auto;gap:8px;align-items:baseline;
+  .vr-row{display:grid;grid-template-columns:64px 1fr auto;gap:var(--sp-2);align-items:baseline;
     font-family:var(--font-mono);font-size:var(--fs-sm);padding:3px 0;border-top:1px solid var(--line);}
   .vr-row .vr-n{color:var(--ink-3);}
   .vr-row .vr-share{color:var(--ink-2);}
-  .vr-row .vr-g{color:var(--gold-hi);font-size:var(--fs-xs);margin-left:6px;}
+  .vr-row .vr-g{color:var(--gold-hi);font-size:var(--fs-xs);margin-left:var(--sp-1h);}
   .vr-row .vr-balls{color:var(--ink);font-weight:600;text-align:right;}
-  .pct-big{font-family:var(--font-mono);font-size:22px;font-weight:700;color:var(--gold-hi);}
-  .pct-strip{display:flex;gap:8px;flex-wrap:wrap;align-items:baseline;background:var(--card2);border:1px solid var(--gold-deep);border-radius:11px;padding:10px 14px;margin-bottom:10px;}
+  .pct-big{font-family:var(--font-mono);font-size:var(--fs-3xl);font-weight:700;color:var(--gold-hi);}
+  .pct-strip{display:flex;gap:var(--sp-2);flex-wrap:wrap;align-items:baseline;background:var(--card2);border:1px solid var(--gold-deep);border-radius:var(--r-md);padding:var(--sp-2h) var(--sp-3h);margin-bottom:var(--sp-2h);}
 
-  .err-box{background:var(--neg-soft);border:1px solid rgba(230,57,70,.5);border-radius:11px;padding:12px 15px;font-size:var(--fs-md);color:var(--neg);margin-bottom:10px;line-height:1.8;}
+  .err-box{background:var(--neg-soft);border:1px solid rgba(230,57,70,.5);border-radius:var(--r-md);padding:var(--sp-3) var(--sp-3h);font-size:var(--fs-md);color:var(--neg);margin-bottom:var(--sp-2h);line-height:1.8;}
   .err-box b{color:#FF8A90;}
 
-  .rs-form{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .rs-form{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-2h);}
   @media(max-width:540px){.rs-form{grid-template-columns:1fr;}}
   .rs-table{width:100%;border-collapse:collapse;margin-top:var(--sp-3);font-size:var(--fs-sm);}
-  .rs-table th{text-align:left;color:var(--ink-3);font-weight:500;font-size:var(--fs-xs);padding:6px 8px;border-bottom:1px solid var(--line);}
-  .rs-table td{padding:8px;border-bottom:1px solid var(--line);font-family:var(--font-mono);}
+  .rs-table th{text-align:left;color:var(--ink-3);font-weight:500;font-size:var(--fs-xs);padding:var(--sp-1h) var(--sp-2);border-bottom:1px solid var(--line);}
+  .rs-table td{padding:var(--sp-2);border-bottom:1px solid var(--line);font-family:var(--font-mono);}
   .rs-table tr.win td{background:var(--pos-soft);}
   .rs-table tr.lose td{background:var(--neg-soft);}
-  .rs-table .rs-memo{max-width:80px;color:var(--ink-2);font-size:11px;cursor:help;}
+  .rs-table .rs-memo{max-width:80px;color:var(--ink-2);font-size:var(--fs-sm);cursor:help;}
   .rs-table .rs-del{cursor:pointer;color:var(--ink-3);}
   .rs-table .rs-del:hover{color:var(--neg);}
   .rs-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-2);margin:var(--sp-3) 0;}
-  .rs-period{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px;}
-  .rs-period input,.rs-period select{background:var(--bg2);border:1px solid var(--line2);border-radius:8px;color:var(--ink);padding:7px 9px;font-family:var(--font-mono);font-size:12px;}
-  .date-in,.sel-in{flex:1;width:100%;border:1px solid var(--line2);outline:none;border-radius:9px;padding:9px 11px;font-size:13px;color:var(--ink);background:var(--bg2);font-family:var(--font-mono);}
+  .rs-period{display:flex;gap:var(--sp-2);align-items:center;flex-wrap:wrap;margin-bottom:var(--sp-2h);}
+  .rs-period input,.rs-period select{background:var(--bg2);border:1px solid var(--line2);border-radius:var(--r-sm);color:var(--ink);padding:var(--sp-1h) var(--sp-2);font-family:var(--font-mono);font-size:var(--fs-sm);}
+  .date-in,.sel-in{flex:1;width:100%;border:1px solid var(--line2);outline:none;border-radius:var(--r-md);padding:var(--sp-2) var(--sp-2h);font-size:var(--fs-md);color:var(--ink);background:var(--bg2);font-family:var(--font-mono);}
   .sel-in{font-family:var(--font-sans);}
   input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(.7) sepia(1) saturate(4) hue-rotate(5deg);cursor:pointer;opacity:.9;}
   body.light input[type="date"]::-webkit-calendar-picker-indicator{filter:none;}
-  .rs-hero{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;margin:14px 0;}
+  .rs-hero{display:grid;grid-template-columns:2fr 1fr 1fr;gap:var(--sp-3);margin:var(--sp-3h) 0;}
   @media(max-width:560px){.rs-hero{grid-template-columns:1fr;}}
-  .rs-hero .hero-net{background:var(--card2);border:1px solid var(--line2);border-radius:16px;padding:18px 20px;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden;}
+  .rs-hero .hero-net{background:var(--card2);border:1px solid var(--line2);border-radius:var(--r-lg);padding:var(--sp-4) var(--sp-4h);display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden;}
   .rs-hero .hero-net::before,.rs-hero .hero-mini::before{content:'';position:absolute;top:0;left:16px;width:26px;height:2px;background:var(--gold-grad);border-radius:0 0 2px 2px;}
-  .rs-hero .hero-net .hl{font-size:12px;color:var(--ink-2);margin-bottom:6px;}
-  .rs-hero .hero-net .hv{font-family:var(--font-mono);font-size:34px;font-weight:800;line-height:1;}
-  .rs-hero .hero-net .hs{font-size:11px;color:var(--ink-3);margin-top:8px;}
-  .rs-hero .hero-mini{background:var(--card2);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;justify-content:center;text-align:center;position:relative;overflow:hidden;}
-  .rs-hero .hero-mini .ml{font-size:11px;color:var(--ink-2);margin-bottom:6px;}
-  .rs-hero .hero-mini .mv{font-family:var(--font-mono);font-size:24px;font-weight:700;color:var(--ink);}
+  .rs-hero .hero-net .hl{font-size:var(--fs-sm);color:var(--ink-2);margin-bottom:var(--sp-1h);}
+  .rs-hero .hero-net .hv{font-family:var(--font-mono);font-size:var(--fs-6xl);font-weight:800;line-height:1;}
+  .rs-hero .hero-net .hs{font-size:var(--fs-sm);color:var(--ink-3);margin-top:var(--sp-2);}
+  .rs-hero .hero-mini{background:var(--card2);border:1px solid var(--line);border-radius:var(--r-lg);padding:var(--sp-3h);display:flex;flex-direction:column;justify-content:center;text-align:center;position:relative;overflow:hidden;}
+  .rs-hero .hero-mini .ml{font-size:var(--fs-sm);color:var(--ink-2);margin-bottom:var(--sp-1h);}
+  .rs-hero .hero-mini .mv{font-family:var(--font-mono);font-size:var(--fs-4xl);font-weight:700;color:var(--ink);}
 
-  .marker-leg{display:flex;gap:12px;font-size:10.5px;color:var(--ink-2);flex-wrap:wrap;margin-top:4px;}
-  .lt-hist{display:flex;flex-direction:column;gap:6px;margin-top:10px;max-height:260px;overflow-y:auto;}
-  .lt-hcard{display:flex;align-items:center;gap:10px;background:var(--card2);border:1px solid var(--line);border-left-width:5px;border-radius:10px;padding:9px 12px;}
-  .lt-hcard .lt-num{font-family:var(--font-mono);font-size:12px;color:var(--ink-3);min-width:34px;}
-  .lt-hcard .lt-name{font-weight:700;font-size:14px;color:var(--ink);flex:1;}
-  .lt-hcard .lt-swatch{width:16px;height:16px;border-radius:5px;flex:none;}
+  .marker-leg{display:flex;gap:var(--sp-3);font-size:var(--fs-xs);color:var(--ink-2);flex-wrap:wrap;margin-top:var(--sp-1);}
+  .lt-hist{display:flex;flex-direction:column;gap:var(--sp-1h);margin-top:var(--sp-2h);max-height:260px;overflow-y:auto;}
+  .lt-hcard{display:flex;align-items:center;gap:var(--sp-2h);background:var(--card2);border:1px solid var(--line);border-left-width:5px;border-radius:var(--r-md);padding:var(--sp-2) var(--sp-3);}
+  .lt-hcard .lt-num{font-family:var(--font-mono);font-size:var(--fs-sm);color:var(--ink-3);min-width:34px;}
+  .lt-hcard .lt-name{font-weight:700;font-size:var(--fs-lg);color:var(--ink);flex:1;}
+  .lt-hcard .lt-swatch{width:16px;height:16px;border-radius:var(--r-sm);flex:none;}
   .lt-hcard.rank1{border-left-color:transparent;background:linear-gradient(90deg,rgba(230,57,70,.14),rgba(232,200,121,.14),rgba(57,255,136,.14),rgba(79,163,224,.14),rgba(160,32,240,.14));}
-  .ru-hist-title{font-size:11px;color:var(--ink-2);margin:2px 0 6px;}
-  .ru-hist-row{display:flex;gap:6px;flex-wrap:wrap;}
+  .ru-hist-title{font-size:var(--fs-sm);color:var(--ink-2);margin:2px 0 var(--sp-1h);}
+  .ru-hist-row{display:flex;gap:var(--sp-1h);flex-wrap:wrap;}
   .ru-hchip{display:flex;flex-direction:column;align-items:center;gap:2px;}
-  .ru-hchip .ru-hno{font-family:var(--font-mono);font-size:9px;color:var(--ink-3);}
-  .ru-hchip .ru-hnum{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--font-mono);font-size:12px;font-weight:700;border:1px solid rgba(255,255,255,.25);}
+  .ru-hchip .ru-hno{font-family:var(--font-mono);font-size:var(--fs-xs);color:var(--ink-3);}
+  .ru-hchip .ru-hnum{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--font-mono);font-size:var(--fs-sm);font-weight:700;border:1px solid rgba(255,255,255,.25);}
   .rc.cur{outline:2px solid var(--gold-hi);outline-offset:1px;}
-  .gc-budget-bar{height:10px;border-radius:6px;background:var(--line);overflow:hidden;margin:6px 0;}
-  .gc-budget-fill{height:100%;border-radius:6px;transition:width .3s;}
-  .gc-pie-compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
-  .gc-pie-col{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center;}
-  .gc-pie-col .gc-pie-h{font-size:10.5px;color:var(--ink-2);margin-bottom:6px;font-weight:600;}
+  .gc-budget-bar{height:10px;border-radius:var(--r-sm);background:var(--line);overflow:hidden;margin:var(--sp-1h) 0;}
+  .gc-budget-fill{height:100%;border-radius:var(--r-sm);transition:width .3s;}
+  .gc-pie-compare{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-2h);margin-bottom:var(--sp-2h);}
+  .gc-pie-col{background:var(--card2);border:1px solid var(--line);border-radius:var(--r-md);padding:var(--sp-2h);text-align:center;}
+  .gc-pie-col .gc-pie-h{font-size:var(--fs-xs);color:var(--ink-2);margin-bottom:var(--sp-1h);font-weight:600;}
   .gc-pie-col canvas{width:100px;height:100px;margin:0 auto;}
-  .gc-pie-col .legend{flex-direction:column;align-items:flex-start;gap:3px;font-size:10px;margin-top:8px;}
+  .gc-pie-col .legend{flex-direction:column;align-items:flex-start;gap:3px;font-size:var(--fs-xs);margin-top:var(--sp-2);}
 
   /* データカウンター風 */
-  .dcounter{background:#070708;border:2px solid #2A2A30;border-radius:12px;padding:14px;margin-bottom:12px;}
-  .dc-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;}
-  .segbox .seg-l{color:#E8842C;font-size:10px;margin-bottom:3px;font-weight:700;}
-  .seg{position:relative;background:#000;border:1px solid #1E1E24;border-radius:4px;padding:5px 10px;font-family:var(--font-mono);font-weight:700;font-size:26px;letter-spacing:2px;line-height:1;}
+  .dcounter{background:#070708;border:2px solid #2A2A30;border-radius:var(--r-md);padding:var(--sp-3h);margin-bottom:var(--sp-3);}
+  .dc-row{display:flex;gap:var(--sp-3);flex-wrap:wrap;margin-bottom:var(--sp-3);}
+  .segbox .seg-l{color:#E8842C;font-size:var(--fs-xs);margin-bottom:3px;font-weight:700;}
+  .seg{position:relative;background:#000;border:1px solid #1E1E24;border-radius:var(--r-xs);padding:var(--sp-1h) var(--sp-2h);font-family:var(--font-mono);font-weight:700;font-size:var(--fs-4xl);letter-spacing:2px;line-height:1;}
   .seg-g{color:#1C1006;}
   .seg-v{position:absolute;right:10px;top:5px;color:#FF8C1A;text-shadow:0 0 9px rgba(255,140,26,.85);}
   .seg-v.ylw{color:#FFE24A;text-shadow:0 0 9px rgba(255,226,74,.85);}
   .dc-hist canvas{width:100%;height:150px;display:block;}
-  .dc-cap{font-size:10px;color:#7A7A85;margin-top:4px;}
+  .dc-cap{font-size:var(--fs-xs);color:#7A7A85;margin-top:var(--sp-1);}
 
   /* ボーナス履歴(スロット) */
-  .bh-wrap{border:2px solid #2A2A40;border-radius:12px;overflow:hidden;margin-bottom:12px;}
-  .bh-row{display:grid;grid-template-columns:58px 44px 52px 1fr 56px 76px;align-items:center;gap:6px;padding:7px 10px;background:linear-gradient(180deg,#2438B8 0%,#1A2A9A 45%,#101E7E 100%);border-bottom:1px solid rgba(255,255,255,.18);color:#fff;font-family:var(--font-mono);font-size:13px;font-weight:700;}
+  .bh-wrap{border:2px solid #2A2A40;border-radius:var(--r-md);overflow:hidden;margin-bottom:var(--sp-3);}
+  .bh-row{display:grid;grid-template-columns:58px 44px 52px 1fr 56px 76px;align-items:center;gap:var(--sp-1h);padding:var(--sp-1h) var(--sp-2h);background:linear-gradient(180deg,#2438B8 0%,#1A2A9A 45%,#101E7E 100%);border-bottom:1px solid rgba(255,255,255,.18);color:#fff;font-family:var(--font-mono);font-size:var(--fs-md);font-weight:700;}
   .bh-row.deep{background:linear-gradient(180deg,#5A1010 0%,#420A0A 100%);}
-  .bh-row .bh-n{font-size:14px;text-shadow:1px 1px 0 #000;}
-  .bh-badge{border-radius:6px;padding:2px 0;text-align:center;font-size:11px;color:#fff;border:1px solid rgba(255,255,255,.6);}
+  .bh-row .bh-n{font-size:var(--fs-lg);text-shadow:1px 1px 0 #000;}
+  .bh-badge{border-radius:var(--r-sm);padding:2px 0;text-align:center;font-size:var(--fs-sm);color:#fff;border:1px solid rgba(255,255,255,.6);}
   .bh-badge.bb{background:#D42B2B;}
   .bh-badge.rb{background:#2B57D4;}
   .bh-badge.at{background:var(--gold-grad);color:#241A02;border-color:var(--gold);}
-  .bh-time{color:#EDEDF5;font-size:12px;}
-  .bh-g{text-align:right;font-size:15px;}
-  .bh-g small{font-size:9px;}
-  .bh-arrow{text-align:center;color:#FF5C3A;font-size:14px;text-shadow:0 0 6px rgba(255,92,58,.8);}
-  .bh-arrow .cl{display:block;font-size:9px;color:#FFD24A;}
-  .bh-cum{text-align:right;color:#FFE24A;text-shadow:0 0 6px rgba(255,226,74,.5);font-size:14px;}
+  .bh-time{color:#EDEDF5;font-size:var(--fs-sm);}
+  .bh-g{text-align:right;font-size:var(--fs-xl);}
+  .bh-g small{font-size:var(--fs-xs);}
+  .bh-arrow{text-align:center;color:#FF5C3A;font-size:var(--fs-lg);text-shadow:0 0 6px rgba(255,92,58,.8);}
+  .bh-arrow .cl{display:block;font-size:var(--fs-xs);color:#FFD24A;}
+  .bh-cum{text-align:right;color:#FFE24A;text-shadow:0 0 6px rgba(255,226,74,.5);font-size:var(--fs-lg);}
   .bh-cum.min{color:#B8C0D8;text-shadow:none;}
-  .bh-foot{display:flex;gap:14px;flex-wrap:wrap;padding:8px 12px;background:#0B0F30;color:#fff;font-family:var(--font-mono);font-size:11.5px;}
+  .bh-foot{display:flex;gap:var(--sp-3h);flex-wrap:wrap;padding:var(--sp-2) var(--sp-3);background:#0B0F30;color:#fff;font-family:var(--font-mono);font-size:var(--fs-sm);}
   .bh-scroll{max-height:320px;overflow-y:auto;}
   .bh-scroll::-webkit-scrollbar{width:8px;}
-  .bh-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.25);border-radius:4px;}
+  .bh-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.25);border-radius:var(--r-xs);}
 </style>
 </head>
 <body>
@@ -701,12 +711,12 @@
           <div class="igroup"><input type="number" id="pkHeso" value="3" min="0" step="1"><span class="unit">玉/回転</span></div>
         </div>
       </div>
-      <div class="flabel" style="margin-top:14px;">通常時(初当たり)の出玉振り分け</div>
-      <div class="fhelp" style="margin-bottom:4px;">【当たり後の移行先】各行右側のボタン: <b>→RUSH</b>=この枠が出たらRUSHへ突入 / <b>↑LT</b>=この枠が出たら直接LT(上位RUSH)へ昇格 / <b>★次回</b>=次回転の継続が確定(次回濃厚)。振り分け内で<b>→RUSH</b>を1つでも使うと、そちらが優先され下の「RUSH突入率」は使われなくなります。何も使わなければ従来通り「RUSH突入率」に従います。タップでON/OFF</div>
+      <div class="flabel" style="margin-top:var(--sp-3h);">通常時(初当たり)の出玉振り分け</div>
+      <div class="fhelp" style="margin-bottom:var(--sp-1);">【当たり後の移行先】各行右側のボタン: <b>→RUSH</b>=この枠が出たらRUSHへ突入 / <b>↑LT</b>=この枠が出たら直接LT(上位RUSH)へ昇格 / <b>★次回</b>=次回転の継続が確定(次回濃厚)。振り分け内で<b>→RUSH</b>を1つでも使うと、そちらが優先され下の「RUSH突入率」は使われなくなります。何も使わなければ従来通り「RUSH突入率」に従います。タップでON/OFF</div>
       <div class="tier-head"><span>出玉(玉)</span><span>振り分け(%)</span><span></span><span></span></div>
       <div id="pkDistRows"></div>
       <button class="add-row" onclick="addPkDist()">+ 振り分けを追加</button>
-      <div class="field" style="margin-top:14px;">
+      <div class="field" style="margin-top:var(--sp-3h);">
         <div class="flabel">RUSH突入率</div>
         <div class="fhelp">初当たり後にRUSHへ入る確率。上の振り分けで<b>→RUSH</b>を1つでも使った場合はこの値は使われません</div>
         <div class="igroup"><input type="number" id="pkEnter" value="50" min="0" max="100"><span class="unit">%</span></div>
@@ -742,12 +752,12 @@
           <div class="igroup"><span class="pre">1 /</span><input type="number" id="pkFallDrop" value="380" min="1"></div>
         </div>
       </div>
-      <div class="flabel" style="margin-top:14px;">RUSH中(継続当たり)の出玉振り分け</div>
-      <div class="fhelp" style="margin-bottom:4px;">【当たり後の移行先】未入力なら「通常時(初当たり)」と同じ振り分けを使用します。何もONにしなければそのまま通常RUSHの継続として扱われます(↑LT=LTへ昇格 / ★次回=次回濃厚)</div>
+      <div class="flabel" style="margin-top:var(--sp-3h);">RUSH中(継続当たり)の出玉振り分け</div>
+      <div class="fhelp" style="margin-bottom:var(--sp-1);">【当たり後の移行先】未入力なら「通常時(初当たり)」と同じ振り分けを使用します。何もONにしなければそのまま通常RUSHの継続として扱われます(↑LT=LTへ昇格 / ★次回=次回濃厚)</div>
       <div class="tier-head"><span>出玉(玉)</span><span>振り分け(%)</span><span></span><span></span></div>
       <div id="pkRushDistRows"></div>
       <button class="add-row" onclick="addPkRushDist()">+ 振り分けを追加</button>
-      <div class="field" id="pkLtPWrap" style="display:none;margin-top:14px;">
+      <div class="field" id="pkLtPWrap" style="display:none;margin-top:var(--sp-3h);">
         <div class="flabel">LTへの昇格率</div><div class="fhelp">RUSH中の当たりごとに昇格判定</div>
         <div class="igroup"><input type="number" id="pkLtP" value="10" min="0" max="100"><span class="unit">%</span></div>
       </div>
@@ -772,23 +782,23 @@
             <div class="igroup"><input type="number" id="pkLtCont" value="93" min="0" max="99.9" step="0.5"><span class="unit">%</span></div>
           </div>
         </div>
-        <div class="flabel" style="margin-top:14px;">LT(上位ラッシュ)中の出玉振り分け</div>
+        <div class="flabel" style="margin-top:var(--sp-3h);">LT(上位ラッシュ)中の出玉振り分け</div>
         <div class="fhelp">階層: 通常時 → (時短) → 下位RUSH → LT。下位RUSH振り分け内の昇格率は上の「LTへの昇格率」</div>
-        <div class="fhelp" style="margin-bottom:4px;">【当たり後の移行先】各行右側のボタン: <b>↓LT</b>=この枠が出たら通常RUSHへ降格 / <b>★次回</b>=次回転の継続が確定(次回濃厚)。何もONにしなければそのままLTの継続として扱われます。タップでON/OFF</div>
+        <div class="fhelp" style="margin-bottom:var(--sp-1);">【当たり後の移行先】各行右側のボタン: <b>↓LT</b>=この枠が出たら通常RUSHへ降格 / <b>★次回</b>=次回転の継続が確定(次回濃厚)。何もONにしなければそのままLTの継続として扱われます。タップでON/OFF</div>
         <div class="tier-head"><span>出玉(玉)</span><span>振り分け(%)</span><span></span><span></span></div>
         <div id="pkLtDistRows"></div>
         <button class="add-row" onclick="addPkLtDist()">+ LT振り分けを追加</button>
-        <div class="field full" id="pkLtDownWrap" style="margin-top:14px;">
+        <div class="field full" id="pkLtDownWrap" style="margin-top:var(--sp-3h);">
           <div class="flabel">LT中の下位ラッシュ転落</div>
           <div class="fhelp">LTから下位RUSHへ降格する振り分けがある機種向け</div>
           <div class="chips">
             <div class="chip" id="pkLtDownChip" onclick="pkSetLtDown()">転落あり</div>
           </div>
-          <div id="pkLtDownW" style="display:none;margin-top:8px;">
+          <div id="pkLtDownW" style="display:none;margin-top:var(--sp-2);">
             <div class="igroup" style="max-width:220px;"><input type="number" id="pkLtDownP" value="15" min="0" max="100"><span class="unit">%/継続当たりごと</span></div>
           </div>
         </div>
-        <div class="fhelp" style="margin-top:10px;">※ LTからさらに上位のLTへ昇格する多段階構成には現状対応していません(2階層目のLTが必要な機種は今後の対応候補です)。</div>
+        <div class="fhelp" style="margin-top:var(--sp-2h);">※ LTからさらに上位のLTへ昇格する多段階構成には現状対応していません(2階層目のLTが必要な機種は今後の対応候補です)。</div>
       </div>
     </div>
     <div class="card pk-spec">
@@ -823,9 +833,9 @@
             </div>
           </div>
         </div>
-        <div class="flabel" style="margin-top:14px;">時短中に当たった時の出玉振り分け</div>
+        <div class="flabel" style="margin-top:var(--sp-3h);">時短中に当たった時の出玉振り分け</div>
         <div class="fhelp">未入力なら「通常時(初当たり)」と同じ振り分けを使用します</div>
-        <div class="fhelp" style="margin-bottom:4px;">【当たり後の移行先】各行右側のボタン: <b>→RUSH</b>=この枠が出たらRUSHへ突入 / <b>↑LT</b>=この枠が出たら直接LT(上位RUSH)へ昇格 / <b>★次回</b>=次回転の継続が確定(次回濃厚)。振り分け内で<b>→RUSH</b>を1つでも使うと、そちらが優先され「RUSH突入率」は使われなくなります。何も使わなければ「RUSH突入率」に従います。タップでON/OFF</div>
+        <div class="fhelp" style="margin-bottom:var(--sp-1);">【当たり後の移行先】各行右側のボタン: <b>→RUSH</b>=この枠が出たらRUSHへ突入 / <b>↑LT</b>=この枠が出たら直接LT(上位RUSH)へ昇格 / <b>★次回</b>=次回転の継続が確定(次回濃厚)。振り分け内で<b>→RUSH</b>を1つでも使うと、そちらが優先され「RUSH突入率」は使われなくなります。何も使わなければ「RUSH突入率」に従います。タップでON/OFF</div>
         <div class="tier-head"><span>出玉(玉)</span><span>振り分け(%)</span><span></span><span></span></div>
         <div id="pkJtDistRows"></div>
         <button class="add-row" onclick="addPkJtDist()">+ 振り分けを追加</button>
@@ -833,20 +843,20 @@
     </div>
     <div class="card pk-spec">
       <div class="card-title"><span class="step">RUN</span><h3>計算を実行</h3><span class="hint">合計100%になるように</span></div>
-      <div style="display:flex;gap:14px;align-items:center;margin-top:12px;flex-wrap:wrap;">
+      <div style="display:flex;gap:var(--sp-3h);align-items:center;margin-top:var(--sp-3);flex-wrap:wrap;">
         <canvas id="pkPie" style="width:150px;height:150px;flex:none;"></canvas>
-        <div class="legend" id="pkPieLegend" style="flex-direction:column;gap:5px;align-items:flex-start;"></div>
+        <div class="legend" id="pkPieLegend" style="flex-direction:column;gap:var(--sp-1h);align-items:flex-start;"></div>
       </div>
       <div style="height:12px"></div>
       <div class="preset-bar" data-p="pk"></div>
       <button class="run" onclick="runPK()">この条件で計算する</button>
     </div>
-    <div id="pk-out"><div class="fhelp" style="text-align:center;padding:18px 12px;">↑ 入力後に「この条件で計算する」を押すと、ここに期待値・ボーダー・シミュレーション結果が表示されます</div></div>
+    <div id="pk-out"><div class="fhelp" style="text-align:center;padding:var(--sp-4) var(--sp-3);">↑ 入力後に「この条件で計算する」を押すと、ここに期待値・ボーダー・シミュレーション結果が表示されます</div></div>
     <div id="cmp-pk"></div>
     <div id="rsQuickHost-pk"></div>
     <div class="card" id="pkFun" style="display:none;">
       <div class="card-title"><span class="step">PLAY</span><h3>投資金額設定モード</h3><span class="hint">指定金額でどこまで回せるか+理論値</span></div>
-      <div class="fgrid" style="margin-bottom:10px;">
+      <div class="fgrid" style="margin-bottom:var(--sp-2h);">
         <div class="field"><div class="flabel">投資額(仮想)</div><div class="fhelp"></div>
           <div class="igroup"><input type="number" id="pkFunYen" value="20000" min="1000" step="1000"><span class="unit">円</span></div></div>
         <div class="field full">
@@ -863,19 +873,19 @@
         </div>
       </div>
       <button class="run" onclick="funStart()">スタート</button>
-      <div id="pkFunPlay" style="display:none;margin-top:12px;">
+      <div id="pkFunPlay" style="display:none;margin-top:var(--sp-3);">
         <div class="remain" id="funStat"></div>
         <div id="funBall"></div>
         <div class="result-banner" id="funBanner"><div class="r-tier">↓ 回して減らす</div><div class="r-coin">—</div></div>
-        <div class="pull-area" style="margin-top:8px;">
+        <div class="pull-area" style="margin-top:var(--sp-2);">
           <button class="btn2 accent" onclick="funPress(1000)">1,000円分 回す</button>
           <button class="btn2 accent" onclick="funPress(3000)">3,000円分 回す</button>
           <button class="btn2 accent" onclick="funPress(5000)">5,000円分 回す</button>
           <button class="btn2 accent" onclick="funPress(10000)">10,000円分 回す</button>
           <button class="btn2 accent" onclick="funPress(-1)">全額回す</button>
         </div>
-        <div id="funCounter" style="margin-top:12px;"></div>
-        <div class="chart-card" style="margin-top:12px;"><div class="chart-head"><div class="c-title">スランプグラフ(差玉の推移)</div></div><canvas id="funChart"></canvas><div class="fhelp" style="margin-top:6px;">縦軸は差玉(プラスなら浮いている玉数)、横軸は総回転数です。丸印が大当りの位置で、ラベルはその大当りの連チャン数を表します。<span class="pkh-key"><i style="background:#E8C879;"></i>RUSH</span><span class="pkh-key"><i style="background:#A020F0;"></i>LT</span><span class="pkh-key"><i style="background:#6B7386;"></i>単発</span></div></div><div id="funHits" style="margin-top:12px;"></div>
+        <div id="funCounter" style="margin-top:var(--sp-3);"></div>
+        <div class="chart-card" style="margin-top:var(--sp-3);"><div class="chart-head"><div class="c-title">スランプグラフ(差玉の推移)</div></div><canvas id="funChart"></canvas><div class="fhelp" style="margin-top:var(--sp-1h);">縦軸は差玉(プラスなら浮いている玉数)、横軸は総回転数です。丸印が大当りの位置で、ラベルはその大当りの連チャン数を表します。<span class="pkh-key"><i style="background:#E8C879;"></i>RUSH</span><span class="pkh-key"><i style="background:#A020F0;"></i>LT</span><span class="pkh-key"><i style="background:#6B7386;"></i>単発</span></div></div><div id="funHits" style="margin-top:var(--sp-3);"></div>
         <div id="funTheory"></div>
       </div>
     </div>
@@ -883,8 +893,8 @@
     <!-- 仮想ラッシュモード: 通常時を挟まず「RUSHに入った状態」だけを切り出して試行する -->
     <div class="card" id="pkVr" style="display:none;">
       <div class="card-title"><span class="step">RUSH</span><h3>仮想ラッシュモード</h3><span class="hint">RUSHだけを何度も試す</span></div>
-      <div class="fhelp" style="margin-bottom:10px;">通常時の初当たりは挟まず、<b>RUSHに入った状態</b>から始めて何連続くか・どれだけ出るかだけを調べます。1連目は必ず当たり、そこから継続率で判定します。</div>
-      <div class="fgrid" style="margin-bottom:10px;">
+      <div class="fhelp" style="margin-bottom:var(--sp-2h);">通常時の初当たりは挟まず、<b>RUSHに入った状態</b>から始めて何連続くか・どれだけ出るかだけを調べます。1連目は必ず当たり、そこから継続率で判定します。</div>
+      <div class="fgrid" style="margin-bottom:var(--sp-2h);">
         <div class="field">
           <div class="flabel">継続率</div><div class="fhelp">1回の当たりごとの継続率</div>
           <div class="igroup"><input type="number" id="pkVrCont" value="80" min="0" max="99.9" step="0.1"><span class="unit">%</span></div>
@@ -894,12 +904,12 @@
           <div class="igroup"><input type="number" id="pkVrTrials" value="10000" min="1" max="100000" step="1000"><span class="unit">回</span></div>
         </div>
       </div>
-      <div class="flabel" style="margin-top:6px;">出玉振り分け</div>
-      <div class="fhelp" style="margin-bottom:4px;">1連ごとに、この振り分けから確率に応じて出玉が決まります。合計100%になるように入力してください。<b>★次回</b>をONにした枠を引くと、その次の1回は継続率に関わらず必ず継続します(次回濃厚)。</div>
+      <div class="flabel" style="margin-top:var(--sp-1h);">出玉振り分け</div>
+      <div class="fhelp" style="margin-bottom:var(--sp-1);">1連ごとに、この振り分けから確率に応じて出玉が決まります。合計100%になるように入力してください。<b>★次回</b>をONにした枠を引くと、その次の1回は継続率に関わらず必ず継続します(次回濃厚)。</div>
       <div class="tier-head" style="grid-template-columns:1fr 1fr auto 30px;"><span>出玉(玉)</span><span>振り分け(%)</span><span>次回濃厚</span><span></span></div>
       <div id="pkVrDistRows"></div>
       <button class="add-row" onclick="addPkVrDist()">+ 振り分けを追加</button>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+      <div style="display:flex;gap:var(--sp-2);flex-wrap:wrap;margin-top:var(--sp-2h);">
         <button class="btn2" onclick="pkVrCopyFromRush()">STEP3の設定をコピー</button>
       </div>
       <div style="height:10px"></div>
@@ -912,7 +922,7 @@
   <div class="panel" id="panel-sl">
     <div class="card">
       <div class="card-title"><span class="step">STEP 1</span><h3>機種タイプとレート</h3></div>
-      <div class="chips" style="margin-bottom:10px;">
+      <div class="chips" style="margin-bottom:var(--sp-2h);">
         <div class="chip on" id="slTypeAT" onclick="slSetType('at')">AT機<small>スマスロ等</small></div>
         <div class="chip" id="slTypeA" onclick="slSetType('a')">Aタイプ<small>ボーナスのみで出玉</small></div>
       </div>
@@ -1008,7 +1018,7 @@
       <div style="height:14px"></div>
       <div class="flabel">どれだけ打つか</div>
       <div class="fhelp">ゲーム数か投資金額、どちらかで指定</div>
-      <div class="chips" style="margin-bottom:10px;">
+      <div class="chips" style="margin-bottom:var(--sp-2h);">
         <div class="chip on" id="slModeG" onclick="slSetMode('g')">総ゲーム数で指定</div>
         <div class="chip" id="slModeY" onclick="slSetMode('y')">投資金額で指定</div>
       </div>
@@ -1056,13 +1066,13 @@
             <div class="igroup"><input type="number" id="slYuriG" value="0" min="0" max="1500" oninput="slYuriCalc()"><span class="unit">G</span></div></div>
         </div>
         <div id="slYuriOut"></div>
-        <div class="fhelp" style="margin-top:6px;">有利区間は上限1500Gで強制的に終了します(差枚が2,400枚に達した場合はそこで区間が切られ通常時に戻ります)。残りゲーム数の目安把握にお使いください。</div>
+        <div class="fhelp" style="margin-top:var(--sp-1h);">有利区間は上限1500Gで強制的に終了します(差枚が2,400枚に達した場合はそこで区間が切られ通常時に戻ります)。残りゲーム数の目安把握にお使いください。</div>
       </div>
     </div>
 
     <div class="card" id="slKachi" style="display:none;">
       <div class="card-title"><span class="step">TOOL</span><h3>スロット設定判別カウンター</h3><span class="hint">実戦データから設定を推測</span></div>
-      <div class="fgrid" style="margin-bottom:10px;">
+      <div class="fgrid" style="margin-bottom:var(--sp-2h);">
         <div class="field">
           <div class="flabel">カウント中の総ゲーム数</div>
           <div class="fhelp">現在の遊技G数を入力(手動更新)</div>
@@ -1071,12 +1081,12 @@
       </div>
       <div class="fold-head closed" onclick="this.classList.toggle('closed');$('kkDetailBody').classList.toggle('closed');"><span class="fold-ar">▼</span>表示・役名の設定</div>
       <div class="fold-body closed" id="kkDetailBody" style="max-height:2000px;">
-        <div class="fgrid" style="margin-bottom:10px;margin-top:10px;">
+        <div class="fgrid" style="margin-bottom:var(--sp-2h);margin-top:var(--sp-2h);">
           <div class="field">
             <button class="btn2" id="kkFsBtn" onclick="kkFullscreen()">📱 全画面表示(横向き推奨)</button>
           </div>
         </div>
-        <div class="fgrid" style="margin-bottom:10px;">
+        <div class="fgrid" style="margin-bottom:var(--sp-2h);">
           <div class="field"><div class="flabel">白ボタンの役名</div><div class="fhelp">チャンス目・こぼし目・単独チェリー等</div>
             <div class="igroup"><input type="text" id="kkName1" value="チャンス目" oninput="kkRender()"></div></div>
           <div class="field"><div class="flabel">赤ボタンの役名</div><div class="fhelp">チェリー等</div>
@@ -1099,19 +1109,19 @@
         </div>
       </div>
       <div class="remain" id="kkSummary"></div>
-      <div style="display:flex;gap:8px;">
+      <div style="display:flex;gap:var(--sp-2);">
         <button class="btn2" onclick="kkUndo()">1つ戻す</button>
         <button class="btn2 danger" onclick="kkReset()">リセット</button>
       </div>
-      <div class="fold-head closed" style="margin-top:10px;" onclick="this.classList.toggle('closed');$('hkAnalysisBody').classList.toggle('closed');"><span class="fold-ar">▼</span>設定1〜6比較</div>
+      <div class="fold-head closed" style="margin-top:var(--sp-2h);" onclick="this.classList.toggle('closed');$('hkAnalysisBody').classList.toggle('closed');"><span class="fold-ar">▼</span>設定1〜6比較</div>
       <div class="fold-body closed" id="hkAnalysisBody" style="max-height:3000px;">
-        <div class="flabel" style="margin-top:14px;">設定1〜6の理論値を入力して期待度を比較</div>
+        <div class="flabel" style="margin-top:var(--sp-3h);">設定1〜6の理論値を入力して期待度を比較</div>
         <div class="fhelp">解析サイト・雑誌の設定別確率「1/x」のxを入力(空欄の役は無視)。下の保存欄に機種名を付けて保存すると、次回から入力し直さずに呼び出せます。</div>
         <div id="kjTable" class="kj-grid-wrap"></div>
         <div class="preset-bar" data-p="hk"></div>
-        <button class="btn2" onclick="kjCalc()" style="margin-top:8px;">設定期待度を計算</button>
-        <div id="kjOut" style="margin-top:10px;"></div>
-        <div class="fhelp" style="margin-top:8px;">タップでカウント。表示される1/xを機種の設定別確率表(雑誌・解析サイト)と見比べて設定を推測してください。設定別確率はメーカー非公開の機種も多く、アプリ内蔵は正確性を保証できないため見比べ方式にしています。</div>
+        <button class="btn2" onclick="kjCalc()" style="margin-top:var(--sp-2);">設定期待度を計算</button>
+        <div id="kjOut" style="margin-top:var(--sp-2h);"></div>
+        <div class="fhelp" style="margin-top:var(--sp-2);">タップでカウント。表示される1/xを機種の設定別確率表(雑誌・解析サイト)と見比べて設定を推測してください。設定別確率はメーカー非公開の機種も多く、アプリ内蔵は正確性を保証できないため見比べ方式にしています。</div>
       </div>
     </div>
   </div>
@@ -1120,7 +1130,7 @@
   <div class="panel" id="panel-op">
     <div class="card">
       <div class="card-title"><span class="step">STEP 1</span><h3>オリパの設計</h3><span class="hint">等級・獲得コイン・封入枚数を入力</span></div>
-      <div class="fgrid" style="margin-bottom:12px;">
+      <div class="fgrid" style="margin-bottom:var(--sp-3);">
         <div class="field">
           <div class="flabel">総口数</div><div class="fhelp"></div>
           <div class="igroup"><input type="number" id="opTotal" value="5000" min="1" max="100000" step="100"><span class="unit">口</span></div>
@@ -1138,8 +1148,8 @@
       <div class="tier-head" style="grid-template-columns:1fr 1fr .7fr .7fr 30px;"><span>等級名</span><span>獲得コイン</span><span>封入枚数</span><span>確率(1/n)</span><span></span></div>
       <div id="opTiers"></div>
       <button class="add-row" onclick="addOpTier()">+ 等級を追加</button>
-      <div class="fhelp" style="margin-top:6px;">封入枚数か1/nのどちらか一方を入力すれば、もう一方は自動計算されます。</div>
-      <div class="fold-head closed" onclick="this.classList.toggle('closed');$('opDetailBody').classList.toggle('closed');" style="margin-top:10px;"><span class="fold-ar">▼</span>詳細設定(実額換算・途中参加・保証枠)</div>
+      <div class="fhelp" style="margin-top:var(--sp-1h);">封入枚数か1/nのどちらか一方を入力すれば、もう一方は自動計算されます。</div>
+      <div class="fold-head closed" onclick="this.classList.toggle('closed');$('opDetailBody').classList.toggle('closed');" style="margin-top:var(--sp-2h);"><span class="fold-ar">▼</span>詳細設定(実額換算・途中参加・保証枠)</div>
       <div class="fold-body closed" id="opDetailBody" style="max-height:2000px;">
       <div class="fgrid">
         <div class="field">
@@ -1155,7 +1165,7 @@
       <div class="field full">
         <div class="flabel">保証枠(SR以上確定など)</div>
         <div class="fhelp">「◯口目までに指定等級以上が必ず封入」を組み込みます。等級の並びは上の行の順番</div>
-        <div class="chips" style="margin-bottom:8px;">
+        <div class="chips" style="margin-bottom:var(--sp-2);">
           <div class="chip" id="opGuarOn" onclick="opSetGuar(true)">保証あり</div>
           <div class="chip on" id="opGuarOff" onclick="opSetGuar(false)">保証なし</div>
         </div>
@@ -1169,7 +1179,7 @@
         </div>
       </div>
       </div>
-      <div id="opOdds" style="margin-top:10px;"></div>
+      <div id="opOdds" style="margin-top:var(--sp-2h);"></div>
       <div style="height:10px"></div>
       <div class="preset-bar" data-p="op"></div>
       <button class="run" onclick="opBuild()">この設計でオリパを作る(理論値も計算)</button>
@@ -1226,7 +1236,7 @@
     </div>
     <div class="card gc-prob">
       <div class="card-title"><span class="step">STEP 1</span><h3>ガチャの設計</h3></div>
-      <div class="fgrid" style="margin-bottom:12px;">
+      <div class="fgrid" style="margin-bottom:var(--sp-3);">
         <div class="field">
           <div class="flabel">1回の消費</div><div class="fhelp">石・コインなど</div>
           <div class="igroup"><input type="number" id="gcCost" value="300" min="0" step="10"><span class="unit">石</span></div>
@@ -1239,7 +1249,7 @@
       <div class="tier-head"><span>レア度名</span><span>排出率(%)</span><span></span><span></span></div>
       <div id="gcTiers"></div>
       <button class="add-row" onclick="addGcTier()">+ レア度を追加</button>
-      <div class="fold-head closed" onclick="this.classList.toggle('closed');$('gcDetailBody').classList.toggle('closed');" style="margin-top:10px;"><span class="fold-ar">▼</span>詳細設定(実額換算・天井リセット方式)</div>
+      <div class="fold-head closed" onclick="this.classList.toggle('closed');$('gcDetailBody').classList.toggle('closed');" style="margin-top:var(--sp-2h);"><span class="fold-ar">▼</span>詳細設定(実額換算・天井リセット方式)</div>
       <div class="fold-body closed" id="gcDetailBody" style="max-height:2000px;">
       <div class="fgrid">
         <div class="field">
@@ -1273,7 +1283,7 @@
         </div>
       </div>
       <div class="fhelp" id="gcWalletYen" style="margin-top:-6px;"></div>
-      <div class="gc-big"><span class="l">累計消費</span><span class="v" id="gcSpentBig">0</span><span class="l">石</span><span class="l" style="margin-left:auto;">通算 <b id="gcCountBig" class="mono" style="font-size:16px;color:var(--ink);">0</b> 連</span></div>
+      <div class="gc-big"><span class="l">累計消費</span><span class="v" id="gcSpentBig">0</span><span class="l">石</span><span class="l" style="margin-left:auto;">通算 <b id="gcCountBig" class="mono" style="font-size:var(--fs-xl);color:var(--ink);">0</b> 連</span></div>
       <div class="remain" id="gcCounts"></div>
       <div class="remain" id="gcPityView"></div>
       <div class="result-banner" id="gcResult"><div class="r-tier">↓ ボタンを押して引く</div><div class="r-coin">—</div></div>
@@ -1297,8 +1307,8 @@
     <!-- 口数固定ガチャ: 決まった口数の中から、元に戻さずに引く方式(オリパのデッキ抽選を流用) -->
     <div class="card gc-fix" id="gcFix" style="display:none;">
       <div class="card-title"><span class="step">STEP 1</span><h3>口数固定ガチャの設計</h3><span class="hint">総口数と封入枚数を入力</span></div>
-      <div class="fhelp" style="margin-bottom:10px;">総口数の中に当たりが決まった枚数だけ入っていて、<b>引いた分は減っていく</b>方式です(独立確率ガチャと違い、引くほど残りの確率が変わります)。</div>
-      <div class="fgrid" style="margin-bottom:12px;">
+      <div class="fhelp" style="margin-bottom:var(--sp-2h);">総口数の中に当たりが決まった枚数だけ入っていて、<b>引いた分は減っていく</b>方式です(独立確率ガチャと違い、引くほど残りの確率が変わります)。</div>
+      <div class="fgrid" style="margin-bottom:var(--sp-3);">
         <div class="field">
           <div class="flabel">総口数</div><div class="fhelp">ガチャ全体の口数</div>
           <div class="igroup"><input type="number" id="gcFixTotal" value="1000" min="1" max="100000" step="100"><span class="unit">口</span></div>
@@ -1311,10 +1321,10 @@
       <div class="tier-head" style="grid-template-columns:1fr .7fr .7fr 30px;"><span>レア度名</span><span>封入枚数</span><span>確率(1/n)</span><span></span></div>
       <div id="gcFixTiers"></div>
       <button class="add-row" onclick="addGcFixTier()">+ レア度を追加</button>
-      <div class="fhelp" style="margin-top:6px;">封入枚数か1/nのどちらか一方を入力すれば、もう一方は自動計算されます。</div>
+      <div class="fhelp" style="margin-top:var(--sp-1h);">封入枚数か1/nのどちらか一方を入力すれば、もう一方は自動計算されます。</div>
       <div style="height:10px"></div>
       <button class="run" onclick="gcFixBuild()">この設計でガチャを作る(理論値も計算)</button>
-      <div id="gcFixOdds" style="margin-top:10px;"></div>
+      <div id="gcFixOdds" style="margin-top:var(--sp-2h);"></div>
     </div>
     <div class="card gc-fix" id="gcFixPlay" style="display:none;">
       <div class="card-title"><span class="step">STEP 2</span><h3>仮想の石で引いてみる</h3><span class="hint">引いた口は戻りません</span></div>
@@ -1326,7 +1336,7 @@
           <button class="btn2" onclick="gcFixSetWallet()">設定</button>
         </div>
       </div>
-      <div class="gc-big"><span class="l">累計消費</span><span class="v" id="gcFixSpentBig">0</span><span class="l">石</span><span class="l" style="margin-left:auto;">通算 <b id="gcFixCountBig" class="mono" style="font-size:16px;color:var(--ink);">0</b> 連</span></div>
+      <div class="gc-big"><span class="l">累計消費</span><span class="v" id="gcFixSpentBig">0</span><span class="l">石</span><span class="l" style="margin-left:auto;">通算 <b id="gcFixCountBig" class="mono" style="font-size:var(--fs-xl);color:var(--ink);">0</b> 連</span></div>
       <div class="remain" id="gcFixRemain"></div>
       <div class="result-banner" id="gcFixResult"><div class="r-tier">↓ ボタンを押して引く</div><div class="r-coin">—</div></div>
       <div class="pull-area">
@@ -1348,7 +1358,7 @@
         <div class="chip on" id="ruModeS" onclick="ruSetMode('solo')">ソロ<small>理論値つき</small></div>
         <div class="chip" id="ruModeB" onclick="ruSetMode('battle')">友達対戦<small>理論値なしのガチ勝負</small></div>
       </div>
-      <div class="chips" style="margin-top:8px;">
+      <div class="chips" style="margin-top:var(--sp-2);">
         <div class="chip on" id="ruWheelEU" onclick="ruSetAmerican(false)">ヨーロピアン<small>0のみ(37マス・還元97.3%)</small></div>
         <div class="chip" id="ruWheelAM" onclick="ruSetAmerican(true)">アメリカン<small>0+00(38マス・還元94.7%)</small></div>
       </div>
@@ -1361,9 +1371,9 @@
         <div class="rt-chip c500" data-v="500" onclick="rtChip(this)">500</div>
         <div class="rt-chip c1000" data-v="1000" onclick="rtChip(this)">1k</div>
         <div class="rt-chip c5000" data-v="5000" onclick="rtChip(this)">5k</div>
-        <div class="rt-chip" data-v="custom" onclick="rtChip(this)" style="background:#5A6C86;font-size:10px;">自由</div>
-        <input type="number" id="rtCustomAmt" value="2000" min="1" step="100" style="width:80px;background:var(--bg2);border:1px solid var(--line2);border-radius:8px;color:var(--ink);padding:7px 9px;font-family:'IBM Plex Mono',monospace;font-size:12px;">
-        <select id="ruSpinTime" style="background:var(--bg2);border:1px solid var(--line2);border-radius:8px;color:var(--ink);padding:7px;font-size:12px;">
+        <div class="rt-chip" data-v="custom" onclick="rtChip(this)" style="background:#5A6C86;font-size:var(--fs-xs);">自由</div>
+        <input type="number" id="rtCustomAmt" value="2000" min="1" step="100" style="width:80px;background:var(--bg2);border:1px solid var(--line2);border-radius:var(--r-sm);color:var(--ink);padding:var(--sp-1h) var(--sp-2);font-family:'IBM Plex Mono',monospace;font-size:var(--fs-sm);">
+        <select id="ruSpinTime" style="background:var(--bg2);border:1px solid var(--line2);border-radius:var(--r-sm);color:var(--ink);padding:var(--sp-1h);font-size:var(--fs-sm);">
           <option value="2000">回転 短(2秒)</option>
           <option value="3600" selected>回転 標準(3.6秒)</option>
           <option value="6000">回転 長(6秒)</option>
@@ -1371,11 +1381,11 @@
         <button class="btn2 danger" style="margin-left:auto;" onclick="rtClear()">全ベット取消</button>
       </div>
       <div class="rt-hint">← 横にスクロールできます →</div>
-      <div class="rt-scroll"><div id="rtTable" style="margin-bottom:10px;"></div></div>
+      <div class="rt-scroll"><div id="rtTable" style="margin-bottom:var(--sp-2h);"></div></div>
       <div class="remain" id="rtBets"></div>
-      <div class="fold-head closed" style="margin-top:10px;" onclick="this.classList.toggle('closed');$('rtAdvBet').classList.toggle('closed');"><span class="fold-ar">▼</span>上級ベット(ストリート/スプリット/コーナー/セクター)</div>
+      <div class="fold-head closed" style="margin-top:var(--sp-2h);" onclick="this.classList.toggle('closed');$('rtAdvBet').classList.toggle('closed');"><span class="fold-ar">▼</span>上級ベット(ストリート/スプリット/コーナー/セクター)</div>
       <div class="fold-body closed" id="rtAdvBet" style="max-height:2000px;">
-      <div class="field full" style="margin-top:10px;">
+      <div class="field full" style="margin-top:var(--sp-2h);">
         <div class="flabel">詳細ベット(ガチ勢向け)</div>
         <div class="fhelp">通常の1点・アウトサイドに加えて、スプリット/ストリート/コーナーを組めます</div>
         <div class="chips" id="rtDetailType">
@@ -1384,11 +1394,11 @@
           <div class="chip" data-t="splitv" onclick="rtDetailSetType(this)">スプリット縦(2数字・17倍)</div>
           <div class="chip" data-t="corner" onclick="rtDetailSetType(this)">コーナー(4数字・8倍)</div>
         </div>
-        <div class="igroup" style="max-width:220px;margin-top:8px;"><span class="pre">基準の数字</span><input type="number" id="rtDetailAnchor" value="1" min="1" max="36" oninput="rtDetailPreview()"></div>
-        <div class="fhelp" id="rtDetailPreview" style="margin-top:4px;"></div>
-        <button class="btn2 accent" style="margin-top:6px;" onclick="rtDetailBet()">現在のチップ額でこのベットを置く</button>
+        <div class="igroup" style="max-width:220px;margin-top:var(--sp-2);"><span class="pre">基準の数字</span><input type="number" id="rtDetailAnchor" value="1" min="1" max="36" oninput="rtDetailPreview()"></div>
+        <div class="fhelp" id="rtDetailPreview" style="margin-top:var(--sp-1);"></div>
+        <button class="btn2 accent" style="margin-top:var(--sp-1h);" onclick="rtDetailBet()">現在のチップ額でこのベットを置く</button>
       </div>
-      <div class="field full" style="margin-top:10px;">
+      <div class="field full" style="margin-top:var(--sp-2h);">
         <div class="flabel">セクターベット(フランス式・隣接まとめ買い)</div>
         <div class="fhelp">実物のルーレット盤で物理的に隣接する数字グループへ、チップ額を各数字に均等配置します</div>
         <div class="chips">
@@ -1398,9 +1408,9 @@
         </div>
       </div>
       </div>
-      <div class="fold-head closed" style="margin-top:10px;" onclick="this.classList.toggle('closed');$('ruBiasFold').classList.toggle('closed');"><span class="fold-ar">▼</span>出目統計・偏り分析</div>
+      <div class="fold-head closed" style="margin-top:var(--sp-2h);" onclick="this.classList.toggle('closed');$('ruBiasFold').classList.toggle('closed');"><span class="fold-ar">▼</span>出目統計・偏り分析</div>
       <div class="fold-body closed" id="ruBiasFold" style="max-height:2000px;">
-      <div id="ruBiasBox" style="margin-top:10px;"></div>
+      <div id="ruBiasBox" style="margin-top:var(--sp-2h);"></div>
       </div>
     </div>
     <div class="card ru-solo">
@@ -1434,14 +1444,14 @@
     <div class="card ru-battle" id="rbSetup" style="display:none;">
       <div class="card-title"><span class="step">STEP 1</span><h3>対戦設定</h3><span class="hint">同じ端末を回してベット</span></div>
       <div class="flabel">人数</div>
-      <div class="chips" id="rbNum" style="margin:4px 0 12px;"></div>
+      <div class="chips" id="rbNum" style="margin:var(--sp-1) 0 var(--sp-3);"></div>
       <div class="fgrid">
         <div class="field"><div class="flabel">初期所持金</div><div class="fhelp"></div>
           <div class="igroup"><input type="number" id="rbMoney" value="10000" min="100" step="1000"><span class="unit">pt</span></div></div>
         <div class="field"><div class="flabel">ラウンド数</div><div class="fhelp"></div>
           <div class="igroup"><input type="number" id="rbRounds" value="5" min="1" max="50"><span class="unit">R</span></div></div>
       </div>
-      <div id="rbNames" style="margin-top:10px;"></div>
+      <div id="rbNames" style="margin-top:var(--sp-2h);"></div>
       <div style="height:10px"></div>
       <button class="run" onclick="rbStart()">対戦スタート</button>
     </div>
@@ -1454,14 +1464,14 @@
         <div class="rt-chip c500" data-v="500" onclick="rbChip(this)">500</div>
         <div class="rt-chip c1000" data-v="1000" onclick="rbChip(this)">1k</div>
         <div class="rt-chip c5000" data-v="5000" onclick="rbChip(this)">5k</div>
-        <div class="rt-chip" data-v="custom" onclick="rbChip(this)" style="background:#5A6C86;font-size:10px;">自由</div>
-        <input type="number" id="rbCustomAmt" value="2000" min="1" step="100" style="width:80px;background:var(--bg2);border:1px solid var(--line2);border-radius:8px;color:var(--ink);padding:7px 9px;font-family:'IBM Plex Mono',monospace;font-size:12px;">
+        <div class="rt-chip" data-v="custom" onclick="rbChip(this)" style="background:#5A6C86;font-size:var(--fs-xs);">自由</div>
+        <input type="number" id="rbCustomAmt" value="2000" min="1" step="100" style="width:80px;background:var(--bg2);border:1px solid var(--line2);border-radius:var(--r-sm);color:var(--ink);padding:var(--sp-1h) var(--sp-2);font-family:'IBM Plex Mono',monospace;font-size:var(--fs-sm);">
         <button class="btn2 danger" style="margin-left:auto;" onclick="rbClear()">取消</button>
       </div>
       <div class="rt-hint">← 横にスクロールできます →</div>
-      <div class="rt-scroll" id="rbTableWrap" style="display:none;"><div id="rbTable" style="margin-bottom:10px;"></div></div>
+      <div class="rt-scroll" id="rbTableWrap" style="display:none;"><div id="rbTable" style="margin-bottom:var(--sp-2h);"></div></div>
       <div class="remain" id="rbBets" style="display:none;"></div>
-      <div id="rbTurnBtns" style="display:none;margin:8px 0;"></div>
+      <div id="rbTurnBtns" style="display:none;margin:var(--sp-2) 0;"></div>
       <div class="roulette-stage" id="rbStage" style="display:none;">
         <div class="rou-pointer"></div>
         <canvas id="rbWheel" width="640" height="640"></canvas>
@@ -1474,7 +1484,7 @@
         <div class="chart-head"><div class="c-title">所持金の推移(横軸: ラウンド)</div><div class="legend" id="rbChartLegend"></div></div>
         <canvas id="rbChart"></canvas>
       </div>
-      <div class="fold-head closed" style="margin-top:10px;" onclick="this.classList.toggle('closed');$('rbHistFold').classList.toggle('closed');"><span class="fold-ar">▼</span>ラウンド別所持金の表</div>
+      <div class="fold-head closed" style="margin-top:var(--sp-2h);" onclick="this.classList.toggle('closed');$('rbHistFold').classList.toggle('closed');"><span class="fold-ar">▼</span>ラウンド別所持金の表</div>
       <div class="fold-body closed" id="rbHistFold" style="max-height:3000px;">
       <div id="rbHistoryTable" style="overflow-x:auto;"></div>
       </div>
@@ -1482,9 +1492,9 @@
 
     <div class="card">
       <div class="card-title"><span class="step">EXTRA</span><h3>ベット戦略シミュレーション</h3><span class="hint">賭け方を変えると結果はどう変わる?</span></div>
-      <div class="fhelp" style="margin-bottom:8px;">定額ベット・マーチンゲール(負けたら倍賭け)・パーレー(勝ったら倍賭け)・ダランベール法・ラボシェール法・31システムの6戦略を仮想200スピンで同時に走らせて比較します。理論値の教育用機能です(実際の資金は動きません)。</div>
+      <div class="fhelp" style="margin-bottom:var(--sp-2);">定額ベット・マーチンゲール(負けたら倍賭け)・パーレー(勝ったら倍賭け)・ダランベール法・ラボシェール法・31システムの6戦略を仮想200スピンで同時に走らせて比較します。理論値の教育用機能です(実際の資金は動きません)。</div>
       <button class="btn2 accent" onclick="stratCompare()">6戦略を比較する</button>
-      <div id="stratOut" style="margin-top:10px;"></div>
+      <div id="stratOut" style="margin-top:var(--sp-2h);"></div>
     </div>
   </div>
 
@@ -1495,7 +1505,7 @@
       <div class="tier-head" style="grid-template-columns:1.3fr .8fr 46px .5fr 30px 30px;"><span>項目名</span><span>重み(比率)</span><span>色</span><span>確率/順位</span><span></span><span></span></div>
       <div id="ltRows"></div>
       <button class="add-row" onclick="addLtRow()">+ 項目を追加</button>
-      <div class="fhelp" style="margin-top:6px;">例: 「今日の晩ごはん」「罰ゲーム決め」など。重み2:1なら2倍出やすい。色は自由に変更可。確率が低い順に順位がつき、1位当選は虹演出。「▽子」で項目の中にさらに子項目(例:「当たり」の中に「大当たり×3」「小当たり×1」)を設定でき、当選時に子項目もあわせて抽選されます。</div>
+      <div class="fhelp" style="margin-top:var(--sp-1h);">例: 「今日の晩ごはん」「罰ゲーム決め」など。重み2:1なら2倍出やすい。色は自由に変更可。確率が低い順に順位がつき、1位当選は虹演出。「▽子」で項目の中にさらに子項目(例:「当たり」の中に「大当たり×3」「小当たり×1」)を設定でき、当選時に子項目もあわせて抽選されます。</div>
       <div style="height:10px"></div>
       <div class="preset-bar" data-p="lt"></div>
       <button class="run" onclick="ltBuild()">この設定でホイールを作る</button>
@@ -1507,9 +1517,9 @@
       </div>
       <div class="result-banner" id="ltResult"><div class="r-tier">↓ 回して決める</div><div class="r-coin">—</div></div>
       <button class="run" id="ltSpinBtn" onclick="ltSpin()">回す</button>
-      <div style="display:flex;gap:8px;align-items:center;margin-top:8px;">
+      <div style="display:flex;gap:var(--sp-2);align-items:center;margin-top:var(--sp-2);">
         <span class="fhelp" style="margin:0;">回転時間:</span>
-        <select id="ltSpinTime" style="background:var(--bg2);border:1px solid var(--line2);border-radius:8px;color:var(--ink);padding:7px;font-size:12px;">
+        <select id="ltSpinTime" style="background:var(--bg2);border:1px solid var(--line2);border-radius:var(--r-sm);color:var(--ink);padding:var(--sp-1h);font-size:var(--fs-sm);">
           <option value="2000">短(2秒)</option>
           <option value="3200" selected>標準(3.2秒)</option>
           <option value="6000">じらし(6秒)</option>
@@ -1527,16 +1537,16 @@
   <div class="panel" id="panel-st">
     <div class="card">
       <div class="card-title"><span class="step">DATA</span><h3>データのバックアップ</h3><span class="hint">ブラウザデータ削除・機種変更に備える</span></div>
-      <div class="fhelp" style="margin-bottom:10px;">
+      <div class="fhelp" style="margin-bottom:var(--sp-2h);">
         <b>使い方:</b> ①「エクスポート」を押すとこの端末の記録(リアル統計・シミュ統計・保存スペック)が1つのJSONファイルとしてダウンロードされます → ②機種変更・ブラウザのデータ削除・再インストールの前に、このファイルをどこかに保存しておいてください → ③新しい環境でこのページを開き、「インポート」で保存しておいたファイルを選ぶと元通りに復元されます。<br>
         <span style="color:var(--neg);">注意: インポートすると現在このページに表示されている記録は上書きされます(消えます)。</span> ブラウザのlocalStorageはキャッシュ削除等で失われるため、定期的なエクスポートを推奨します。
       </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <div style="display:flex;gap:var(--sp-2);flex-wrap:wrap;">
         <button class="btn2 accent" onclick="dataExport()">📤 エクスポート(ダウンロード)</button>
         <button class="btn2" onclick="$('dataImportFile').click()">📥 インポート(ファイル選択)</button>
         <input type="file" id="dataImportFile" accept=".json" style="display:none;" onchange="dataImport(this.files[0])">
       </div>
-      <div id="dataIOMsg" style="margin-top:8px;"></div>
+      <div id="dataIOMsg" style="margin-top:var(--sp-2);"></div>
     </div>
     <div class="card">
       <div class="card-title"><span class="step">REAL</span><h3>リアル統計 — 実戦収支の記録</h3><span class="hint">実際のギャンブル収支を記録・分析</span></div>
@@ -1572,7 +1582,7 @@
       <div class="rs-sum" id="rsSummary"></div>
       <div id="rsByKind"></div>
       <div class="chart-card"><div class="chart-head"><div class="c-title">累計収支の推移(記録を古い順に積み上げ)</div></div><canvas id="rsChart"></canvas></div>
-      <div class="fold-head closed" style="margin-top:10px;" onclick="this.classList.toggle('closed');$('rsTableFold').classList.toggle('closed');"><span class="fold-ar">▼</span>全記録一覧</div>
+      <div class="fold-head closed" style="margin-top:var(--sp-2h);" onclick="this.classList.toggle('closed');$('rsTableFold').classList.toggle('closed');"><span class="fold-ar">▼</span>全記録一覧</div>
       <div class="fold-body closed" id="rsTableFold" style="max-height:4000px;">
         <div id="rsTable"></div>
       </div>
@@ -1582,7 +1592,7 @@
       <div id="stBody"></div>
       <div style="height:12px"></div>
       <button class="btn2 danger" onclick="stReset()">シミュ統計をリセット</button>
-      <div class="fhelp" style="margin-top:8px;">シミュレーション・実引きの確定結果を自動で積算します(友達対戦は対人ゼロサムのため除外)。</div>
+      <div class="fhelp" style="margin-top:var(--sp-2);">シミュレーション・実引きの確定結果を自動で積算します(友達対戦は対人ゼロサムのため除外)。</div>
     </div>
   </div>
 
@@ -1810,7 +1820,7 @@ function pkPie(){
   ctx.fillStyle='#FFD966';ctx.font='700 13px '+FONT_MONO;
   ctx.fillText(Math.round(avg).toLocaleString()+'玉',75,86);
   $('pkPieLegend').innerHTML=d.map((x,i)=>
-    `<span class="li"><span style="width:10px;height:10px;border-radius:3px;background:${PIE_COLORS[i%PIE_COLORS.length]};display:inline-block;"></span>${x.balls.toLocaleString()}玉 — ${num(x.share,0)}%</span>`).join('')
+    `<span class="li"><span style="width:10px;height:10px;border-radius:var(--r-xs);background:${PIE_COLORS[i%PIE_COLORS.length]};display:inline-block;"></span>${x.balls.toLocaleString()}玉 — ${num(x.share,0)}%</span>`).join('')
     +(Math.round(total)!==100?`<span class="li" style="color:#FF5C5C;">合計${num(total,0)}% (100%にしてください)</span>`:'');
 }
 let pkLt=false,pkJt=false,pkModeFun=false,pkMode='g';
@@ -1905,20 +1915,20 @@ function runPK(){
       ${P.jtOn?`<div class="stat"><div class="s-l">時短の引き戻し率</div><div class="s-v">${pct(P.jtPull*100)}</div><div class="s-sub">1回の時短あたり</div></div>`:''}
     </div>`
     +`<div class="chart-card"><div class="chart-head"><div class="c-title">収支の推移(横軸: 回転数)</div>
-      <div class="legend"><span class="li"><span class="sw" style="border-color:#3DDC97;"></span>シミュレーション</span><span class="li"><span class="sw" style="border-color:#C8A25B;border-top-style:dashed;"></span>理論値</span><span class="li">● 大当たり(数字=連チャン数、紫=LT)</span><button class="btn2" style="padding:4px 10px;font-size:11px;" onclick="runPK()">🔁 再試行</button></div></div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px;"><span class="fhelp" style="margin:0;">当たり表示区間:</span>
-        <select id="pkMarkRegion" onchange="pkRedrawChart()" style="background:var(--bg2);border:1px solid var(--line2);border-radius:8px;color:var(--ink);padding:6px;font-size:12px;">
+      <div class="legend"><span class="li"><span class="sw" style="border-color:#3DDC97;"></span>シミュレーション</span><span class="li"><span class="sw" style="border-color:#C8A25B;border-top-style:dashed;"></span>理論値</span><span class="li">● 大当たり(数字=連チャン数、紫=LT)</span><button class="btn2" style="padding:var(--sp-1) var(--sp-2h);font-size:var(--fs-sm);" onclick="runPK()">🔁 再試行</button></div></div>
+      <div style="display:flex;gap:var(--sp-2);align-items:center;flex-wrap:wrap;margin-bottom:var(--sp-1h);"><span class="fhelp" style="margin:0;">当たり表示区間:</span>
+        <select id="pkMarkRegion" onchange="pkRedrawChart()" style="background:var(--bg2);border:1px solid var(--line2);border-radius:var(--r-sm);color:var(--ink);padding:var(--sp-1h);font-size:var(--fs-sm);">
           <option value="all">全区間</option><option value="first">序盤(前半1/3)</option><option value="mid">中盤</option><option value="last">終盤(後半1/3)</option><option value="none">当たり非表示</option>
         </select></div>
       <canvas id="pkChart"></canvas></div>`
-    +`<div class="chart-card"><div class="chart-head"><div class="c-title">収支の分布(${histCampaigns}回シミュレーションを繰り返した結果 / ${histTrials.toLocaleString()}回転ごと)</div></div><canvas id="pkHistC"></canvas><div class="fhelp" style="margin-top:6px;">この分布は「同じ条件で何度も打ったとき、最終収支がどんな範囲にどれくらいの確率でばらつくか」を表します。山が右(プラス側)に寄るほど勝ちやすく、左に長い裾を引くほど大負けのリスクがあります。緑=プラス収支・赤=マイナス収支の回数です。</div></div>`
+    +`<div class="chart-card"><div class="chart-head"><div class="c-title">収支の分布(${histCampaigns}回シミュレーションを繰り返した結果 / ${histTrials.toLocaleString()}回転ごと)</div></div><canvas id="pkHistC"></canvas><div class="fhelp" style="margin-top:var(--sp-1h);">この分布は「同じ条件で何度も打ったとき、最終収支がどんな範囲にどれくらいの確率でばらつくか」を表します。山が右(プラス側)に寄るほど勝ちやすく、左に長い裾を引くほど大負けのリスクがあります。緑=プラス収支・赤=マイナス収支の回数です。</div></div>`
     +`<div class="fold-head closed" onclick="this.classList.toggle('closed');$('pkAdvancedBody').classList.toggle('closed');"><span class="fold-ar">▼</span>詳細データ・分析ツール</div>`
     +`<div class="fold-body closed" id="pkAdvancedBody" style="max-height:4000px;">`
     +pkCounterHTML(hitsRec,trials)
     +pkHitHistoryHTML(hitsRec,pkRate.rate,false)
     +pkPracticalHTML()
     +pkDistPiesHTML(P,'g')
-    +`<div style="margin:4px 0 10px;"><button class="btn2" onclick="cmpAdd('pk',{label:'${(new Date()).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})}',evPositive:${totalEV>=0},vals:['${(evSpin>=0?'+':'−')+cf(Math.abs(Math.round(evSpin)))}','${num(border)}回転','${pct(ret)}']})">📊 このスペックを比較に追加</button></div>`
+    +`<div style="margin:var(--sp-1) 0 var(--sp-2h);"><button class="btn2" onclick="cmpAdd('pk',{label:'${(new Date()).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})}',evPositive:${totalEV>=0},vals:['${(evSpin>=0?'+':'−')+cf(Math.abs(Math.round(evSpin)))}','${num(border)}回転','${pct(ret)}']})">📊 このスペックを比較に追加</button></div>`
     +`</div>`;
   pkChartData={series,evLine,markers,trials};
   pkLastCalc={p,TY,hesoYen,border,rate:pkRate.rate};
@@ -1927,13 +1937,13 @@ function runPK(){
 }
 let pkChartData=null,pkLastCalc=null;
 function pkPracticalHTML(){
-  return '<div class="card" style="margin-bottom:12px;"><div class="card-title"><span class="step">実践</span><h3>実践入力 → 今日の期待値</h3><span class="hint">実測の回転数から逆算</span></div>'
-    +'<div class="fgrid" style="margin-bottom:8px;">'
+  return '<div class="card" style="margin-bottom:var(--sp-3);"><div class="card-title"><span class="step">実践</span><h3>実践入力 → 今日の期待値</h3><span class="hint">実測の回転数から逆算</span></div>'
+    +'<div class="fgrid" style="margin-bottom:var(--sp-2);">'
     +'<div class="field"><div class="flabel">実測: 1,000円あたり回転数</div><div class="fhelp">「回らない」と感じた実際の数字を入力</div><div class="igroup"><input type="number" id="pkRealSpins1k" value="'+num(V('pkSpins1k'))+'" min="0.1" step="0.5"><span class="unit">回転/千円</span></div></div>'
     +'<div class="field"><div class="flabel">移動+並び時間</div><div class="fhelp">実質時給に反映(任意)</div><div class="igroup"><input type="number" id="pkTravelHours" value="0" min="0" step="0.25"><span class="unit">時間</span></div></div>'
     +'</div>'
     +'<button class="btn2 accent" onclick="pkPracticalCalc()">この実測値で判定する</button>'
-    +'<div id="pkPracticalOut" style="margin-top:10px;"></div></div>';
+    +'<div id="pkPracticalOut" style="margin-top:var(--sp-2h);"></div></div>';
 }
 function pkPracticalCalc(){
   if(!pkLastCalc){return;}
@@ -1948,7 +1958,7 @@ function pkPracticalCalc(){
   const realHourlyIncl=netPerHour/totalHoursIncl;
   const good=realSpins1k>=border;
   $('pkPracticalOut').innerHTML=
-    '<div class="verdict '+(good?'win':'lose')+' pop" style="margin-bottom:10px;"><div class="v-badge">'+(good?'▲ ボーダー超え':'▼ ボーダー未満')+'</div><div class="v-num">'+num(realSpins1k)+'回転/千円 (ボーダー'+num(border)+'回転)</div><div class="v-note">実測ベースの1回転期待値: '+(evSpinReal>=0?'+':'−')+cf(Math.abs(Math.round(evSpinReal)))+'円</div></div>'
+    '<div class="verdict '+(good?'win':'lose')+' pop" style="margin-bottom:var(--sp-2h);"><div class="v-badge">'+(good?'▲ ボーダー超え':'▼ ボーダー未満')+'</div><div class="v-num">'+num(realSpins1k)+'回転/千円 (ボーダー'+num(border)+'回転)</div><div class="v-note">実測ベースの1回転期待値: '+(evSpinReal>=0?'+':'−')+cf(Math.abs(Math.round(evSpinReal)))+'円</div></div>'
     +'<div class="stats">'
     +'<div class="stat"><div class="s-l">実測ベースの時給(理論値)</div><div class="s-v" style="color:'+(hourlyReal>=0?'var(--pos)':'var(--neg)')+'">'+(hourlyReal>=0?'+':'−')+cf(Math.abs(Math.round(hourlyReal)))+'円/h</div><div class="s-sub">250回転/時で換算</div></div>'
     +(travelH>0?'<div class="stat"><div class="s-l">移動・並び込みの実質時給</div><div class="s-v" style="color:'+(realHourlyIncl>=0?'var(--pos)':'var(--neg)')+'">'+(realHourlyIncl>=0?'+':'−')+cf(Math.abs(Math.round(realHourlyIncl)))+'円/h</div><div class="s-sub">遊技1時間+移動・並び'+num(travelH)+'時間で按分</div></div>':'')
@@ -1971,15 +1981,15 @@ function pkRedrawChart(){
    先に見つかった方(隠れている側)を掴んでしまい、表示中の側が空になる。 */
 function pkDistPiesHTML(P,ns){
   const tg=(k,label)=>'<div class="chip on" id="pkPieToggle_'+ns+'_'+k+'" onclick="pkTogglePie(\''+k+'\',\''+ns+'\')">'+label+'</div>';
-  return '<div class="card" style="margin-bottom:12px;"><div class="card-title"><span class="step">振分</span><h3>出玉の振り分け円グラフ</h3><span class="hint">各状態の出玉構成</span></div>'
-    +'<div class="chips" style="margin-bottom:10px;">'
+  return '<div class="card" style="margin-bottom:var(--sp-3);"><div class="card-title"><span class="step">振分</span><h3>出玉の振り分け円グラフ</h3><span class="hint">各状態の出玉構成</span></div>'
+    +'<div class="chips" style="margin-bottom:var(--sp-2h);">'
     +tg('hit','大当たり')
     +(P.jtOn?tg('jt','時短中'):'')
     +tg('rush','RUSH中')
     +(P.ltOn?tg('lt','上位RUSH中'):'')
     +'</div>'
-    +'<div id="pkDistPies_'+ns+'" style="display:flex;gap:16px;flex-wrap:wrap;"></div>'
-    +'<div class="fhelp" style="margin-top:8px;">振り分けの確率・出玉は上のSTEP4(出玉の振り分け)およびLT振り分けで編集できます。編集して「計算する」を押すと反映されます。</div></div>';
+    +'<div id="pkDistPies_'+ns+'" style="display:flex;gap:var(--sp-3h);flex-wrap:wrap;"></div>'
+    +'<div class="fhelp" style="margin-top:var(--sp-2);">振り分けの確率・出玉は上のSTEP4(出玉の振り分け)およびLT振り分けで編集できます。編集して「計算する」を押すと反映されます。</div></div>';
 }
 let pkPieVisible={hit:true,jt:true,rush:true,lt:true};
 function pkTogglePie(k,ns){pkPieVisible[k]=!pkPieVisible[k];const el=$('pkPieToggle_'+ns+'_'+k);if(el)el.classList.toggle('on',pkPieVisible[k]);pkDistPiesDraw(pkParams(),ns);}
@@ -1993,7 +2003,7 @@ function pkDistPiesDraw(P,ns){
   if(P.jtOn&&pkPieVisible.jt){const jd=P.jtD.length?P.jtD:P.d,jTot=P.jtD.length?P.jtTot:dTot;panels.push(['時短中',mkSegs(jd,jTot),'pkPie_'+ns+'_jt']);}
   if(pkPieVisible.rush){const rd=P.rushD.length?P.rushD:P.d,rTot=P.rushD.length?P.rushTot:dTot;panels.push(['RUSH中',mkSegs(rd,rTot),'pkPie_'+ns+'_rush']);}
   if(P.ltOn&&pkPieVisible.lt){const lTot=P.ltD.reduce((s,x)=>s+x.share,0)||1;panels.push(['上位RUSH中',mkSegs(P.ltD,lTot),'pkPie_'+ns+'_lt']);}
-  box.innerHTML=panels.map(([title,segs,id])=>'<div style="text-align:center;"><div class="fhelp" style="margin:0 0 4px;font-weight:700;color:var(--ink);">'+title+'</div><canvas id="'+id+'" style="width:130px;height:130px;"></canvas></div>').join('');
+  box.innerHTML=panels.map(([title,segs,id])=>'<div style="text-align:center;"><div class="fhelp" style="margin:0 0 var(--sp-1);font-weight:700;color:var(--ink);">'+title+'</div><canvas id="'+id+'" style="width:130px;height:130px;"></canvas></div>').join('');
   requestAnimationFrame(()=>panels.forEach(([title,segs,id])=>pieInto(id,segs,title,'')));
 }
 addPkDist(1500,50);addPkDist(4500,35);addPkDist(7500,15);
@@ -2307,21 +2317,21 @@ function gcFixBuild(){
   if(T-winSum>0)segs.push({name:'ハズレ',v:T-winSum,color:'#3A3A50'});
   $('gcFixOdds').innerHTML=
     '<div class="pct-strip">'+gcFixDefs.slice(0,2).map((t,i)=>
-      '<span style="font-size:11px;color:'+(i===0?'var(--gold)':'var(--ink-2)')+';">'+escHtml(t.name)+'</span> '
-      +'<span class="'+(i===0?'pct-big':'mono')+'" style="'+(i===0?'':'font-size:16px;color:var(--ink);')+'">1/'+num(T/Math.max(1,t.count),0)+'</span>').join(' ')
+      '<span style="font-size:var(--fs-sm);color:'+(i===0?'var(--gold)':'var(--ink-2)')+';">'+escHtml(t.name)+'</span> '
+      +'<span class="'+(i===0?'pct-big':'mono')+'" style="'+(i===0?'':'font-size:var(--fs-xl);color:var(--ink);')+'">1/'+num(T/Math.max(1,t.count),0)+'</span>').join(' ')
     +'</div>'
-    +gcFixDefs.map((t,i)=>'<div class="remain" style="margin-bottom:4px;"><span class="rc gold">'+escHtml(t.name)
+    +gcFixDefs.map((t,i)=>'<div class="remain" style="margin-bottom:var(--sp-1);"><span class="rc gold">'+escHtml(t.name)
       +' <span class="rankb r'+gcFixRank[i]+'">'+gcFixRank[i]+'位</span>: <b>1/'+num(T/Math.max(1,t.count),0)+'</b> ('+cf(t.count)+'枚封入)</span></div>').join('')
-    +'<div class="flabel" style="margin-top:10px;">1回以上引ける確率(引いた分は減るため、独立確率より読みやすい)</div>'
-    +gcFixDefs.slice(0,3).map((t,i)=>'<div class="remain" style="margin-bottom:4px;">'
+    +'<div class="flabel" style="margin-top:var(--sp-2h);">1回以上引ける確率(引いた分は減るため、独立確率より読みやすい)</div>'
+    +gcFixDefs.slice(0,3).map((t,i)=>'<div class="remain" style="margin-bottom:var(--sp-1);">'
       +'<span class="rc'+(gcFixRank[i]===1?' gold':'')+'">'+escHtml(t.name)+'</span>'
       +'<span class="rc">10連: <b>'+pct(probHyper(T,t.count,Math.min(10,T))*100)+'</b></span>'
       +'<span class="rc">100連: <b>'+pct(probHyper(T,t.count,Math.min(100,T))*100)+'</b></span>'
       +'<span class="rc gold">所持石全額('+cf(affordable)+'連): <b>'+pct(probHyper(T,t.count,affordable)*100)+'</b></span>'
       +'</div>').join('')
-    +'<div class="chart-card" style="margin-top:10px;"><div class="chart-head"><div class="c-title">封入内訳</div></div>'
-    +'<div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;"><canvas id="gcFixPie" style="width:150px;height:150px;flex:none;"></canvas>'
-    +'<div class="legend" id="gcFixPieLegend" style="flex-direction:column;gap:5px;align-items:flex-start;"></div></div></div>';
+    +'<div class="chart-card" style="margin-top:var(--sp-2h);"><div class="chart-head"><div class="c-title">封入内訳</div></div>'
+    +'<div style="display:flex;gap:var(--sp-3h);align-items:center;flex-wrap:wrap;"><canvas id="gcFixPie" style="width:150px;height:150px;flex:none;"></canvas>'
+    +'<div class="legend" id="gcFixPieLegend" style="flex-direction:column;gap:var(--sp-1h);align-items:flex-start;"></div></div></div>';
   $('gcFixPlay').style.display='';
   $('gcFixLog').innerHTML='';
   gcFixRender(null);
@@ -2395,17 +2405,17 @@ function gcFixPull(n){
   rb.className='result-banner '+(hit?'fx-r'+rank:'')+' pop';
   rb.innerHTML='<div class="r-tier">'+cf(pulled)+'連の結果 '+(hit?'— 最高: '+escHtml(gcFixDefs[best].name)+(rank===1?' 🌈':''):'— 全部ハズレ')+'</div>'
     +'<div class="r-coin">−'+cf(cost*pulled)+' 石消費</div>'
-    +(pulled<n?'<div class="r-tier" style="color:var(--neg);font-size:12.5px;margin-top:4px;">⚠ '+cf(n)+'連を希望しましたが、'+(gcFixDrawn>=gcFixDeck.length?'完売':'石不足')+'のため'+cf(pulled)+'連で打ち切りました</div>':'');
+    +(pulled<n?'<div class="r-tier" style="color:var(--neg);font-size:var(--fs-md);margin-top:var(--sp-1);">⚠ '+cf(n)+'連を希望しましたが、'+(gcFixDrawn>=gcFixDeck.length?'完売':'石不足')+'のため'+cf(pulled)+'連で打ち切りました</div>':'');
   if(hit&&rank===1){confettiBurst(rb);SFX.jackpot();}
   else if(hit&&rank<=2)SFX.win();
   const draw=got.slice(0,200);
   $('gcFixLog').innerHTML=foldBlock('引いた履歴('+cf(pulled)+'連 / 先頭200件)',
-    '<div style="display:flex;flex-wrap:wrap;gap:4px;padding-top:6px;">'
+    '<div style="display:flex;flex-wrap:wrap;gap:var(--sp-1);padding-top:var(--sp-1h);">'
     +draw.map(t=>'<span class="pl '+(t<0?'tx':(gcFixRank[t]===1?'t0':gcFixRank[t]===2?'t1':'t2'))+'">'
       +(t>=0?escHtml(gcFixDefs[t].name.slice(0,2)):'—')+'</span>').join('')+'</div>',true)
     +(gcFixLogArr.length?foldBlock('当選履歴(通算'+cf(gcFixCount)+'連中'+cf(gcFixLogArr.length)+'件 / 先頭200件)',
-      '<div class="remain" style="padding-top:6px;">'+gcFixLogArr.slice(0,200).map(h=>'<span class="rc'+(h.rank===1?' gold':'')+'">'
-      +'<span class="rankb r'+h.rank+'" style="margin-right:4px;">'+h.rank+'位</span>'+cf(h.n)+'連目 / '+escHtml(h.name)+'</span>').join('')+'</div>',false):'');
+      '<div class="remain" style="padding-top:var(--sp-1h);">'+gcFixLogArr.slice(0,200).map(h=>'<span class="rc'+(h.rank===1?' gold':'')+'">'
+      +'<span class="rankb r'+h.rank+'" style="margin-right:var(--sp-1);">'+h.rank+'位</span>'+cf(h.n)+'連目 / '+escHtml(h.name)+'</span>').join('')+'</div>',false):'');
   gcFixRender(true);
   statAdd('ガチャ(口数固定)',-cost*pulled,cost*pulled);
 }
@@ -2821,8 +2831,8 @@ function funTheory(budget){
   ).join('');
   $('funTheory').innerHTML=
     pkDistPiesHTML(P,'f')
-    +'<div class="card-title" style="margin-top:12px;"><span class="step">理論値</span><h3>投資'+yen(budget)+'の理論値(400回試行)</h3></div>'
-    +(Array.isArray(spinsSpec)?'<div class="fhelp" style="margin-bottom:6px;">回転数: '+num(spinsSpec[0])+'〜'+num(spinsSpec[1])+'回転/千円の範囲でランダム(試行ごとに変動)</div>':'')
+    +'<div class="card-title" style="margin-top:var(--sp-3);"><span class="step">理論値</span><h3>投資'+yen(budget)+'の理論値(400回試行)</h3></div>'
+    +(Array.isArray(spinsSpec)?'<div class="fhelp" style="margin-bottom:var(--sp-1h);">回転数: '+num(spinsSpec[0])+'〜'+num(spinsSpec[1])+'回転/千円の範囲でランダム(試行ごとに変動)</div>':'')
     +'<div class="stats">'
     +'<div class="stat lead"><div class="s-l">平均消化回転数</div><div class="s-v">'+cf(full.expSpins)+'回転</div><div class="s-sub">出玉を再投資して回した平均</div></div>'
     +'<div class="stat"><div class="s-l">破産確率</div><div class="s-v">'+pct(full.bustPct)+'</div><div class="s-sub">投資額をほぼ全額失う確率</div></div>'
@@ -2832,10 +2842,10 @@ function funTheory(budget){
     +'<div class="stat"><div class="s-l">平均連チャン数</div><div class="s-v">'+full.avgChain.toFixed(1)+'連</div><div class="s-sub">初当たり1回あたり(単発=1連)</div></div>'
     +'<div class="stat"><div class="s-l">最高連チャン(実測)</div><div class="s-v">'+full.maxChain+'連</div><div class="s-sub">400回試行中の最大値</div></div>'
     +'</div>'
-    +'<div class="chart-card" style="margin-top:12px;"><div class="chart-head"><div class="c-title">やめどき比較(400回試行/ルール)</div></div>'
+    +'<div class="chart-card" style="margin-top:var(--sp-3);"><div class="chart-head"><div class="c-title">やめどき比較(400回試行/ルール)</div></div>'
     +'<div style="overflow-x:auto;"><table class="rs-table"><thead><tr><th>ルール</th><th>平均消化回転数</th><th>勝率</th><th>破産確率</th><th>平均最終収支</th></tr></thead><tbody>'+ruleRows+'</tbody></table></div>'
-    +'<div class="fhelp" style="margin-top:6px;">「勝ち逃げ/損切り」は、その時点の収支が投資額の±50%に達したら即座にやめた場合の理論値です。</div></div>'
-    +'<div class="chart-card"><div class="chart-head"><div class="c-title">最終収支の分布(全額使い切るまで・400回試行)</div></div><canvas id="funHistC"></canvas><div class="fhelp" style="margin-top:6px;">緑=プラス収支・赤=マイナス収支。左に長い裾は「投資額を飲まれるパターン」の頻度を表します。</div></div>';
+    +'<div class="fhelp" style="margin-top:var(--sp-1h);">「勝ち逃げ/損切り」は、その時点の収支が投資額の±50%に達したら即座にやめた場合の理論値です。</div></div>'
+    +'<div class="chart-card"><div class="chart-head"><div class="c-title">最終収支の分布(全額使い切るまで・400回試行)</div></div><canvas id="funHistC"></canvas><div class="fhelp" style="margin-top:var(--sp-1h);">緑=プラス収支・赤=マイナス収支。左に長い裾は「投資額を飲まれるパターン」の頻度を表します。</div></div>';
   requestAnimationFrame(()=>{histInto('funHistC',full.samples,'円');pkDistPiesDraw(P,'f');});
 }
 /* スランプグラフの記録上限(超えたら間引く)。描画コストを一定に保つため */
@@ -2988,8 +2998,8 @@ function kjCalc(){
     const pc=w/sum*100;
     return '<div class="kj-row"><span class="kj-l">設定'+(s+1)+'</span><div class="kj-track"><div class="kj-fill" style="width:'+Math.max(2,pc)+'%;"></div></div><span class="kj-v">'+pct(pc)+'</span></div>';
   }).join('')
-  +'<div class="remain" style="margin-top:8px;"><span class="rc gold">総合判定: <b>設定'+(best+1)+'</b>が最有力</span></div>'
-  +'<div class="fhelp" style="margin-top:4px;">各設定を同確率と仮定した尤度比較(二項分布)。入力した役だけで判定。ゲーム数が少ないうちは大きくブレます。</div>';
+  +'<div class="remain" style="margin-top:var(--sp-2);"><span class="rc gold">総合判定: <b>設定'+(best+1)+'</b>が最有力</span></div>'
+  +'<div class="fhelp" style="margin-top:var(--sp-1);">各設定を同確率と仮定した尤度比較(二項分布)。入力した役だけで判定。ゲーム数が少ないうちは大きくブレます。</div>';
 }
 
 /* ===================== ルーレット友達対戦 ===================== */
@@ -3342,14 +3352,14 @@ function runSL(){
         <div class="stat"><div class="s-l">今回のシミュレーション</div><div class="s-v">${yen(bal)}</div><div class="s-sub">${label}${hits}回${slType==='a'?' / REG'+regs+'回':''}${smart?' / 区間+2,400枚規制込み':''}</div></div>
       </div>`
       +`<div class="chart-card"><div class="chart-head"><div class="c-title">当選図(横軸: ゲーム数 / ●=当選位置とG数)</div>
-        <div class="legend"><span class="li"><span class="sw" style="border-color:#3DDC97;"></span>シミュレーション</span><span class="li"><span class="sw" style="border-color:#C8A25B;border-top-style:dashed;"></span>理論値</span>${slType==='a'?'<span class="li" style="color:#E63946;">B=BIG</span><span class="li" style="color:#4FA3E0;">R=REG</span>':''}<button class="btn2" style="padding:4px 10px;font-size:11px;" onclick="runSL()">🔁 再試行</button></div></div>
+        <div class="legend"><span class="li"><span class="sw" style="border-color:#3DDC97;"></span>シミュレーション</span><span class="li"><span class="sw" style="border-color:#C8A25B;border-top-style:dashed;"></span>理論値</span>${slType==='a'?'<span class="li" style="color:#E63946;">B=BIG</span><span class="li" style="color:#4FA3E0;">R=REG</span>':''}<button class="btn2" style="padding:var(--sp-1) var(--sp-2h);font-size:var(--fs-sm);" onclick="runSL()">🔁 再試行</button></div></div>
         <canvas id="slChart"></canvas></div>`
-      +`<div class="chart-card"><div class="chart-head"><div class="c-title">収支の分布(${histCampaigns}回シミュレーションを繰り返した結果 / ${histG.toLocaleString()}Gごと)</div></div><canvas id="slHistC"></canvas><div class="fhelp" style="margin-top:6px;">この分布は「同じ条件で何度も打ったとき、最終収支がどんな範囲にどれくらいの確率でばらつくか」を表します。山が右(プラス側)に寄るほど勝ちやすく、左に長い裾を引くほど大負けのリスクがあります。緑=プラス収支・赤=マイナス収支の回数です。コイン持ちを甘く見積もるほど左裾が伸びやすくなります。</div></div>`
+      +`<div class="chart-card"><div class="chart-head"><div class="c-title">収支の分布(${histCampaigns}回シミュレーションを繰り返した結果 / ${histG.toLocaleString()}Gごと)</div></div><canvas id="slHistC"></canvas><div class="fhelp" style="margin-top:var(--sp-1h);">この分布は「同じ条件で何度も打ったとき、最終収支がどんな範囲にどれくらいの確率でばらつくか」を表します。山が右(プラス側)に寄るほど勝ちやすく、左に長い裾を引くほど大負けのリスクがあります。緑=プラス収支・赤=マイナス収支の回数です。コイン持ちを甘く見積もるほど左裾が伸びやすくなります。</div></div>`
       +`<div class="fold-head closed" onclick="this.classList.toggle('closed');$('slAdvancedBody').classList.toggle('closed');"><span class="fold-ar">▼</span>詳細データ・分析ツール</div>`
       +`<div class="fold-body closed" id="slAdvancedBody" style="max-height:4000px;">`
       +slBonusListHTML(bonusRec,p,pReg)
-      +(bonusRec.length>=5?`<div class="chart-card"><div class="chart-head"><div class="c-title">ボーナス間隔の分布(今回のシミュレーション・${bonusRec.length}回)</div></div><canvas id="slGapHistC"></canvas><div class="fhelp" style="margin-top:6px;">1回のボーナスから次のボーナスまでに要したゲーム数の分布です。山が左に寄るほど連続当選しやすく、右に長い裾を引くほどハマりやすい機種です。</div></div>`:'')
-      +`<div style="margin:4px 0 10px;"><button class="btn2" onclick="cmpAdd('sl',{label:'${(new Date()).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})}',evPositive:${totalEV>=0},vals:['${(evG>=0?'+':'−')+cf(Math.abs(Math.round(evG)))}','${num(1000/costG)}G/千円','${pct(kikai)}']})">📊 このスペックを比較に追加</button></div>`
+      +(bonusRec.length>=5?`<div class="chart-card"><div class="chart-head"><div class="c-title">ボーナス間隔の分布(今回のシミュレーション・${bonusRec.length}回)</div></div><canvas id="slGapHistC"></canvas><div class="fhelp" style="margin-top:var(--sp-1h);">1回のボーナスから次のボーナスまでに要したゲーム数の分布です。山が左に寄るほど連続当選しやすく、右に長い裾を引くほどハマりやすい機種です。</div></div>`:'')
+      +`<div style="margin:var(--sp-1) 0 var(--sp-2h);"><button class="btn2" onclick="cmpAdd('sl',{label:'${(new Date()).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})}',evPositive:${totalEV>=0},vals:['${(evG>=0?'+':'−')+cf(Math.abs(Math.round(evG)))}','${num(1000/costG)}G/千円','${pct(kikai)}']})">📊 このスペックを比較に追加</button></div>`
       +`</div>`;
     requestAnimationFrame(()=>{
       drawChart($('slChart'),series,evLine,{xLabel:'ゲーム数',yLabel:'収支(円)',markers});
@@ -3363,7 +3373,7 @@ function runSL(){
   const winFx=bal>=0;
   $('sl-out').innerHTML=`<div class="card"><div class="reel-stage">
     <div class="reel spin" id="reel0">7</div><div class="reel spin" id="reel1">BAR</div><div class="reel spin" id="reel2">🍒</div>
-  </div><div id="slBall"></div><div style="text-align:center;font-size:12px;color:var(--ink-2);">抽選中…</div></div>`;
+  </div><div id="slBall"></div><div style="text-align:center;font-size:var(--fs-sm);color:var(--ink-2);">抽選中…</div></div>`;
   const final=winFx?['7','7','7']:[SL_SYMBOLS[Math.floor(Math.random()*6)],SL_SYMBOLS[Math.floor(Math.random()*6)],'BAR'];
   const ivs=[];
   for(let r=0;r<3;r++){ivs[r]=setInterval(()=>{$('reel'+r).textContent=SL_SYMBOLS[Math.floor(Math.random()*SL_SYMBOLS.length)];},70);}
@@ -3433,15 +3443,15 @@ function runSLYen(p,coins,pReg,coinsReg,mochi,costG,label,modoshi){
         <tr><td>+50%で勝ち逃げ</td><td>${ruleWin.expG.toLocaleString()}G</td><td>${pct(ruleWin.winPct)}</td><td>${pct(ruleWin.bustPct)}</td></tr>
         <tr><td>−50%で損切り</td><td>${ruleLoss.expG.toLocaleString()}G</td><td>${pct(ruleLoss.winPct)}</td><td>${pct(ruleLoss.bustPct)}</td></tr>
       </tbody></table></div>
-      <div class="fhelp" style="margin-top:6px;">「勝ち逃げ/損切り」は、その時点の収支が投資額の±50%に達したら即座にやめた場合の理論値です。</div></div>`
+      <div class="fhelp" style="margin-top:var(--sp-1h);">「勝ち逃げ/損切り」は、その時点の収支が投資額の±50%に達したら即座にやめた場合の理論値です。</div></div>`
     +`<div class="chart-card"><div class="chart-head"><div class="c-title">収支の推移(横軸: ゲーム数 / 投資${yen(cash0)})</div>
-      <div class="legend"><span class="li"><span class="sw" style="border-color:#3DDC97;"></span>シミュレーション</span><span class="li"><span class="sw" style="border-color:#C8A25B;border-top-style:dashed;"></span>理論値</span><button class="btn2" style="padding:4px 10px;font-size:11px;" onclick="runSL()">🔁 再試行</button><button class="btn2 danger" style="padding:4px 10px;font-size:11px;" onclick="slYReset()">🗑 結果をクリア</button></div></div>
+      <div class="legend"><span class="li"><span class="sw" style="border-color:#3DDC97;"></span>シミュレーション</span><span class="li"><span class="sw" style="border-color:#C8A25B;border-top-style:dashed;"></span>理論値</span><button class="btn2" style="padding:var(--sp-1) var(--sp-2h);font-size:var(--fs-sm);" onclick="runSL()">🔁 再試行</button><button class="btn2 danger" style="padding:var(--sp-1) var(--sp-2h);font-size:var(--fs-sm);" onclick="slYReset()">🗑 結果をクリア</button></div></div>
       <canvas id="slChart"></canvas></div>`
-    +`<div class="chart-card"><div class="chart-head"><div class="c-title">収支の分布(投資${yen(cash0)}を${RUNS}回シミュレーションした最終収支)</div></div><canvas id="slHistC"></canvas><div class="fhelp" style="margin-top:6px;">この分布は「同じ条件で何度も打ったとき、最終収支がどんな範囲にどれくらいの確率でばらつくか」を表します。山が右(プラス側)に寄るほど勝ちやすく、左に長い裾を引くほど大負けのリスクがあります。緑=プラス収支・赤=マイナス収支の回数です。コイン持ちを甘く見積もるほど左裾が伸びやすくなります。</div></div>`
+    +`<div class="chart-card"><div class="chart-head"><div class="c-title">収支の分布(投資${yen(cash0)}を${RUNS}回シミュレーションした最終収支)</div></div><canvas id="slHistC"></canvas><div class="fhelp" style="margin-top:var(--sp-1h);">この分布は「同じ条件で何度も打ったとき、最終収支がどんな範囲にどれくらいの確率でばらつくか」を表します。山が右(プラス側)に寄るほど勝ちやすく、左に長い裾を引くほど大負けのリスクがあります。緑=プラス収支・赤=マイナス収支の回数です。コイン持ちを甘く見積もるほど左裾が伸びやすくなります。</div></div>`
     +`<div class="fold-head closed" onclick="this.classList.toggle('closed');$('slAdvancedBody').classList.toggle('closed');"><span class="fold-ar">▼</span>詳細データ・分析ツール</div>`
     +`<div class="fold-body closed" id="slAdvancedBody" style="max-height:4000px;">`
     +slBonusListHTML(main.bonusRec||[],p,pReg)
-    +((main.bonusRec&&main.bonusRec.length>=5)?`<div class="chart-card"><div class="chart-head"><div class="c-title">ボーナス間隔の分布(今回のシミュレーション・${main.bonusRec.length}回)</div></div><canvas id="slGapHistC"></canvas><div class="fhelp" style="margin-top:6px;">1回のボーナスから次のボーナスまでに要したゲーム数の分布です。山が左に寄るほど連続当選しやすく、右に長い裾を引くほどハマりやすい機種です。</div></div>`:'')
+    +((main.bonusRec&&main.bonusRec.length>=5)?`<div class="chart-card"><div class="chart-head"><div class="c-title">ボーナス間隔の分布(今回のシミュレーション・${main.bonusRec.length}回)</div></div><canvas id="slGapHistC"></canvas><div class="fhelp" style="margin-top:var(--sp-1h);">1回のボーナスから次のボーナスまでに要したゲーム数の分布です。山が左に寄るほど連続当選しやすく、右に長い裾を引くほどハマりやすい機種です。</div></div>`:'')
     +`</div>`;
   requestAnimationFrame(()=>{
     drawChart($('slChart'),main.series,evLine,{xLabel:'ゲーム数',yLabel:'収支(円)'});
@@ -3468,8 +3478,8 @@ function addLtRow(name,w,color,children){
   div.style.gridTemplateColumns='1.3fr .8fr 46px .5fr 44px 30px';
   div.innerHTML=`<input type="text" value="${escHtml(name??'')}" placeholder="項目名">
     <input type="number" value="${w??1}" min="0" step="0.5">
-    <input type="color" value="${color||LT_COLORS[Math.floor(Math.random()*LT_COLORS.length)]}" style="height:34px;padding:2px;border:1px solid var(--line2);border-radius:8px;background:var(--bg2);cursor:pointer;">
-    <span class="mono" style="font-size:10px;color:var(--ink-3);"></span>
+    <input type="color" value="${color||LT_COLORS[Math.floor(Math.random()*LT_COLORS.length)]}" style="height:34px;padding:2px;border:1px solid var(--line2);border-radius:var(--r-sm);background:var(--bg2);cursor:pointer;">
+    <span class="mono" style="font-size:var(--fs-xs);color:var(--ink-3);"></span>
     <button class="lt-toggle" onclick="ltToggleChildren(this)" title="子項目を設定">▽子</button>
     <button class="rm" onclick="this.closest('.lt-item-block').remove();ltPct();">×</button>`;
   div.querySelectorAll('input').forEach(i=>i.addEventListener('input',ltPct));
@@ -3895,7 +3905,7 @@ function pieInto(canvasId,segments,centerLabel,centerVal){
 }
 function pieLegend(segments){
   const total=segments.reduce((s,x)=>s+x.v,0)||1;
-  return segments.map(s=>'<span class="li"><span style="width:11px;height:11px;border-radius:3px;background:'+(s.rainbow?'linear-gradient(90deg,#E63946,#E8C879,#39FF88,#4FA3E0,#A020F0)':s.color)+';display:inline-block;"></span>'+escHtml(s.name)+' '+pct(s.v/total*100)+'</span>').join('');
+  return segments.map(s=>'<span class="li"><span style="width:11px;height:11px;border-radius:var(--r-xs);background:'+(s.rainbow?'linear-gradient(90deg,#E63946,#E8C879,#39FF88,#4FA3E0,#A020F0)':s.color)+';display:inline-block;"></span>'+escHtml(s.name)+' '+pct(s.v/total*100)+'</span>').join('');
 }
 
 /* ---- 折りたたみ ---- */
@@ -3968,7 +3978,7 @@ function rsQuickWidget(tabKey,kind){
     +'<div class="field"><div class="flabel">回収</div><div class="fhelp"></div><div class="igroup"><input type="number" id="rsQ_'+tabKey+'_ret" min="0" step="1000" placeholder="15000"><span class="unit">円</span></div></div>'
     +'</div>'
     +'<button class="btn2 accent" onclick="rsQuickAdd(\''+tabKey+'\',\''+kind+'\')">この収支を記録する</button>'
-    +'<div id="rsQ_'+tabKey+'_msg" class="fhelp" style="margin-top:6px;"></div>'
+    +'<div id="rsQ_'+tabKey+'_msg" class="fhelp" style="margin-top:var(--sp-1h);"></div>'
     +'</div>';
 }
 function rsQuickAdd(tabKey,kind){
@@ -4017,8 +4027,8 @@ function rsRender(){
      ヒーロー表示・集計・グラフは上で全件から計算済みなので、数値の正確さは損なわれない。 */
   const shown=rsShowAll?f:f.slice(0,RS_TABLE_LIMIT);
   const moreBar=f.length>RS_TABLE_LIMIT
-    ?'<div class="fhelp" style="margin-top:10px;">新しい順に<b>'+cf(shown.length)+'</b>件を表示中(全'+cf(f.length)+'件)。上の集計・グラフは全'+cf(f.length)+'件で計算しています。'
-      +'<button class="btn2" style="margin-left:8px;padding:4px 10px;font-size:11px;" onclick="rsShowAllToggle()">'
+    ?'<div class="fhelp" style="margin-top:var(--sp-2h);">新しい順に<b>'+cf(shown.length)+'</b>件を表示中(全'+cf(f.length)+'件)。上の集計・グラフは全'+cf(f.length)+'件で計算しています。'
+      +'<button class="btn2" style="margin-left:var(--sp-2);padding:var(--sp-1) var(--sp-2h);font-size:var(--fs-sm);" onclick="rsShowAllToggle()">'
       +(rsShowAll?'表示を'+RS_TABLE_LIMIT+'件に戻す':'全'+cf(f.length)+'件を表示')+'</button></div>'
     :'';
   $('rsTable').innerHTML=f.length
@@ -4060,12 +4070,12 @@ function gcBuild(){
   const other=1-gcTiersDef.reduce((s,t)=>s+t.rate,0);
   if(other>0)segs.push({name:'通常枠',v:other,color:'#3A3A50'});
   $('gcTheoryHead').innerHTML=
-    '<div class="pct-strip"><span class="l" style="font-size:11px;color:var(--gold);">目玉('+escHtml(gcTiersDef[0].name)+')排出率</span> <span class="pct-big">'+pct(p*100,2)+'</span>'
-    +(gcTiersDef[1]?'<span class="l" style="font-size:11px;color:var(--ink-2);margin-left:8px;">第2目玉('+escHtml(gcTiersDef[1].name)+')</span> <span class="mono" style="font-size:15px;color:var(--ink);">'+pct(gcTiersDef[1].rate*100,2)+'</span>':'')+'</div>';
+    '<div class="pct-strip"><span class="l" style="font-size:var(--fs-sm);color:var(--gold);">目玉('+escHtml(gcTiersDef[0].name)+')排出率</span> <span class="pct-big">'+pct(p*100,2)+'</span>'
+    +(gcTiersDef[1]?'<span class="l" style="font-size:var(--fs-sm);color:var(--ink-2);margin-left:var(--sp-2);">第2目玉('+escHtml(gcTiersDef[1].name)+')</span> <span class="mono" style="font-size:var(--fs-xl);color:var(--ink);">'+pct(gcTiersDef[1].rate*100,2)+'</span>':'')+'</div>';
   $('gcTheoryPie').innerHTML=
     '<div class="gc-pie-col"><div class="gc-pie-h">確率上の排出割合</div><canvas id="gcPie"></canvas><div class="legend">'+pieLegend(segs)+'</div></div>';
   $('gcActualPie').innerHTML=
-    '<div class="gc-pie-col"><div class="gc-pie-h">実際の排出割合</div><div class="fhelp" style="margin-top:24px;">まだ引いていません</div></div>';
+    '<div class="gc-pie-col"><div class="gc-pie-h">実際の排出割合</div><div class="fhelp" style="margin-top:var(--sp-5);">まだ引いていません</div></div>';
   $('gc-theory').innerHTML=
     '<div class="stats">'
     +'<div class="stat"><div class="s-l">'+escHtml(gcTiersDef[0].name)+'の期待初当たり</div><div class="s-v">'+num(expPulls)+'回</div><div class="s-sub">期待消費 '+cf(expPulls*cost)+'石 / 独立試行</div></div>'
@@ -4103,7 +4113,7 @@ function gcRender(last){
   $('gcCountBig').textContent=cf(gcCount);
   const pity=Math.max(0,Math.round(V('gcPity')));
   const pityPct=pity>0?Math.min(100,gcSince/pity*100):0;
-  $('gcPityView').innerHTML=(pity>0?'<div class="gc-budget-bar" style="margin-bottom:6px;"><div class="gc-budget-fill" style="width:'+pityPct+'%;background:'+(pityPct>=90?'var(--gold-hi)':'var(--gold)')+';"></div></div>'
+  $('gcPityView').innerHTML=(pity>0?'<div class="gc-budget-bar" style="margin-bottom:var(--sp-1h);"><div class="gc-budget-fill" style="width:'+pityPct+'%;background:'+(pityPct>=90?'var(--gold-hi)':'var(--gold)')+';"></div></div>'
     +'<span class="rc gold">天井まで残り <b>'+Math.max(0,pity-gcSince)+'</b>回</span>':'')
     +(gcEyeHits.length?'<span class="rc gold">'+(gcTiersDef[0]?gcTiersDef[0].name:'目玉')+'当選: '+gcEyeHits.map((n,i)=>(i+1)+'回目='+n+'連目').join(' / ')+'</span>':'')
     +(gcEye2Hits.length?'<span class="rc">第2目玉: '+gcEye2Hits.map((n,i)=>(i+1)+'回目='+n+'連目').join(' / ')+'</span>':'');
@@ -4131,17 +4141,17 @@ function gcPull(n){
   if(pulled===0){rb.className='result-banner';rb.innerHTML='<div class="r-tier" style="color:var(--neg);">⚠ 石が不足しています(所持石を増やすか消費を下げてください)</div><div class="r-coin">—</div>';return;}
   const draw=log.slice(0,200);
   $('gcLog').innerHTML=foldBlock('引いた履歴('+pulled+'連 / 先頭200件)',
-    '<div style="display:flex;flex-wrap:wrap;gap:4px;padding-top:6px;">'+draw.map(tier=>'<span class="pl '+(tier===0?'t0':tier===1?'t1':tier>=2?'t2':'tx')+'">'+(tier>=0?gcTiersDef[tier].name.slice(0,2):'—')+'</span>').join('')+'</div>',
+    '<div style="display:flex;flex-wrap:wrap;gap:var(--sp-1);padding-top:var(--sp-1h);">'+draw.map(tier=>'<span class="pl '+(tier===0?'t0':tier===1?'t1':tier>=2?'t2':'tx')+'">'+(tier>=0?gcTiersDef[tier].name.slice(0,2):'—')+'</span>').join('')+'</div>',
     true)
     +(gcHitLog.length?foldBlock('当選履歴(通算'+gcCount+'連中'+gcHitLog.length+'件 / 先頭200件)',
-      '<div class="remain" style="padding-top:6px;">'+gcHitLog.slice(0,200).map(h=>'<span class="rc'+(h.rank===1?' gold':'')+'"><span class="rankb r'+h.rank+'" style="margin-right:4px;">'+h.rank+'位</span>'+h.n+'連目 / '+escHtml(h.name)+'</span>').join('')+'</div>',false):'');
+      '<div class="remain" style="padding-top:var(--sp-1h);">'+gcHitLog.slice(0,200).map(h=>'<span class="rc'+(h.rank===1?' gold':'')+'"><span class="rankb r'+h.rank+'" style="margin-right:var(--sp-1);">'+h.rank+'位</span>'+h.n+'連目 / '+escHtml(h.name)+'</span>').join('')+'</div>',false):'');
   const hit=best<99;
   const rank=hit?gcRank[best]:6;
   const show=()=>{
     rb.className='result-banner '+(hit?'fx-r'+rank:'')+' pop';
     rb.innerHTML='<div class="r-tier">'+pulled+'連の結果 '+(hit?'— 最高: '+escHtml(gcTiersDef[best].name)+(rank===1?' 🌈':''):'— 全部通常枠')+'</div>'
       +'<div class="r-coin">−'+cf(cost*pulled)+' 石消費</div>'
-      +(pulled<n?'<div class="r-tier" style="color:var(--neg);font-size:12.5px;margin-top:4px;">⚠ '+n+'連を希望しましたが、石不足のため'+pulled+'連で打ち切りました</div>':'');
+      +(pulled<n?'<div class="r-tier" style="color:var(--neg);font-size:var(--fs-md);margin-top:var(--sp-1);">⚠ '+n+'連を希望しましたが、石不足のため'+pulled+'連で打ち切りました</div>':'');
     if(hit&&rank===1){confettiBurst(rb);SFX.jackpot();}
     else if(hit&&rank<=2)SFX.win();
     gcRender(true);
@@ -4165,7 +4175,7 @@ function gcActualPieRender(){
   $('gcActualPie').innerHTML=
     '<div class="gc-pie-col"><div class="gc-pie-h">実際の排出割合(通算'+cf(gcCount)+'連)</div><canvas id="gcActPieC"></canvas><div class="legend">'
     +segs.map((s,i)=>'<span class="li"><span class="sw" style="background:'+s.color+';border-color:'+s.color+';"></span>'+escHtml(s.name)+' '+pct(s.v/gcCount*100,1)+(gcTiersDef[i]?'(理論'+pct(gcTiersDef[i].rate*100,1)+')':'')+'</span>').join('')
-    +'</div><div class="fhelp" style="margin-top:6px;">試行が少ないとブレます</div></div>';
+    +'</div><div class="fhelp" style="margin-top:var(--sp-1h);">試行が少ないとブレます</div></div>';
   requestAnimationFrame(()=>pieInto('gcActPieC',segs,'実排出',cf(gcCount)+'連'));
 }
 
@@ -4191,7 +4201,7 @@ function stRender(){
   const genres={};
   keys.forEach(k=>{const genre=k.split('(')[0];genres[genre]=genres[genre]||[];genres[genre].push(k);});
   $('stBody').innerHTML=
-    '<div class="st-row" style="border-bottom:2px solid var(--line2);"><span class="st-n">生涯トータル</span><span class="st-c">総投資 '+cf(totalInv)+(totalInv>0?' / 回収率'+pct((totalInv+total)/totalInv*100):'')+'</span><span class="st-v" style="font-size:20px;color:'+(total>=0?'var(--pos)':'var(--neg)')+';">'+(total>=0?'+':'−')+cf(Math.abs(total))+'</span></div>'
+    '<div class="st-row" style="border-bottom:2px solid var(--line2);"><span class="st-n">生涯トータル</span><span class="st-c">総投資 '+cf(totalInv)+(totalInv>0?' / 回収率'+pct((totalInv+total)/totalInv*100):'')+'</span><span class="st-v" style="font-size:var(--fs-3xl);color:'+(total>=0?'var(--pos)':'var(--neg)')+';">'+(total>=0?'+':'−')+cf(Math.abs(total))+'</span></div>'
     +(keys.length
     ?Object.entries(genres).map(([genre,cats])=>{
       const rows=cats.map(k=>{const v=s[k];const rate=(v.inv||0)>0?((v.inv+v.net)/v.inv*100):null;
@@ -4232,7 +4242,7 @@ function slPaceCalc(){
 function slYuriCalc(){
   const g=Math.max(0,Math.min(1500,Math.round(V('slYuriG'))||0));
   const remain=1500-g,p=g/1500*100;
-  $('slYuriOut').innerHTML='<div class="gc-budget-bar" style="margin:8px 0;"><div class="gc-budget-fill" style="width:'+p+'%;background:'+(p>=90?'var(--neg)':(p>=70?'#E8C879':'var(--pos)'))+';"></div></div>'
+  $('slYuriOut').innerHTML='<div class="gc-budget-bar" style="margin:var(--sp-2) 0;"><div class="gc-budget-fill" style="width:'+p+'%;background:'+(p>=90?'var(--neg)':(p>=70?'#E8C879':'var(--pos)'))+';"></div></div>'
     +'<div class="remain"><span class="rc gold">残り: <b>'+cf(remain)+'</b>G</span><span class="rc">進捗: <b>'+num(p,0)+'%</b></span></div>';
 }
 /* ---- オリパ: 分離入力・円グラフ・履歴・折りたたみ ---- */
@@ -4349,8 +4359,8 @@ function opBuild(){
     const w10=probHyper(useT,t.count,Math.min(10,useT));
     const w100=probHyper(useT,t.count,Math.min(100,useT));
     const wWallet=probHyper(useT,t.count,affordable);
-    return '<div class="remain" style="margin-bottom:4px;">'
-      +'<span class="rc'+(opRank[i]===1?' gold':'')+'">'+escHtml(t.name)+'<span class="rankb r'+opRank[i]+'" style="margin:0 4px;">'+opRank[i]+'位</span></span>'
+    return '<div class="remain" style="margin-bottom:var(--sp-1);">'
+      +'<span class="rc'+(opRank[i]===1?' gold':'')+'">'+escHtml(t.name)+'<span class="rankb r'+opRank[i]+'" style="margin:0 var(--sp-1);">'+opRank[i]+'位</span></span>'
       +'<span class="rc">10連で1口以上: <b>'+pct(w10*100)+'</b></span>'
       +'<span class="rc">100連で1口以上: <b>'+pct(w100*100)+'</b></span>'
       +'<span class="rc gold">全ツッパ('+affordable+'口/所持コイン全額)で1口以上: <b>'+pct(wWallet*100)+'</b></span>'
@@ -4367,16 +4377,16 @@ function opBuild(){
         :'<div class="remain"><span class="rc gold">✓ '+Math.round(V('opGuarN'))+'口ごとに「'+((tiersUse[Math.min(tiersUse.length-1,Math.max(0,Math.round(V('opGuarTier'))))]||{}).name||'')+'以上」を保証済み</span></div>')
       :'')
     +'<div class="pct-strip">'
-      +(tiersUse[0]?'<span style="font-size:11px;color:var(--gold);">'+escHtml(tiersUse[0].name)+'</span> <span class="pct-big">1/'+num(useT/Math.max(1,tiersUse[0].count),0)+'</span>':'')
-      +(tiersUse[1]?'<span style="font-size:11px;color:var(--ink-2);margin-left:10px;">'+escHtml(tiersUse[1].name)+'</span> <span class="mono" style="font-size:16px;color:var(--ink);">1/'+num(useT/Math.max(1,tiersUse[1].count),0)+'</span>':'')
+      +(tiersUse[0]?'<span style="font-size:var(--fs-sm);color:var(--gold);">'+escHtml(tiersUse[0].name)+'</span> <span class="pct-big">1/'+num(useT/Math.max(1,tiersUse[0].count),0)+'</span>':'')
+      +(tiersUse[1]?'<span style="font-size:var(--fs-sm);color:var(--ink-2);margin-left:var(--sp-2h);">'+escHtml(tiersUse[1].name)+'</span> <span class="mono" style="font-size:var(--fs-xl);color:var(--ink);">1/'+num(useT/Math.max(1,tiersUse[1].count),0)+'</span>':'')
     +'</div>'
-    +tiersUse.map((t,i)=>'<div class="remain" style="margin-bottom:4px;"><span class="rc gold">'+escHtml(t.name)+' <span class="rankb r'+opRank[i]+'">'+opRank[i]+'位</span>: <b>1/'+num(useT/Math.max(1,t.count),0)+'</b> で <b>'+cf(t.coin)+'</b>コイン ('+t.count+'枚封入)</span></div>').join('')
+    +tiersUse.map((t,i)=>'<div class="remain" style="margin-bottom:var(--sp-1);"><span class="rc gold">'+escHtml(t.name)+' <span class="rankb r'+opRank[i]+'">'+opRank[i]+'位</span>: <b>1/'+num(useT/Math.max(1,t.count),0)+'</b> で <b>'+cf(t.coin)+'</b>コイン ('+t.count+'枚封入)</span></div>').join('')
     +'<div class="remain"><span class="rc">総還元率: <b>'+pct(kangen,2)+'</b></span><span class="rc">1口の期待損益: <b>'+(opEvPer>=0?'+':'−')+cf(Math.abs(opEvPer))+'</b>コイン</span></div>'
-    +'<div class="flabel" style="margin-top:8px;">上位賞の当選確率(1口以上当たる確率)</div>'+winRateRows;
+    +'<div class="flabel" style="margin-top:var(--sp-2);">上位賞の当選確率(1口以上当たる確率)</div>'+winRateRows;
   $('opTheoryPie').innerHTML=
     '<div class="gc-pie-col"><div class="gc-pie-h">確率上の当たり割合</div><canvas id="opPie"></canvas><div class="legend">'+pieLegend(segs)+'</div></div>';
   $('opActualPie').innerHTML=
-    '<div class="gc-pie-col"><div class="gc-pie-h">実際の当たり割合</div><div class="fhelp" style="margin-top:24px;">まだ引いていません</div></div>';
+    '<div class="gc-pie-col"><div class="gc-pie-h">実際の当たり割合</div><div class="fhelp" style="margin-top:var(--sp-5);">まだ引いていません</div></div>';
   $('opPlay').style.display='';
   opRender(null);
   $('opLog').innerHTML='';
@@ -4396,7 +4406,7 @@ function opActualPieRender(){
   $('opActualPie').innerHTML=
     '<div class="gc-pie-col"><div class="gc-pie-h">実際の当たり割合(通算'+cf(opDrawn)+'口)</div><canvas id="opActPieC"></canvas><div class="legend">'
     +segs.map((s,i)=>'<span class="li"><span class="sw" style="background:'+s.color+';border-color:'+s.color+';"></span>'+escHtml(s.name)+' '+pct(s.v/opDrawn*100,1)+(opTierDefs[i]?'(理論'+pct(opTierDefs[i].count/(opDeck.length)*100,1)+')':'')+'</span>').join('')
-    +'</div><div class="fhelp" style="margin-top:6px;">試行が少ないとブレます</div></div>';
+    +'</div><div class="fhelp" style="margin-top:var(--sp-1h);">試行が少ないとブレます</div></div>';
   requestAnimationFrame(()=>pieInto('opActPieC',segs,'実当選',cf(opDrawn)+'口'));
 }
 function opPull(n){
@@ -4430,10 +4440,10 @@ function opPull(n){
   const RCOL=['#E8B33C','#8E6BFF','#3DDC97','#FF3D68','#4FA3E0','#C4A788'];
   $('opLog').innerHTML=
     foldBlock('開封履歴('+pulled+'口 / 先頭200件)',
-      '<div style="display:flex;flex-wrap:wrap;gap:4px;padding-top:6px;">'+draw.map(t=>'<span class="pl '+(t===0?'t0':t===1?'t1':t>=2?'t2':'tx')+'">'+(t>=0?['1','2','3','4','5','6'][t]||'★':'—')+'</span>').join('')+'</div>',false)
-    +(opWinList.length?foldBlock('上位賞の当選口('+opWinList.length+'件)','<div class="remain" style="padding-top:6px;">'+opWinList.map(w=>{const ci=opTierDefs.findIndex(td=>td.name===w.name);const col=ci>=0?RCOL[ci%6]:'#E8B33C';const rk=ci>=0?opRank[ci]:1;return '<span class="rc" style="border-color:'+col+';color:'+col+';font-weight:700;"><span class="rankb r'+rk+'" style="margin-right:4px;">'+rk+'位</span>'+w.kuchi+'口目 / '+escHtml(w.name)+'</span>';}).join('')+'</div>',false):'')
-    +(opHitLog.length?foldBlock('当選履歴(通算'+opDrawn+'口中'+opHitLog.length+'件 / 先頭200件)','<div class="remain" style="padding-top:6px;">'+opHitLog.slice(0,200).map(w=>'<span class="rc'+(w.rank===1?' gold':'')+'"><span class="rankb r'+w.rank+'" style="margin-right:4px;">'+w.rank+'位</span>'+w.kuchi+'口目 / '+escHtml(w.name)+'</span>').join('')+'</div>',false):'')
-    +foldBlock('収支履歴','<div style="padding-top:6px;">'+opHistArr.map(h=>'<div class="cclog-line" style="color:'+(h.net>=0?'var(--pos)':'var(--neg)')+'">'+h.pulls+'連('+h.from+'口〜'+h.to+'口) '+(h.net>=0?'+ ':'− ')+cf(Math.abs(h.net))+'coin</div>').join('')+'</div>',false);
+      '<div style="display:flex;flex-wrap:wrap;gap:var(--sp-1);padding-top:var(--sp-1h);">'+draw.map(t=>'<span class="pl '+(t===0?'t0':t===1?'t1':t>=2?'t2':'tx')+'">'+(t>=0?['1','2','3','4','5','6'][t]||'★':'—')+'</span>').join('')+'</div>',false)
+    +(opWinList.length?foldBlock('上位賞の当選口('+opWinList.length+'件)','<div class="remain" style="padding-top:var(--sp-1h);">'+opWinList.map(w=>{const ci=opTierDefs.findIndex(td=>td.name===w.name);const col=ci>=0?RCOL[ci%6]:'#E8B33C';const rk=ci>=0?opRank[ci]:1;return '<span class="rc" style="border-color:'+col+';color:'+col+';font-weight:700;"><span class="rankb r'+rk+'" style="margin-right:var(--sp-1);">'+rk+'位</span>'+w.kuchi+'口目 / '+escHtml(w.name)+'</span>';}).join('')+'</div>',false):'')
+    +(opHitLog.length?foldBlock('当選履歴(通算'+opDrawn+'口中'+opHitLog.length+'件 / 先頭200件)','<div class="remain" style="padding-top:var(--sp-1h);">'+opHitLog.slice(0,200).map(w=>'<span class="rc'+(w.rank===1?' gold':'')+'"><span class="rankb r'+w.rank+'" style="margin-right:var(--sp-1);">'+w.rank+'位</span>'+w.kuchi+'口目 / '+escHtml(w.name)+'</span>').join('')+'</div>',false):'')
+    +foldBlock('収支履歴','<div style="padding-top:var(--sp-1h);">'+opHistArr.map(h=>'<div class="cclog-line" style="color:'+(h.net>=0?'var(--pos)':'var(--neg)')+'">'+h.pulls+'連('+h.from+'口〜'+h.to+'口) '+(h.net>=0?'+ ':'− ')+cf(Math.abs(h.net))+'coin</div>').join('')+'</div>',false);
   const hit=bestTier<99;
   const rank=hit?opRank[bestTier]:6;
   const shortReason=opDrawn>=opDeck.length?'完売':'コイン不足';
@@ -4441,7 +4451,7 @@ function opPull(n){
     rb.className='result-banner '+(hit?'fx-r'+rank:'')+' pop';
     rb.innerHTML='<div class="r-tier">'+pulled+'口引いた結果 '+(hit?'— '+escHtml(opTierDefs[bestTier].name)+'当選!!'+(rank===1?' 🌈':''):'— ハズレ')+'</div>'
       +'<div class="r-coin">+'+cf(gained)+' 獲得 / 差枚 '+(net>=0?'+':'−')+cf(Math.abs(net))+'</div>'
-      +(pulled<n?'<div class="r-tier" style="color:var(--neg);font-size:12.5px;margin-top:4px;">⚠ '+n+'口を希望しましたが、'+shortReason+'のため'+pulled+'口で打ち切りました</div>':'');
+      +(pulled<n?'<div class="r-tier" style="color:var(--neg);font-size:var(--fs-md);margin-top:var(--sp-1);">⚠ '+n+'口を希望しましたが、'+shortReason+'のため'+pulled+'口で打ち切りました</div>':'');
     if(hit&&rank===1){confettiBurst(rb);SFX.jackpot();}else if(hit&&rank<=2)SFX.win();else if(!hit&&pulled>=10)SFX.lose();
     opRender(true);
     opActualPieRender();
@@ -4555,11 +4565,11 @@ function ruBiasRender(){
   box.innerHTML=
     '<div class="flabel">出目統計・偏り分析(通算'+cf(total)+'回)</div>'
     +'<div class="fhelp">理論上の1数字あたり期待回数: '+num(expected,1)+'回</div>'
-    +'<div class="flabel" style="margin-top:8px;">出やすい数字(実測上位5)</div>'
+    +'<div class="flabel" style="margin-top:var(--sp-2);">出やすい数字(実測上位5)</div>'
     +'<div class="remain">'+hot.map(r=>'<span class="rc gold">'+r.n+'番: <b>'+r.c+'</b>回('+(r.dev>=0?'+':'')+num(r.dev,0)+'%)</span>').join('')+'</div>'
-    +'<div class="flabel" style="margin-top:8px;">出ていない数字(実測下位5)</div>'
+    +'<div class="flabel" style="margin-top:var(--sp-2);">出ていない数字(実測下位5)</div>'
     +'<div class="remain">'+cold.map(r=>'<span class="rc">'+r.n+'番: <b>'+r.c+'</b>回('+(r.dev>=0?'+':'')+num(r.dev,0)+'%)</span>').join('')+'</div>'
-    +'<div class="fhelp" style="margin-top:6px;">乱数のブレはサンプル数が少ないうちは大きく出ます。数百〜数千回で理論値(均等)に収束するのが正常です。「偏り」を過信しないための学習用機能です。</div>';
+    +'<div class="fhelp" style="margin-top:var(--sp-1h);">乱数のブレはサンプル数が少ないうちは大きく出ます。数百〜数千回で理論値(均等)に収束するのが正常です。「偏り」を過信しないための学習用機能です。</div>';
 }
 function rtChip(el){
   if(el.dataset.v==='custom'){
@@ -4644,7 +4654,7 @@ function ruSettle(n){
   rb.className='result-banner '+(bigWin?'fx-r1':(delta>=0?'hit':''))+' pop';
   rb.innerHTML='<div class="r-tier">出目: '+n+' ('+colName+') — 払い戻し '+cf(payout)+'</div>'
     +'<div class="r-coin">'+(delta>=0?'+':'−')+cf(Math.abs(delta))+' 円</div>'
-    +'<div class="r-tier" style="font-size:11px;color:var(--ink-3);">ベットは据え置き。取り消すには下のタグをタップ</div>';
+    +'<div class="r-tier" style="font-size:var(--fs-sm);color:var(--ink-3);">ベットは据え置き。取り消すには下のタグをタップ</div>';
   if(bigWin){confettiBurst(rb);SFX.jackpot();}else if(delta>0)SFX.win();else SFX.lose();
   drawChart($('ruChart'),ruSeries,ruEvSeries,{xLabel:'スピン回数',yLabel:'収支(円)'});
   statAdd('ルーレット',delta,total);
@@ -4813,7 +4823,7 @@ function slBonusListHTML(rec,p,pReg){
     +(rb>0?'<span>RB確率: 1/'+num(totalG/rb,0)+'</span><span>合算: 1/'+num(totalG/(bb+rb),0)+'</span>':'')
     +'</div>';
   return '<div class="chart-card"><div class="chart-head"><div class="c-title">ボーナス履歴</div></div>'
-    +'<button class="run" id="slBonusBtn" style="margin:0 0 8px;" onclick="slToggleBonus()">'+(slBonusShown?'▲ ボーナス履歴を隠す':'▼ ボーナス履歴を表示する')+'('+rec.length+'回)</button>'
+    +'<button class="run" id="slBonusBtn" style="margin:0 0 var(--sp-2);" onclick="slToggleBonus()">'+(slBonusShown?'▲ ボーナス履歴を隠す':'▼ ボーナス履歴を表示する')+'('+rec.length+'回)</button>'
     +'<div id="slBonusBody" style="display:'+(slBonusShown?'':'none')+';">'
     +'<div class="bh-wrap"><div class="bh-scroll">'+rows+'</div>'+foot+'</div></div></div>';
 }
@@ -4913,10 +4923,10 @@ function cmpRender(p){
   const box=$('cmp-'+p);if(!box)return;
   const list=cmpList[p]||[];
   if(list.length===0){box.innerHTML='';return;}
-  box.innerHTML='<div class="card-title" style="margin-top:14px;"><span class="step">CMP</span><h3>スペック比較(直近'+list.length+'件)</h3></div>'
+  box.innerHTML='<div class="card-title" style="margin-top:var(--sp-3h);"><span class="step">CMP</span><h3>スペック比較(直近'+list.length+'件)</h3></div>'
     +'<table class="rs-table"><thead><tr><th></th>'+list.map((m,i)=>'<th>'+m.label+'</th>').join('')+'</tr></thead><tbody>'
     +['期待値/回転(円)','ボーダー','回収率'].map((row,ri)=>'<tr><td>'+row+'</td>'+list.map(m=>'<td style="color:'+(m.evPositive?'var(--pos)':'var(--neg)')+';">'+m.vals[ri]+'</td>').join('')+'</tr>').join('')
-    +'</tbody></table><button class="btn2" style="margin-top:6px;" onclick="cmpClear(\''+p+'\')">比較をクリア</button>';
+    +'</tbody></table><button class="btn2" style="margin-top:var(--sp-1h);" onclick="cmpClear(\''+p+'\')">比較をクリア</button>';
 }
 function cmpClear(p){cmpList[p]=[];cmpRender(p);}
 /* ---- I: 収支分布ヒストグラム ---- */
@@ -5013,7 +5023,7 @@ function stratCompare(){
     +'<div class="legend">'+defs.map(([,label,col])=>'<span class="li"><span class="sw" style="border-color:'+col+';"></span>'+label+'</span>').join('')+'</div></div>'
     +'<canvas id="stratChart"></canvas></div>'
     +'<div style="overflow-x:auto;"><table class="rs-table"><thead><tr><th>戦略</th><th>最終収支</th><th>最大ドローダウン</th><th>勝率</th></tr></thead><tbody>'+summaryRows+'</tbody></table></div>'
-    +'<div class="fhelp" style="margin-top:8px;">どの戦略でも、賭け方を変えても<b>期待値そのものは変わりません</b>(ルーレットの控除率は一定のため)。マーチンゲールは「勝率は高いが、稀に大負けする」、パーレーとダランベールは「大負けしにくいが上振れも小さい」、ラボシェールと31システムは「連勝を利益に変えやすいが機械的な運用が要る」という、リスクの<b>形</b>が変わるだけです。資金と賭け上限が有限である以上、長期的にはどれも理論値どおりに収束します。最大ドローダウンは200スピン中の資金の山から谷への最大の落ち込み幅です。</div>';
+    +'<div class="fhelp" style="margin-top:var(--sp-2);">どの戦略でも、賭け方を変えても<b>期待値そのものは変わりません</b>(ルーレットの控除率は一定のため)。マーチンゲールは「勝率は高いが、稀に大負けする」、パーレーとダランベールは「大負けしにくいが上振れも小さい」、ラボシェールと31システムは「連勝を利益に変えやすいが機械的な運用が要る」という、リスクの<b>形</b>が変わるだけです。資金と賭け上限が有限である以上、長期的にはどれも理論値どおりに収束します。最大ドローダウンは200スピン中の資金の山から谷への最大の落ち込み幅です。</div>';
   requestAnimationFrame(()=>{
     const cv=$('stratChart');const ctx=cv.getContext('2d');const dpr=window.devicePixelRatio||1;
     const w=cv.clientWidth||600,h=240;cv.width=w*dpr;cv.height=h*dpr;cv.style.height=h+'px';ctx.scale(dpr,dpr);
@@ -5068,7 +5078,7 @@ let rbAmt=100,rbBetsCur={};
 function rbNamesRender(){
   const box=$('rbNames');box.innerHTML='<div class="flabel">プレイヤー名と所持金(個別設定可)</div>';
   for(let i=0;i<rbN;i++){
-    const d=document.createElement('div');d.style.cssText='display:flex;gap:6px;margin-top:6px;';
+    const d=document.createElement('div');d.style.cssText='display:flex;gap:var(--sp-1h);margin-top:var(--sp-1h);';
     d.innerHTML='<div class="igroup" style="flex:1.4;"><span class="pre">P'+(i+1)+'</span><input type="text" id="rbName'+i+'" value="プレイヤー'+(i+1)+'"></div>'
       +'<div class="igroup" style="flex:1;"><input type="number" id="rbMoney'+i+'" placeholder="共通額" step="1000"><span class="unit">pt</span></div>';
     box.appendChild(d);
@@ -5187,7 +5197,7 @@ function rbTurn(){
   $('rbChips').style.display='';$('rbTableWrap').style.display='';$('rbBets').style.display='';$('rbTurnBtns').style.display='';
   $('rbTable').style.pointerEvents='';
   $('rbStage').style.display='none';$('rbSpinBtn').style.display='none';$('rbResult').style.display='none';
-  $('rbTurnBanner').innerHTML='<div class="result-banner" style="border-color:var(--gold-deep);"><div class="r-tier">R'+rb.round+' / '+rb.players.length+'人中 '+(rb.cur+1)+'人目</div><div class="r-coin" style="font-size:18px;color:var(--gold-hi);">'+escHtml(pl.name)+' の番</div><div class="r-tier" style="font-size:11px;">所持 '+cf(pl.money)+'pt — 盤面にチップを置いてください</div></div>';
+  $('rbTurnBanner').innerHTML='<div class="result-banner" style="border-color:var(--gold-deep);"><div class="r-tier">R'+rb.round+' / '+rb.players.length+'人中 '+(rb.cur+1)+'人目</div><div class="r-coin" style="font-size:var(--fs-2xl);color:var(--gold-hi);">'+escHtml(pl.name)+' の番</div><div class="r-tier" style="font-size:var(--fs-sm);">所持 '+cf(pl.money)+'pt — 盤面にチップを置いてください</div></div>';
   $('rbTurnBtns').innerHTML='<button class="run" onclick="rbConfirmTurn()">'+(rb.cur<rb.players.length-1?'ベット確定 → 次の人へ':'ベット確定 → 配置を確認へ')+'</button>';
   rbRenderTable();
   rbRender();
@@ -5217,7 +5227,7 @@ function rbConfirmTurn(){
     $('rbChips').style.display='none';$('rbTurnBtns').style.display='none';
     $('rbTable').style.pointerEvents='none';
     rbRenderAllBets();
-    $('rbTurnBanner').innerHTML='<div class="result-banner"><div class="r-tier">全員のベット配置</div><div class="r-coin" style="font-size:16px;">盤面を確認してSPIN</div></div>';
+    $('rbTurnBanner').innerHTML='<div class="result-banner"><div class="r-tier">全員のベット配置</div><div class="r-coin" style="font-size:var(--fs-xl);">盤面を確認してSPIN</div></div>';
     $('rbStage').style.display='';$('rbSpinBtn').style.display='';
     ruDraw(rbRot,'rbWheel');
   }
@@ -5253,7 +5263,7 @@ function rbSettle(n){
   if(rb.round>=rb.rounds){
     $('rbTurnBanner').innerHTML='<div class="result-banner fx-r1"><div class="r-tier">🏆 優勝</div><div class="r-coin">'+escHtml(ranked[0].name)+'</div>'
       +'<div class="r-tier">'+ranked.map((p,i)=>(i+1)+'位 '+escHtml(p.name)+' '+cf(p.money)).join(' / ')+'</div></div>'
-      +'<button class="btn2 accent" style="width:100%;padding:12px;margin-top:8px;" onclick="rbStart()">同メンバーで再戦</button>';
+      +'<button class="btn2 accent" style="width:100%;padding:var(--sp-3);margin-top:var(--sp-2);" onclick="rbStart()">同メンバーで再戦</button>';
     $('rbStage').style.display='none';$('rbSpinBtn').style.display='none';$('rbTurnBtns').style.display='none';
     SFX.jackpot();
   }else{

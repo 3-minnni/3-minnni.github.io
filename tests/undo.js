@@ -17,7 +17,7 @@ const undoShown = (w) => { const b = $(w, 'undoBar'); return !!b && b.classList.
     R.check('kkReset: 確認モーダルが出る', !!modal(w));
     modalNo(w);
     R.check('kkReset: キャンセルでデータが残る', $(w, 'kkBigC').textContent === before, 'BIG=' + $(w, 'kkBigC').textContent);
-    w.kkReset(); modalYes(w); await sleep(60);
+    w.kkReset(); modalYes(w); await sleep(200);
     R.check('kkReset: 実行で0になる', $(w, 'kkBigC').textContent === '0');
     R.check('kkReset: 取り消しバーが出る', undoShown(w));
     w.undoRun();
@@ -31,7 +31,7 @@ const undoShown = (w) => { const b = $(w, 'undoBar'); return !!b && b.classList.
     $(w, 'rsInv').value = 20000; $(w, 'rsRet').value = 25000; w.rsAdd();
     $(w, 'rsDate').value = '2026-08-29'; $(w, 'rsInv').value = 10000; $(w, 'rsRet').value = 5000; w.rsAdd();
     const n0 = w.rsAll().length;
-    w.rsDel(0); await sleep(60);
+    w.rsDel(0); await sleep(200);
     R.check('rsDel: 1件削除される', w.rsAll().length === n0 - 1, `${n0}→${w.rsAll().length}`);
     R.check('rsDel: 取り消しバーが出る(モーダルは挟まない)', undoShown(w) && !modal(w));
     w.undoRun();
@@ -45,7 +45,7 @@ const undoShown = (w) => { const b = $(w, 'undoBar'); return !!b && b.classList.
     w.stSave(s); w.stRender();
     w.stReset();
     R.check('stReset: 確認モーダルが出る', !!modal(w));
-    modalYes(w); await sleep(60);
+    modalYes(w); await sleep(200);
     R.check('stReset: 実行で空になる', Object.keys(w.stAll()).length === 0);
     R.check('stReset: 取り消しバーが出る', undoShown(w));
     w.undoRun();

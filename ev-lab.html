@@ -2626,8 +2626,16 @@ function particlesSet(on){
    金色の水平線(期待値)に向かって、収支の軌跡が振れ幅を減らしながら収束していく。
    以前は1.5秒の固定待ちで、読み込みが終わっていても待たされ、
    遅い端末では準備前に消えていた。ここでは実際の準備完了と連動させ、
-   最短 SP_MIN・最長 SP_MAX の範囲で畳む。 */
-const SP_MIN=900,SP_MAX=2500,SP_DUR=1700;
+   最短 SP_MIN・最長 SP_MAX の範囲で畳む。
+
+   SP_MIN は演出を最後まで見せきれる長さにすること。
+   軌跡が収束しきるのが 1.7秒、そこからロゴ(1.02s+0.5s)・タイトル(1.16s+0.52s)・
+   LOADING(1.4s+0.4s)と続いて振り付けが終わるのが 1.8秒。
+   以前は SP_MIN=900ms だったため、読み込みの速い環境では
+   ロゴが出る前に閉じてしまい、演出をほとんど確認できなかった。 */
+const SP_MIN=2400,SP_MAX=3400,SP_DUR=1700;
+/* 2回目以降・演出OFF時の表示時間。一瞬で消えるとロゴが認識できないので少しだけ置く */
+const SP_STILL=700;
 (function(){
   const sp=$('splash');if(!sp)return;
   const cv=$('spCanvas'),numEl=$('spNum');
@@ -2648,7 +2656,7 @@ const SP_MIN=900,SP_MAX=2500,SP_DUR=1700;
 
   if(!full){
     sp.classList.add('sp-still');
-    setTimeout(hide,Math.min(SP_MIN,420));
+    setTimeout(hide,SP_STILL);
     sp.addEventListener('click',hide);
     return;
   }

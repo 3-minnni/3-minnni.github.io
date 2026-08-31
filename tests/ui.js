@@ -280,5 +280,26 @@ function foldState(w, bodyId) {
       calls.filter(([k]) => k === 'fillText').slice(0, 3).map((c) => c[1]).join(' / '));
   }
 
+  /* 動きの言語: 持続時間13種・曲線4種がばらばらだったので3層に集約した。
+     jsdom は CSS変数を解決しないので、宣言側にトークンが行き渡ったかを見る。 */
+  {
+    const w = await boot(TARGET, { seed: 1 });
+    const css = [...w.document.querySelectorAll('style')].map((e) => e.textContent).join('');
+    const decls = (css.match(/(?:transition|animation|animation-delay):[^;}]*/g) || []);
+    /* 演出層(虹・紙吹雪・リール・光沢)と起動画面の振り付けは別物なので除く */
+    const skip = /rb |cfall|shine|ballRoll|sp(Mark|Rise|Fade)|animation:none|opacity \.42s/;
+    const raw = decls.filter((d) => !skip.test(d) && /[0-9]+m?s/.test(d) && !/var\(--mo-/.test(d));
+    R.check('反応・切替・登場の時間がトークンに寄せられている', raw.length === 0,
+      raw.slice(0, 3).join(' / ') || '生の秒数指定なし');
+    R.check('動きのトークンが定義されている',
+      /--mo-fast:/.test(css) && /--mo-base:/.test(css) && /--mo-slow:/.test(css) && /--ease:/.test(css));
+    /* ずらしは一定幅の等差でなければ「揃った動き」に見えない */
+    const steps = (css.match(/animation-delay:calc\(var\(--mo-step\)\*(\d)\)/g) || []);
+    R.check('登場のずらしが等差になっている', steps.length >= 5, steps.length + '段');
+    R.check('演出OFFの停止機構が残っている', /body\.fx-off \*\{animation:none!important;\}/.test(css));
+    R.check('reduced-motion への配慮が残っている',
+      /prefers-reduced-motion/.test(css) && /animation-duration:\.01ms!important/.test(css));
+  }
+
   process.exit(R.finish());
 })().catch((e) => { console.error('ERR', e); process.exit(1); });

@@ -216,6 +216,32 @@
   .remain .rc b{font-family:var(--font-mono);font-weight:600;color:var(--ink);}
   .remain .rc.gold{background:var(--gold-soft);border-color:var(--gold-deep);color:var(--gold);}
   .remain .rc.gold b{color:var(--gold-hi);}
+  /* 差玉のプラス/マイナス。色だけに頼らないよう数値側に +/− 記号も出している */
+  .remain .rc.pos{background:var(--pos-soft);border-color:var(--pos);color:var(--pos);}
+  .remain .rc.pos b{color:var(--pos);}
+  .remain .rc.neg{background:var(--neg-soft);border-color:var(--neg);color:var(--neg);}
+  .remain .rc.neg b{color:var(--neg);}
+  /* 大当り履歴(データカウンター風の一覧) */
+  .pkh-head,.pkh-row{display:grid;grid-template-columns:2.2em 3.6em 1fr 1fr 1fr 1.3fr;gap:6px;align-items:center;}
+  .pkh-head{font-size:var(--fs-xs);color:var(--ink-3);padding:0 8px 4px;text-align:right;}
+  .pkh-head span:first-child,.pkh-head span:nth-child(2){text-align:left;}
+  .pkh-list{max-height:280px;overflow-y:auto;}
+  .pkh-row{padding:6px 8px;border-bottom:1px solid var(--line);font-family:var(--font-mono);
+    font-size:var(--fs-sm);text-align:right;font-variant-numeric:tabular-nums;}
+  .pkh-row:last-child{border-bottom:0;}
+  .pkh-row small{font-size:9px;color:var(--ink-3);margin-left:2px;font-family:var(--font-sans);}
+  .pkh-no{color:var(--ink-3);text-align:left;}
+  .pkh-badge{text-align:center;border-radius:4px;padding:1px 0;font-size:9px;font-weight:700;
+    font-family:var(--font-sans);}
+  .pkh-badge.single{background:var(--card2);color:var(--ink-3);}
+  .pkh-badge.rush{background:var(--gold-soft);color:var(--gold-hi);}
+  .pkh-badge.lt{background:color-mix(in srgb,var(--violet) 18%,transparent);color:var(--violet);}
+  .pkh-row.lt .pkh-chain{color:var(--violet);}
+  .pkh-row.rush .pkh-chain{color:var(--gold-hi);}
+  .pkh-balls{color:var(--ink);}
+  /* グラフの丸印の凡例。色は丸印が持ち、文字は通常色にして明るいテーマでも読めるようにする */
+  .pkh-key{display:inline-flex;align-items:center;gap:4px;margin-right:10px;}
+  .pkh-key i{width:9px;height:9px;border-radius:50%;flex:0 0 auto;}
 
   .pull-log{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px;max-height:118px;overflow-y:auto;}
   .pl{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-family:var(--font-mono);}
@@ -745,7 +771,7 @@
           <button class="btn2 accent" onclick="funPress(-1)">全額回す</button>
         </div>
         <div id="funCounter" style="margin-top:12px;"></div>
-        <div class="chart-card" style="margin-top:12px;"><div class="chart-head"><div class="c-title">収支の推移(横軸: 千円投入回数)</div></div><canvas id="funChart"></canvas></div>
+        <div class="chart-card" style="margin-top:12px;"><div class="chart-head"><div class="c-title">スランプグラフ(差玉の推移)</div></div><canvas id="funChart"></canvas><div class="fhelp" style="margin-top:6px;">縦軸は差玉(プラスなら浮いている玉数)、横軸は総回転数です。丸印が大当りの位置で、ラベルはその大当りの連チャン数を表します。<span class="pkh-key"><i style="background:#E8C879;"></i>RUSH</span><span class="pkh-key"><i style="background:#A020F0;"></i>LT</span><span class="pkh-key"><i style="background:#6B7386;"></i>単発</span></div></div><div id="funHits" style="margin-top:12px;"></div>
         <div id="funTheory"></div>
       </div>
     </div>
@@ -1535,7 +1561,8 @@ document.querySelectorAll('.tab').forEach(t=>{
 
 /* ===== chart (dark) ===== */
 function drawChart(canvas,series,evLine,opt){
-  const o=Object.assign({xLabel:'回数',yLabel:'収支',yFmt:v=>Math.round(v).toLocaleString()},opt||{});
+  const o=Object.assign({xLabel:'回数',yLabel:'収支',yFmt:v=>Math.round(v).toLocaleString(),
+    xFmt:i=>i.toLocaleString()},opt||{});
   const ctx=canvas.getContext('2d');const dpr=window.devicePixelRatio||1;
   const w=canvas.clientWidth,h=240;canvas.style.height=h+'px';
   canvas.width=w*dpr;canvas.height=h*dpr;ctx.scale(dpr,dpr);
@@ -1553,7 +1580,7 @@ function drawChart(canvas,series,evLine,opt){
     ctx.textAlign='right';ctx.fillText(o.yFmt(v),padL-7,yy+3.5);}
   ctx.strokeStyle=CH.zero;ctx.beginPath();ctx.moveTo(padL,Y(0));ctx.lineTo(w-padR,Y(0));ctx.stroke();
   ctx.textAlign='center';ctx.fillStyle=CH.tick;
-  for(let i=0;i<=4;i++){const idx=Math.round((n-1)*i/4);ctx.fillText(idx.toLocaleString(),X(idx),h-padB+15);}
+  for(let i=0;i<=4;i++){const idx=Math.round((n-1)*i/4);ctx.fillText(o.xFmt(idx),X(idx),h-padB+15);}
   ctx.fillText(o.xLabel,(padL+w-padR)/2,h-4);
   ctx.save();ctx.translate(11,(padT+h-padB)/2);ctx.rotate(-Math.PI/2);ctx.fillText(o.yLabel,0,0);ctx.restore();
   if(evLine&&evLine.length>1){ctx.setLineDash([5,4]);ctx.strokeStyle='#E8B33C';ctx.lineWidth=1.8;ctx.beginPath();
@@ -1727,7 +1754,7 @@ function runPK(){
       if(r.chain>maxChain)maxChain=r.chain;
       if(r.ltHit)ltCount++;
       if(markers.length<40)markers.push({i,label:r.chain+'連',color:r.ltHit?'#A020F0':'#E8C879'});
-      hitsRec.push({i,hamari:i-lastHit,rush:r.chain>1,lt:r.ltHit,chain:r.chain});
+      hitsRec.push({i,hamari:i-lastHit,rush:r.chain>1,lt:r.ltHit,chain:r.chain,balls:r.balls});
       lastHit=i;
     }
     series.push(bal);evLine.push(evSpin*i);
@@ -1762,6 +1789,7 @@ function runPK(){
     +`<div class="fold-head closed" onclick="this.classList.toggle('closed');$('pkAdvancedBody').classList.toggle('closed');"><span class="fold-ar">▼</span>詳細データ・分析ツール</div>`
     +`<div class="fold-body closed" id="pkAdvancedBody" style="max-height:4000px;">`
     +pkCounterHTML(hitsRec,trials)
+    +pkHitHistoryHTML(hitsRec,pkRate.rate,false)
     +pkPracticalHTML()
     +pkDistPiesHTML(P,'g')
     +`<div style="margin:4px 0 10px;"><button class="btn2" onclick="cmpAdd('pk',{label:'${(new Date()).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})}',evPositive:${totalEV>=0},vals:['${(evSpin>=0?'+':'−')+cf(Math.abs(Math.round(evSpin)))}','${num(border)}回転','${pct(ret)}']})">📊 このスペックを比較に追加</button></div>`
@@ -2499,12 +2527,12 @@ function funStart(){
   if(P.d.length===0)return;
   const budget=Math.max(1000,V('pkFunYen'));
   const spec=pkFunSpinsSpec();
-  fun={cash:budget,tama:0,spins:0,series:[0],start:budget,over:false,P,heso:Math.max(0,Math.round(V('pkHeso'))),spec,perK:pkPickSpins1k(spec),hitsRec:[],lastHitSpin:0};
+  fun={cash:budget,tama:0,spins:0,series:[0],step:1,sample:0,start:budget,over:false,P,heso:Math.max(0,Math.round(V('pkHeso'))),spec,perK:pkPickSpins1k(spec),hitsRec:[],lastHitSpin:0};
   $('pkFunPlay').style.display='';$('funBall').innerHTML='';
   $('funBanner').className='result-banner';
   $('funBanner').innerHTML='<div class="r-tier">↓ 回して減らす</div><div class="r-coin">—</div>';
   funRender();funTheory(budget);
-  requestAnimationFrame(()=>drawChart($('funChart'),fun.series,null,{xLabel:'千円投入回数',yLabel:'収支(円)'}));
+  requestAnimationFrame(funDrawSlump);
 }
 function funSimRule(P,budget,heso,rate,spinsSpec,p,winStop,lossStop){
   const RUNS=400;let gSum=0,bustN=0,winN=0,chainSum=0,chainCount=0,maxChain=0;const samples=[];
@@ -2575,15 +2603,76 @@ function funTheory(budget){
     +'<div class="chart-card"><div class="chart-head"><div class="c-title">最終収支の分布(全額使い切るまで・400回試行)</div></div><canvas id="funHistC"></canvas><div class="fhelp" style="margin-top:6px;">緑=プラス収支・赤=マイナス収支。左に長い裾は「投資額を飲まれるパターン」の頻度を表します。</div></div>';
   requestAnimationFrame(()=>{histInto('funHistC',full.samples,'円');pkDistPiesDraw(P,'f');});
 }
+/* スランプグラフの記録上限(超えたら間引く)。描画コストを一定に保つため */
+const PK_SLUMP_MAX=4000;
+/* 差玉を1点記録する。点が増えすぎたら半分に間引き、1点あたりの回転数(fun.step)を
+   倍にして「系列の位置 × step = 回転数」という横軸の対応を保つ。
+   ボタンを押し終えた時点の端数だけはこの間隔から外れるが、押す回数は数回なので
+   横軸のずれは無視できる範囲に収まる。 */
+function funSample(rate){
+  fun.sample=0;
+  fun.series.push(Math.round((fun.cash+fun.tama-fun.start)/rate));
+  if(fun.series.length>PK_SLUMP_MAX){
+    fun.series=fun.series.filter((_,i)=>i%2===0);
+    fun.step*=2;
+  }
+}
+/* データカウンター的な「大当り履歴」。市販のデータ表示アプリの情報設計を参考に、
+   1回ごとの ①何回転目に当たったか ②ハマリ ③連チャン ④獲得出玉 を並べる。
+   ガチ理論値モードと投資金額設定モードの両方から使う共通表示。 */
+function pkHitHistoryHTML(hits,rate,openByDefault){
+  if(!hits||!hits.length)return '';
+  const rows=hits.slice(-200).reverse().map((h,idx)=>{
+    const no=hits.length-idx;
+    const cls=h.lt?'lt':(h.rush?'rush':'single');
+    const kind=h.lt?'LT':(h.rush?'RUSH':'単発');
+    return '<div class="pkh-row '+cls+'">'
+      +'<span class="pkh-no">'+cf(no)+'</span>'
+      +'<span class="pkh-badge '+cls+'">'+kind+'</span>'
+      +'<span class="pkh-spin">'+cf(h.i)+'<small>回転目</small></span>'
+      +'<span class="pkh-hamari">'+cf(h.hamari)+'<small>ハマリ</small></span>'
+      +'<span class="pkh-chain">'+cf(h.chain||1)+'<small>連</small></span>'
+      +'<span class="pkh-balls">'+cf(Math.round(h.balls||0))+'<small>玉</small></span>'
+      +'</div>';
+  }).join('');
+  return foldBlock('大当り履歴('+cf(hits.length)+'回'+(hits.length>200?' / 直近200件':'')+')',
+    '<div class="pkh-head"><span></span><span></span><span>当選</span><span>ハマリ</span><span>連チャン</span><span>出玉</span></div>'
+    +'<div class="pkh-list">'+rows+'</div>', openByDefault!==false);
+}
+/* 投資金額設定モードのスランプグラフ。差玉(玉)を縦軸にし、
+   大当りの位置に連チャン数のラベルを重ねて「どこで何連したか」を一目で分かるようにする */
+function funDrawSlump(){
+  const markers=fun.hitsRec.slice(-40).map(h=>({
+    i:Math.min(fun.series.length-1,Math.round(h.i/fun.step)),   // 間引き後の位置に合わせる
+    label:(h.chain||1)+'連',
+    color:h.lt?'#A020F0':(h.rush?'#E8C879':'#6B7386')
+  }));
+  drawChart($('funChart'),fun.series,null,
+    {xLabel:'総回転数',yLabel:'差玉(玉)',markers,
+     yFmt:v=>(v>=0?'+':'')+Math.round(v).toLocaleString(),
+     xFmt:i=>cf(i*fun.step)});
+}
 function funRender(){
-  $('funStat').innerHTML='<span class="rc">残り所持金: <b>'+cf(fun.cash)+'</b>円</span>'
-    +'<span class="rc gold">持ち玉: <b>'+cf(Math.round(fun.tama/pkRate.rate))+'</b>玉</span>'
+  /* データカウンターの情報設計にならい、まず「台の状態」を一目で分かる数値として出す。
+     差玉 = 収支を玉数に換算したもの。現在ハマリ = 最後の大当りからの回転数。 */
+  const diff=Math.round((fun.cash+fun.tama-fun.start)/pkRate.rate);
+  const hits=fun.hitsRec.length;
+  const rushes=fun.hitsRec.filter(h=>h.rush).length;
+  const cur=fun.spins-fun.lastHitSpin;
+  $('funStat').innerHTML=
+     '<span class="rc '+(diff>=0?'pos':'neg')+'">差玉: <b>'+(diff>=0?'+':'')+cf(diff)+'</b>玉</span>'
     +'<span class="rc">総回転数: <b>'+cf(fun.spins)+'</b></span>'
+    +'<span class="rc">大当り: <b>'+cf(hits)+'</b>回'+(hits?'(初当り '+num(fun.spins/hits)+'回転)':'')+'</span>'
+    +'<span class="rc">RUSH: <b>'+cf(rushes)+'</b>回'+(hits?'(突入率 '+pct(rushes/hits*100)+')':'')+'</span>'
+    +'<span class="rc">現在ハマリ: <b>'+cf(cur)+'</b>回転</span>'
+    +'<span class="rc">残り所持金: <b>'+cf(fun.cash)+'</b>円</span>'
+    +'<span class="rc gold">持ち玉: <b>'+cf(Math.round(fun.tama/pkRate.rate))+'</b>玉</span>'
     +(Array.isArray(fun.spec)?'<span class="rc">今回の回転数: <b>'+num(fun.perK)+'</b>回転/千円</span>':'');
   if($('funCounter')){
     $('funCounter').innerHTML=fun.spins>0?pkCounterHTML(fun.hitsRec,fun.spins,'Fun',Math.round(fun.tama/pkRate.rate)):'';
     requestAnimationFrame(()=>pkCounterDraw(fun.hitsRec,'Fun'));
   }
+  if($('funHits'))$('funHits').innerHTML=pkHitHistoryHTML(fun.hitsRec,pkRate.rate,true);
 }
 function funPress(amount){
   if(!fun||fun.over)return;
@@ -2605,19 +2694,22 @@ function funPress(amount){
     fun.tama+=fun.heso*rate; // ヘソ賞球
     if(Math.random()<p){
       const r=pkFirstHit(P);gainedTotal+=r.balls*rate;fun.tama+=r.balls*rate;if(r.chain>bestChain)bestChain=r.chain;
-      fun.hitsRec.push({i:fun.spins,hamari:fun.spins-fun.lastHitSpin,rush:r.chain>1,lt:r.ltHit});
+      fun.hitsRec.push({i:fun.spins,hamari:fun.spins-fun.lastHitSpin,rush:r.chain>1,lt:r.ltHit,chain:r.chain,balls:r.balls});
       fun.lastHitSpin=fun.spins;
     }
-    if(amount!==-1){/* keep looping until amount spent */}
+    /* スランプグラフ用に差玉を記録する。
+       以前はボタンを押すごとに1点しか積んでいなかったため、
+       「全額回す」を押すと点が1つしか増えずグラフとして機能していなかった。 */
+    if(++fun.sample>=fun.step)funSample(rate);
   }
-  fun.series.push(Math.round(fun.cash+fun.tama-fun.start));
+  if(fun.sample>0)funSample(rate);   // 押し終わりの現在値を必ず末尾に反映する
   const show=()=>{
     const fb=$('funBanner');
     fb.className='result-banner '+(gainedTotal>0?'hit':'')+' pop';
     fb.innerHTML='<div class="r-tier">'+cf(spinsTotal)+'回転 '+(gainedTotal>0?'— 大当たり!! 最高'+bestChain+'連':'— 当たりなし')+'</div>'
       +'<div class="r-coin">'+(gainedTotal>0?'+'+cf(gainedTotal)+'円分の出玉':'…')+'</div>';
     funRender();
-    drawChart($('funChart'),fun.series,null,{xLabel:'投入回数',yLabel:'収支(円)'});
+    funDrawSlump();
     if(fun.cash<1000/perK&&fun.tama<1000/perK)funOver();
   };
   if(gainedTotal>0&&FX==='full'&&amount!==-1){
@@ -3572,8 +3664,12 @@ function pieLegend(segments){
 }
 
 /* ---- 折りたたみ ---- */
+let foldSeq=0;
 function foldBlock(title,innerHTML,openByDefault){
-  const id='fold'+(Math.random()*1e9|0);
+  /* 表示用のidは連番で振る。以前は Math.random() を使っていたため、
+     折りたたみを1つ増やすだけでシミュレーションの乱数列が1つずれてしまい、
+     計算結果とは無関係なのに結果が変わって見えていた。連番なら衝突もしない。 */
+  const id='fold'+(++foldSeq);
   return '<div class="fold-head'+(openByDefault?'':' closed')+'" onclick="this.classList.toggle(\'closed\');document.getElementById(\''+id+'\').classList.toggle(\'closed\');">'
     +'<span class="fold-ar">▼</span>'+title+'</div>'
     +'<div class="fold-body'+(openByDefault?'':' closed')+'" id="'+id+'" style="max-height:1400px;">'+innerHTML+'</div>';

@@ -9,3 +9,7 @@ desktop.ini
 
 # 検証用の使い捨てファイル
 _*.html
+
+# Python のコンパイルキャッシュ(tools/make-icons.py 実行時に作られる)
+__pycache__/
+*.pyc

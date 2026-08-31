@@ -211,5 +211,29 @@ function foldState(w, bodyId) {
       !!hero.querySelector('.hero-net') && hero.querySelectorAll('.hero-mini').length === 2);
   }
 
+  /* タブ(ナビゲーション)
+     jsdom はレイアウトを持たないのでグリッドの列数や sticky は検証できない。
+     切替が壊れていないことと、追従に必要な部品がそろっていることを見る。 */
+  {
+    const w = await boot(TARGET, { seed: 1 });
+    const tabs = [...w.document.querySelectorAll('.tab')];
+    R.check('タブは8個', tabs.length === 8, tabs.length + '個');
+    R.check('追従判定用の番兵がタブの直前にある', () => {
+      const top = $(w, 'tabsTop');
+      return !!top && top.nextElementSibling === w.document.querySelector('.tabs');
+    });
+    /* 全タブを順に開いて、対応するパネルだけがactiveになること */
+    const bad = tabs.map((t) => {
+      t.dispatchEvent(new w.Event('click', { bubbles: true }));
+      const act = [...w.document.querySelectorAll('.panel.active')];
+      if (act.length !== 1) return `${t.dataset.tab}: activeパネルが${act.length}個`;
+      if (act[0].id !== 'panel-' + t.dataset.tab) return `${t.dataset.tab}: ${act[0].id} が開いた`;
+      if (!t.classList.contains('active')) return `${t.dataset.tab}: タブがactiveでない`;
+      return null;
+    }).find(Boolean);
+    R.check('全8タブが正しいパネルへ切り替わる', !bad, bad || '8タブすべてOK');
+    R.check('切替で例外が出ていない', (w.__errs || []).length === 0, (w.__errs || []).join(' / ') || 'なし');
+  }
+
   process.exit(R.finish());
 })().catch((e) => { console.error('ERR', e); process.exit(1); });

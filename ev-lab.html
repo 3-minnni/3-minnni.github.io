@@ -57,14 +57,48 @@
   h1 .g{background:linear-gradient(180deg,#FFE9A8 10%,#E8B33C 60%,#C08A18);-webkit-background-clip:text;background-clip:text;color:transparent;}
   .lede{color:var(--ink-2);font-size:var(--fs-md);margin:0 0 var(--sp-4);}
 
-  .tabs{display:flex;flex-wrap:wrap;gap:var(--sp-2);margin-bottom:20px;}
-  .tab{flex:1;min-width:105px;border:1px solid var(--line);border-radius:12px;background:var(--card);padding:10px 6px;text-align:center;cursor:pointer;user-select:none;transition:.15s;}
+  /* ---- タブ ----
+     以前は flex:1 + flex-wrap だったため、8個が「6個 + 2個」に折り返し、
+     あふれた2個だけが横幅いっぱいに引き伸ばされていた(対等な選択肢なのに
+     2個だけ特別扱いに見える)。4×2の均等グリッドにして解消する。
+     さらに sticky にして、下までスクロールしてもタブ切替に戻れるようにした。 */
+  .tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--sp-2);
+    margin:0 -16px 20px;padding:10px 16px;position:sticky;top:0;z-index:20;
+    background:var(--bg);transition:box-shadow .2s ease,padding .2s ease;}
+  @supports (backdrop-filter:blur(1px)){
+    /* 本体の背景はグラデーションなので、単色で塗るとスクロール時に境目が出る。
+       半透明+ぼかしなら地色の変化に馴染む。 */
+    .tabs{background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(12px);}
+  }
+  /* 上端に貼り付いたら1行に畳む。常時2行だと画面を取りすぎるため、
+     先頭では一覧として、スクロール中は移動手段として振る舞わせる。 */
+  .tabs.stuck{grid-template-columns:repeat(8,1fr);gap:5px;
+    box-shadow:0 8px 22px rgba(0,0,0,.34);padding-top:7px;padding-bottom:7px;}
+  body.light .tabs.stuck{box-shadow:0 6px 16px rgba(27,28,25,.10);}
+  .tabs.stuck .t-sub{display:none;}
+  .tabs.stuck .tab{padding:7px 2px;border-radius:9px;}
+  .tabs.stuck .t-name{font-size:11.5px;}
+  .tab{border:1px solid var(--line);border-radius:12px;background:var(--card);
+    padding:10px 6px;text-align:center;cursor:pointer;user-select:none;
+    transition:transform .14s cubic-bezier(.2,.8,.3,1),border-color .14s,background .14s;}
   .tab .t-name{font-size:var(--fs-md);font-weight:700;}
   .tab .t-sub{font-size:var(--fs-xs);color:var(--ink-3);}
-  .tab:hover{border-color:var(--line2);}
+  .tab:hover{border-color:var(--line2);transform:translateY(-1px);}
   .tab.active{border-color:var(--gold);background:linear-gradient(180deg,rgba(232,179,60,.16),rgba(232,179,60,.05));}
   .tab.active .t-name{color:var(--gold-hi);}
   .tab.active .t-sub{color:var(--gold);}
+  /* 狭い画面では横1行のスクロール列にする。
+     2列×4行の塊(約330px)が画面の大半を占め、内容にたどり着くまでに
+     1画面ぶんスクロールが必要だったため。 */
+  @media(max-width:620px){
+    .tabs{display:flex;flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;
+      scroll-snap-type:x proximity;scrollbar-width:none;-ms-overflow-style:none;
+      padding:9px 16px;gap:6px;}
+    .tabs::-webkit-scrollbar{display:none;}
+    .tab{flex:0 0 auto;border-radius:999px;padding:8px 16px;scroll-snap-align:start;}
+    .tab .t-sub{display:none;}
+    .tab:hover{transform:none;}
+  }
 
   .panel{display:none;} .panel.active{display:block;}
 
@@ -600,6 +634,7 @@
   <h1>賭ける前に、<span class="g">数字</span>を見る。</h1>
   <p class="lede">確率と条件を入力して期待値を計算。仮想コインで引き心地も体験できます。</p>
 
+  <div id="tabsTop" aria-hidden="true"></div>
   <div class="tabs">
     <div class="tab active" data-tab="pk"><div class="t-name">パチンコ</div><div class="t-sub">RUSH・振り分け</div></div>
     <div class="tab" data-tab="sl"><div class="t-name">スロット</div><div class="t-sub">AT機・Aタイプ</div></div>
@@ -1597,18 +1632,37 @@ function num(n,d=1){if(!Number.isFinite(n))return NOVAL;return (Math.round(n*10*
 function pct(n,d=1){if(!Number.isFinite(n))return NOVAL;return num(n,d)+'%';}
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 
+/* 狭い画面ではタブが横1行のスクロール列になるため、
+   選んだタブが端に隠れたままにならないよう視界へ寄せる */
+function tabScrollIntoView(t){
+  const bar=t.parentElement;
+  if(bar.scrollWidth<=bar.clientWidth)return;   // 折り返していない(PC)なら不要
+  const left=t.offsetLeft-bar.offsetLeft-16;
+  bar.scrollTo({left:Math.max(0,left),behavior:FX==='off'?'auto':'smooth'});
+}
 document.querySelectorAll('.tab').forEach(t=>{
   t.addEventListener('click',()=>{
     document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
     document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
     t.classList.add('active');$('panel-'+t.dataset.tab).classList.add('active');
     curTab=t.dataset.tab;
+    tabScrollIntoView(t);
     if(t.dataset.tab==='ru')ruDraw(ruRot);
     if(t.dataset.tab==='lt'&&ltItems.length)ltDraw(ltRot);
     if(t.dataset.tab==='st')stRender();
     tutMaybe(t.dataset.tab);
   });
 });
+/* タブが画面上端に貼り付いたら影を出して、浮いていることを示す。
+   スクロールイベントを毎フレーム処理せずに済むよう番兵を監視する。 */
+(function(){
+  const bar=document.querySelector('.tabs'),top=$('tabsTop');
+  if(!bar||!top||!('IntersectionObserver' in window))return;
+  new IntersectionObserver(
+    es=>es.forEach(e=>bar.classList.toggle('stuck',!e.isIntersecting)),
+    {threshold:1}
+  ).observe(top);
+})();
 
 /* ===== chart (dark) ===== */
 function drawChart(canvas,series,evLine,opt){

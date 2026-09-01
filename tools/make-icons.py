@@ -14,6 +14,7 @@
     icon-maskable-512.png   … PWA manifest(maskable)
     favicon-32.png          … ブラウザタブ用
     feature-1024x500.png    … Playストアのフィーチャーグラフィック
+    og-1200x630.png         … SNSで共有されたときのカード画像(OGP)
 
 暗い壁紙だと近黒の地色が背景に沈んで輪郭が消えるため、
 通常アイコンには金の細い縁取りを入れている(48pxでも1px残る太さにしてある)。
@@ -179,6 +180,35 @@ def feature_graphic(w=1024, h=500):
     return img.resize((w, h), Image.LANCZOS)
 
 
+def og_image(w=1200, h=630):
+    """SNSで共有されたときに出るカード画像。
+    推奨比率は 1.91:1 で、ストア用バナー(1024x500 = 2.05:1)とは違うため別に作る。
+    小さく表示されても読めるよう、要素は名前・一言・図案の3つに絞る。"""
+    W, H = w * 2, h * 2
+    img = Image.new('RGB', (W, H), BG_PLATE)
+    d = ImageDraw.Draw(img)
+
+    # 図案は下半分に大きく敷く
+    draw_convergence(d, W * 0.10, W * 0.90, H * 0.70, H * 0.17,
+                     max(2, int(H * 0.008)), max(3, int(H * 0.020)), H * 0.020)
+
+    tw = W * 0.80
+    f1 = fit_font(d, '期待値ラボ', tw, int(H * 0.16))
+    f2 = fit_font(d, '賭ける前に、数字を見る。', tw, int(H * 0.062))
+    f3 = fit_font(d, 'パチンコ・スロット・ガチャの期待値シミュレータ', tw, int(H * 0.040))
+
+    def center(text, font, y, fill):
+        b = d.textbbox((0, 0), text, font=font)
+        d.text(((W - (b[2] - b[0])) / 2 - b[0], y), text, font=font, fill=fill)
+
+    center('期待値ラボ', f1, H * 0.13, GOLD_HI)
+    center('賭ける前に、数字を見る。', f2, H * 0.34, INK)
+    center('パチンコ・スロット・ガチャの期待値シミュレータ', f3, H * 0.44, (166, 163, 180))
+
+    d.rectangle([0, H - int(H * 0.014), W, H], fill=GOLD_MID)
+    return img.resize((w, h), Image.LANCZOS)
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     jobs = [
@@ -187,6 +217,7 @@ def main():
         ('icon-maskable-512.png', lambda: icon_maskable(512)),
         ('favicon-32.png',        lambda: icon_square(32, border=0.030)),  # 小さいので枠を厚めに
         ('feature-1024x500.png',  lambda: feature_graphic()),
+        ('og-1200x630.png',       lambda: og_image()),
     ]
     for name, fn in jobs:
         img = fn()

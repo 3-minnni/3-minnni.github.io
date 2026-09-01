@@ -1,0 +1,10 @@
+# 期待値ラボ — クローラ向けの案内
+# アプリ本体とルートページは収集を歓迎する。
+# tests/ と tools/ は開発用で、検索結果に出ても利用者の役に立たないため除外する。
+
+User-agent: *
+Allow: /
+Disallow: /tests/
+Disallow: /tools/
+
+Sitemap: https://3-minnni.github.io/sitemap.xml

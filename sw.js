@@ -18,8 +18,8 @@
    ev-lab.html が配られ続ける(実際に一度これで旧版が表示された)。
    APP_HASH は ev-lab.html の中身のハッシュで、上げ忘れを
    tests/deploy.js が検出する。 */
-const VERSION = 'v2';
-const APP_HASH = '61d0f2f614a1';
+const VERSION = 'v3';
+const APP_HASH = 'ee85a70a3331';
 const CACHE = 'evlab-' + VERSION;
 
 /* 起動に最低限必要なもの。ここが揃っていればオフラインで完全に動く */

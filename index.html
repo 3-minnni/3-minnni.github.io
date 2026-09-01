@@ -3,24 +3,63 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>期待値ラボ</title>
-<!-- サイトのルートに来た人をアプリ本体へ送る。
-     アプリの実体は ev-lab.html 側にあり、PWA の start_url もそちらを指している。
+<title>期待値ラボ — パチンコ・スロット・ガチャの期待値シミュレータ</title>
+<meta name="description" content="パチンコのボーダーライン、スロットの機械割、オリパ・ガチャの還元率を計算する無料の期待値シミュレータ。収支の分布や破産確率まで確認できます。登録不要・実際のお金は使いません。">
+<meta name="theme-color" content="#0B0B10">
+<link rel="canonical" href="https://3-minnni.github.io/">
+<!-- ルートURLが共有されたときもカードが出るようにする -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="期待値ラボ">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:url" content="https://3-minnni.github.io/">
+<meta property="og:title" content="期待値ラボ — 賭ける前に、数字を見る。">
+<meta property="og:description" content="パチンコ・スロット・オリパ・ガチャ・ルーレットの期待値と確率をシミュレーション。ボーダーラインや機械割、収支の分布まで計算できる学習ツールです。実際のお金は使いません。">
+<meta property="og:image" content="https://3-minnni.github.io/icons/og-1200x630.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="期待値ラボ — 賭ける前に、数字を見る。">
+<meta name="twitter:description" content="パチンコ・スロット・オリパ・ガチャ・ルーレットの期待値と確率をシミュレーション。実際のお金は使いません。">
+<meta name="twitter:image" content="https://3-minnni.github.io/icons/og-1200x630.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<!-- アプリ本体は ev-lab.html 側にあり、PWA の start_url もそちらを指している。
+     以前はここが0秒リダイレクトだけで中身が無く、検索エンジンから見て
+     内容が空のページだった。説明を持たせたうえで本体へ送る。
      JSが無効でも移動できるよう meta refresh を主、script を補助として置く。 -->
 <meta http-equiv="refresh" content="0; url=./ev-lab.html">
-<link rel="canonical" href="./ev-lab.html">
-<meta name="theme-color" content="#0B0B10">
 <style>
-  html,body{margin:0;height:100%;}
+  :root{color-scheme:dark;}
+  html,body{margin:0;min-height:100%;}
   body{background:#0B0B10;color:#A6ADBF;
     font-family:'Hiragino Sans','Yu Gothic Medium','Noto Sans JP',Meiryo,system-ui,sans-serif;
-    display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;}
-  a{color:#E8C879;}
+    display:flex;align-items:center;justify-content:center;padding:24px;line-height:1.9;}
+  main{max-width:34rem;text-align:center;}
+  h1{color:#E8C879;font-size:22px;margin:0 0 4px;}
+  .sub{font-size:13px;color:#6B7386;margin:0 0 18px;}
+  ul{text-align:left;display:inline-block;margin:0 0 18px;padding-left:1.1em;font-size:14px;}
+  li{margin-bottom:4px;}
+  a.go{display:inline-block;background:linear-gradient(180deg,#F2DC9B,#C8A25B 45%,#8A6A2F);
+    color:#241A02;font-weight:800;text-decoration:none;border-radius:12px;padding:12px 26px;}
+  .note{font-size:12px;color:#6B7386;margin-top:18px;}
 </style>
 </head>
 <body>
-  <p>期待値ラボへ移動しています…<br>
-     自動で切り替わらない場合は <a href="./ev-lab.html">こちらから開いてください</a>。</p>
-  <script>location.replace('./ev-lab.html');</script>
+<main>
+  <h1>期待値ラボ</h1>
+  <p class="sub">賭ける前に、数字を見る。</p>
+  <p>パチンコ・スロット・オリパ・ガチャ・ルーレットの期待値と確率を計算する、
+     無料のシミュレータです。</p>
+  <ul>
+    <li>パチンコのボーダーライン、RUSH・時短を含む期待収支</li>
+    <li>スロットの機械割、コイン持ち、破産確率</li>
+    <li>オリパ・ガチャの還元率と天井、非復元抽選にも対応</li>
+    <li>収支の推移と分布、実践記録の集計</li>
+  </ul>
+  <p><a class="go" href="./ev-lab.html">アプリを開く</a></p>
+  <p class="note">登録不要・インストール不要。<strong>実際のお金は使いません。</strong><br>
+     自動で移動しない場合は上のボタンから開いてください。</p>
+</main>
+<script>location.replace('./ev-lab.html');</script>
 </body>
 </html>

@@ -76,6 +76,27 @@
   h1{font-size:var(--fs-4xl);font-weight:900;margin:0 0 var(--sp-1);letter-spacing:.01em;}
   h1 .g{background:linear-gradient(180deg,#FFE9A8 10%,#E8B33C 60%,#C08A18);-webkit-background-clip:text;background-clip:text;color:transparent;}
   .lede{color:var(--ink-2);font-size:var(--fs-md);margin:0 0 var(--sp-4);}
+  /* ホーム画面への追加案内。PWAとして配る以上、
+     「追加できる」と気づいてもらえないと意味がないので導線を出す。
+     すでにアプリとして起動している場合や、一度閉じた場合は出さない。 */
+  .pwa-bar{display:flex;align-items:center;gap:var(--sp-2h);margin:0 0 var(--sp-4);
+    padding:var(--sp-2h) var(--sp-3);background:var(--card);border:1px solid var(--gold-deep);
+    border-radius:var(--r-md);box-shadow:0 4px 14px rgba(0,0,0,.22);}
+  body.light .pwa-bar{box-shadow:0 3px 10px rgba(27,28,25,.08);}
+  .pwa-bar .pwa-ico{flex:0 0 auto;width:30px;height:30px;border-radius:var(--r-sm);
+    background:var(--gold-grad);color:#241A02;display:flex;align-items:center;
+    justify-content:center;font-weight:900;font-size:var(--fs-xl);}
+  .pwa-bar .pwa-txt{flex:1;min-width:0;line-height:1.5;}
+  .pwa-bar .pwa-txt b{display:block;font-size:var(--fs-md);font-weight:700;}
+  .pwa-bar .pwa-txt span{display:block;font-size:var(--fs-xs);color:var(--ink-3);}
+  .pwa-bar .pwa-x{background:none;border:0;color:var(--ink-3);cursor:pointer;
+    font-size:var(--fs-xl);line-height:1;padding:0 var(--sp-1);font-family:inherit;}
+  .pwa-bar .pwa-x:hover{color:var(--ink);}
+  @media(max-width:480px){
+    .pwa-bar{flex-wrap:wrap;}
+    .pwa-bar .pwa-txt{flex:1 1 60%;}
+    .pwa-bar #pwaBtn{order:3;flex:1 1 100%;}
+  }
 
   /* ---- タブ ----
      以前は flex:1 + flex-wrap だったため、8個が「6個 + 2個」に折り返し、
@@ -682,6 +703,17 @@
   </div>
   <h1>賭ける前に、<span class="g">数字</span>を見る。</h1>
   <p class="lede">確率と条件を入力して期待値を計算。仮想コインで引き心地も体験できます。</p>
+
+  <!-- ホーム画面への追加案内。インストール可能なときだけ表示する -->
+  <div class="pwa-bar" id="pwaBar" style="display:none;">
+    <div class="pwa-ico" aria-hidden="true">↓</div>
+    <div class="pwa-txt">
+      <b id="pwaTitle">ホーム画面に追加できます</b>
+      <span id="pwaSub">アイコンから全画面で起動でき、電波がなくても使えます</span>
+    </div>
+    <button class="btn2 accent" id="pwaBtn" onclick="pwaInstall()">追加する</button>
+    <button class="pwa-x" onclick="pwaDismiss()" aria-label="この案内を閉じる">×</button>
+  </div>
 
   <div id="tabsTop" aria-hidden="true"></div>
   <div class="tabs">
@@ -5097,6 +5129,46 @@ themeFlip=function(){_themeFlipOrig();
   if(location.protocol!=='http:'&&location.protocol!=='https:')return; // file:// では登録不可
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js').catch(()=>{ /* 失敗してもアプリ本体は動く */ });
+  });
+})();
+
+/* ---- ホーム画面への追加案内 ----
+   ストアに出さずウェブで配る以上、「追加できる」と気づいてもらえなければ
+   ブラウザのまま使われてしまう。Chrome等は beforeinstallprompt が飛んでくるので
+   それを捕まえて案内を出す。iOSはこのイベントが無いため手順を文章で示す。 */
+let pwaPrompt=null;
+function pwaStandalone(){
+  return (window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)
+    || window.navigator.standalone===true;   // iOSのホーム画面起動
+}
+function pwaHidden(){try{return localStorage.getItem('evlab_pwa_hide')==='1';}catch(e){return false;}}
+function pwaDismiss(){
+  const b=$('pwaBar');if(b)b.style.display='none';
+  try{localStorage.setItem('evlab_pwa_hide','1');}catch(e){}
+}
+function pwaInstall(){
+  if(!pwaPrompt)return;
+  pwaPrompt.prompt();
+  pwaPrompt.userChoice.then(r=>{
+    pwaPrompt=null;
+    if(r&&r.outcome==='accepted')pwaDismiss();
+  }).catch(()=>{});
+}
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();pwaPrompt=e;
+  if(pwaStandalone()||pwaHidden())return;
+  const b=$('pwaBar');if(b)b.style.display='';
+});
+window.addEventListener('appinstalled',()=>pwaDismiss());
+(function(){
+  /* iOS Safari は beforeinstallprompt を出さないので、共有メニューの手順を案内する */
+  const iOS=/iP(hone|ad|od)/.test(navigator.userAgent)&&!window.MSStream;
+  if(!iOS||pwaStandalone()||pwaHidden())return;
+  window.addEventListener('load',()=>{
+    const b=$('pwaBar');if(!b)return;
+    $('pwaSub').textContent='下の共有ボタン → 「ホーム画面に追加」で、全画面で起動できます';
+    $('pwaBtn').style.display='none';      // iOSはプログラムから追加できない
+    b.style.display='';
   });
 })();
 /* ============================================================

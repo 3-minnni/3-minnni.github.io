@@ -3,6 +3,7 @@ const { spawnSync } = require('child_process');
 const path = require('path');
 
 const SUITES = [
+  ['deploy',     '公開まわりの整合性'],
   ['splash',     '起動画面'],
   ['validation', '入力バリデーション + 退行チェック'],
   ['errmsg',     'エラーメッセージ'],

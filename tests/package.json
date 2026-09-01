@@ -5,6 +5,7 @@
   "description": "期待値ラボ(ev-lab.html)の開発用テスト。配布物には含まれない。",
   "scripts": {
     "test": "node run-all.js",
+    "deploy": "node run-all.js deploy",
     "splash": "node run-all.js splash",
     "validation": "node run-all.js validation",
     "errmsg": "node run-all.js errmsg",

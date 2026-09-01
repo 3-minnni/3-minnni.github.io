@@ -12,7 +12,14 @@
      - ページ遷移        … オフライン時は ev-lab.html を返す
    ------------------------------------------------------------------ */
 
-const VERSION = 'v1';
+/* ★ ev-lab.html を更新したら必ず VERSION を変えること。
+   ブラウザは sw.js のバイト列が変わったときだけ新しい Service Worker を入れ直す。
+   VERSION を据え置くと install が再実行されず、プリキャッシュした古い
+   ev-lab.html が配られ続ける(実際に一度これで旧版が表示された)。
+   APP_HASH は ev-lab.html の中身のハッシュで、上げ忘れを
+   tests/deploy.js が検出する。 */
+const VERSION = 'v2';
+const APP_HASH = '61d0f2f614a1';
 const CACHE = 'evlab-' + VERSION;
 
 /* 起動に最低限必要なもの。ここが揃っていればオフラインで完全に動く */
@@ -62,7 +69,9 @@ self.addEventListener('fetch', (e) => {
   if (req.mode === 'navigate') {
     e.respondWith((async () => {
       try {
-        const fresh = await fetch(req);
+        /* no-cache: HTTPキャッシュを使わずサーバーへ確認しに行く。
+           これを付けないと、古い応答をそのまま掴んでキャッシュに焼き直してしまう */
+        const fresh = await fetch(req, { cache: 'no-cache' });
         const cache = await caches.open(CACHE);
         cache.put(req, fresh.clone());
         return fresh;

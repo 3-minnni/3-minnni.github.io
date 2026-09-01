@@ -31,13 +31,28 @@
 単一HTML(`ev-lab.html`)で完結する構成です。ビルド手順はありません。
 
 ```bash
-cd tests && npm install && npm test   # 回帰テスト(全7スイート)
+bash tools/status.sh                  # 現状の点検(公開サイト・同期・配信版)
+cd tests && npm install && npm test   # 回帰テスト(全12スイート)
 python tools/make-icons.py            # アイコン再生成
 ```
 
+- `tools/status.sh` … 公開サイトが生きているか、手元とGitHubがずれていないか、
+  配信中の版が手元と一致しているかをまとめて確認する
 - `tests/` … jsdom による回帰テスト。詳細は [tests/README.md](tests/README.md)
-- `tools/make-icons.py` … PWA/ストア用アイコンの生成
-- `CLAUDE.md` … 設計判断と実装経緯の記録
+- `tools/make-icons.py` … PWA/ストア用アイコン・OGP画像の生成
+
+## 更新するとき
+
+`ev-lab.html` を変更したら、**`sw.js` の `VERSION` を上げ、`APP_HASH` を
+新しいハッシュに更新すること。**
+
+```bash
+python -c "import hashlib;print(hashlib.sha256(open('ev-lab.html','rb').read()).hexdigest()[:12])"
+```
+
+ブラウザは `sw.js` のバイト列が変わったときだけ Service Worker を入れ直すため、
+据え置くとキャッシュ済みの古い版が配られ続ける。
+`cd tests && node run-all.js deploy` が上げ忘れを検出する。
 
 ## 免責
 
